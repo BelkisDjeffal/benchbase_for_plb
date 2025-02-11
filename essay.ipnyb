@@ -1,0 +1,149 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_grouped_bar_chart(df, metric, title, ylabel, output_name=None):
+    """
+    Function to plot grouped bar chart for a specific metric.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Store the positions for grouped bars
+    x_positions = []
+    x_labels = []
+    bar_width = 0.2  # Width of each bar
+    colors = ['b', 'g', 'r', 'orange', 'purple']  # Define colors for bars
+
+    # Group data by total clients (Terminals)
+    grouped = df.groupby("Terminals")
+
+    for idx, (terminals, subset) in enumerate(grouped):
+        x = np.arange(len(subset)) + idx * (len(subset) * bar_width + 0.3)  # Space out groups
+        x_positions.append(x)
+        
+        # Plot bars for the specific metric
+        ax.bar(x, subset[metric], width=bar_width, label=f"Total Clients: {terminals}", color=colors[idx % len(colors)])
+        
+        # Add X-axis labels for Premium:Freemium combinations
+        x_labels.extend(subset["Clients_Label"])
+
+    # Flatten x_positions for labeling
+    x_positions = np.concatenate(x_positions)
+
+    # Customize the plot
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(x_labels, rotation=45, ha='right')
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(title="Total Terminals")
+    ax.grid(axis='y')
+
+    # Save the plot if output_name is provided
+    if output_name:
+        plt.savefig(f"{output_name}.png", dpi=300)
+        plt.savefig(f"{output_name}.pdf", format="pdf")
+    
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+-----------------------------------
+def plot_grouped_bar_chart(df, metric, title, ylabel, output_name=None):
+    """
+    Function to plot grouped bar chart for a specific metric with proper sorting.
+    """
+    # Sort DataFrame by Total Clients and Clients_Label globally
+    df = df.sort_values(["Total Clients", "Clients_Label"]).reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Create positions for bars
+    bar_width = 0.2  # Width of each bar
+    x_positions = np.arange(len(df))  # One position per row in the DataFrame
+    colors = ['b', 'g', 'r', 'orange', 'purple']  # Define colors for bars
+
+    # Plot bars for the specific metric
+    ax.bar(
+        x_positions,
+        df[metric],
+        width=bar_width,
+        label="Total Clients",
+        color=[colors[i % len(colors)] for i in range(len(df))]
+    )
+
+    # Add X-axis labels for Premium:Freemium combinations
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(df["Clients_Label"], rotation=45, ha='right')
+
+    # Customize the plot
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(title="Total Terminals", bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.grid(axis='y')
+
+    # Format Y-axis labels as integers
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+
+    # Save the plot if output_name is provided
+    if output_name:
+        plt.savefig(f"{output_name}.png", dpi=300)
+        plt.savefig(f"{output_name}.pdf", format="pdf")
+    
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+------------
+
+def plot_grouped_bar_chart_proportional(df, metric, title, ylabel, output_name=None):
+    """
+    Function to plot grouped bar chart with proportional X-axis based on Total Clients.
+    """
+    # Sort DataFrame by Total Clients and Clients_Label globally
+    df = df.sort_values(["Total Clients", "Clients_Label"]).reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Use Total Clients for proportional X-axis spacing
+    x_positions = df["Total Clients"].values  # Use Total Clients directly as X-axis positions
+    bar_width = 5  # Adjust bar width for better visualization
+    colors = ['b', 'g', 'r', 'orange', 'purple']  # Define colors for bars
+
+    # Plot bars for the specific metric
+    ax.bar(
+        x_positions,
+        df[metric],
+        width=bar_width,
+        label="Total Clients",
+        color=[colors[i % len(colors)] for i in range(len(df))]
+    )
+
+    # Add X-axis labels for Premium:Freemium combinations
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(df["Clients_Label"], rotation=45, ha='right')
+
+    # Customize the plot
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(title="Total Terminals", bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.grid(axis='y')
+
+    # Format Y-axis labels as integers
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+
+    # Save the plot if output_name is provided
+    if output_name:
+        plt.savefig(f"{output_name}.png", dpi=300)
+        plt.savefig(f"{output_name}.pdf", format="pdf")
+    
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+----
+
+
+
+plot_grouped_bar_chart_proportional(
+    df,
+    metric="Average Latency",
+    title="Average Latency vs. Premium:Freemium Breakdown (Proportional X-Axis)",
+    ylabel="Average Latency (milliseconds)",
+    output_name="average_latency_proportional"
+)
