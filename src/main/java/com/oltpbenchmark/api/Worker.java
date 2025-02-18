@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
   // Interval requests used by the monitor
   private final AtomicInteger intervalRequests = new AtomicInteger(0);
+  private AtomicInteger attemptedRequests = new AtomicInteger();
 
   private final int id;
   protected String workerPriorityClass = "priority";
@@ -67,6 +69,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private final Histogram<TransactionType> txnRetry = new Histogram<>();
   private final Histogram<TransactionType> txnErrors = new Histogram<>();
   private final Histogram<TransactionType> txtRetryDifferent = new Histogram<>();
+  private final Map<String, Integer> localSuccessByPriority = new HashMap<>();
+  private final Map<String, Integer> attemptedRequestsByPriority = new ConcurrentHashMap<>();
 
   private boolean seenDone = false;
 
@@ -81,15 +85,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     this.currStatement = null;
     this.transactionTypes = this.configuration.getTransTypes();
 
-    // if (!this.configuration.getNewConnectionPerTxn()) {
-    //   try {
-    //     this.conn = this.benchmark.makeConnection(workerPriorityClass);
-    //     this.conn.setAutoCommit(false);
-    //     this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-    //   } catch (SQLException ex) {
-    //     throw new RuntimeException("Failed to connect to database", ex);
-    //   }
-    // }
+    if (!this.configuration.getNewConnectionPerTxn()) {
+      try {
+        this.conn = this.benchmark.makeConnection(workerPriorityClass);
+        this.conn.setAutoCommit(false);
+        this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+      } catch (SQLException ex) {
+        throw new RuntimeException("Failed to connect to database", ex);
+      }
+    }
 
     // Generate all the Procedures that we're going to need
     this.procedures.putAll(this.benchmark.getProcedures());
@@ -204,6 +208,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     return (this.txtRetryDifferent);
   }
 
+  public Map<String, Integer> getLocalSuccessByPriority() {
+    return localSuccessByPriority;
+  }
+
   /** Stop executing the current statement. */
   public synchronized void cancelStatement() {
     try {
@@ -233,19 +241,18 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     // wait for start
     workloadState.blockForStart();
 
-    // Track the current phase to detect transitions
-    Phase currentPhase = null;
-
     while (true) {
-      // LOG.info("Worker {}| Priority {}: Beginning work in the current iteration.", this.id,
-      // this.workerPriorityClass);
 
       // PART 1: Init and check if done
+
       State preState = workloadState.getGlobalState();
 
-      // Do nothing if the test is done
+      // Do nothing
       if (preState == State.DONE) {
         if (!seenDone) {
+          // This is the first time we have observed that the
+          // test is done notify the global test state, then
+          // continue applying load
           seenDone = true;
           workloadState.signalDone();
           break;
@@ -253,99 +260,149 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       }
 
       // PART 2: Wait for work
+
+      // Sleep if there's nothing to do.
       workloadState.stayAwake();
 
-      // Fetch the current phase
-      Phase newPhase = workloadState.getCurrentPhase();
-
-      // If the phase is null, skip further processing
-      if (newPhase == null) {
-        continue; // Skip if no active phase
+      Phase prePhase = workloadState.getCurrentPhase();
+      if (prePhase == null) {
+        continue;
       }
 
-      // Handle phase transitions (if the phase has changed)
-      if (currentPhase != newPhase) {
-        if (currentPhase != null) {
-          // Log and keep track of the transition but don't tear down yet.
-          LOG.info(
-              "Worker {}| Priority {}: Phase {} transitioned to {}",
-              this.id,
-              currentPhase.getId(),
-              newPhase.getId());
-        }
+      // Grab some work and update the state, in case it changed while we
+      // waited.
 
-        // Update the current phase to the new one
-        currentPhase = newPhase;
-      }
-
-      // Fetch work to do
       SubmittedProcedure pieceOfWork = workloadState.fetchWork();
-      if (pieceOfWork == null) {
-        continue; // Skip if no work is available
+
+      prePhase = workloadState.getCurrentPhase();
+      if (prePhase == null) {
+        continue;
       }
 
-      synchronized (this) {
-        if (this.conn == null) {
-          try {
-            this.conn = this.benchmark.makeConnection(workerPriorityClass);
-            this.conn.setAutoCommit(false);
-            this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-            LOG.info(
-                "Worker {}| Priority {}: created connection: {}",
-                this.id,
-                this.workerPriorityClass,
-                this.conn);
-          } catch (SQLException ex) {
-            LOG.error(
-                "Worker {}| Priority {}: error creating connection",
-                this.id,
-                this.workerPriorityClass,
-                ex);
-            continue;
-          }
+      preState = workloadState.getGlobalState();
+
+      switch (preState) {
+        case DONE, EXIT, LATENCY_COMPLETE -> {
+          // Once a latency run is complete, we wait until the next
+          // phase or until DONE.
+          LOG.warn("preState is {}? will continue...", preState);
+          continue;
         }
+        default -> {}
+          // Do nothing
       }
 
       // PART 3: Execute work
+
       TransactionType transactionType =
-          getTransactionType(pieceOfWork, currentPhase, preState, workloadState);
+          getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
       if (!transactionType.equals(TransactionType.INVALID)) {
+
+        // TODO: Measuring latency when not rate limited is ... a little
+        // weird because if you add more simultaneous clients, you will
+        // increase latency (queue delay) but we do this anyway since it is
+        // useful sometimes
+
+        // Wait before transaction if specified
         long preExecutionWaitInMillis = getPreExecutionWaitInMillis(transactionType);
+
         if (preExecutionWaitInMillis > 0) {
           try {
+            LOG.debug(
+                "{} will sleep for {} ms before executing",
+                transactionType.getName(),
+                preExecutionWaitInMillis);
+
             Thread.sleep(preExecutionWaitInMillis);
           } catch (InterruptedException e) {
             LOG.error("Pre-execution sleep interrupted", e);
           }
         }
 
+        // Track all attempted transactions during MEASURE (before executing)
+        if (preState == MEASURE) {
+          attemptedRequests.incrementAndGet(); // Track all attempted transactions
+          attemptedRequestsByPriority.merge(workerPriorityClass, 1, Integer::sum);
+        }
+
+        // for_debugging
+        // LOG.info(
+        //     "[PRE] Transaction Start: Worker={} | Priority={} | Txn={} | PreState={} |
+        // PrePhase={}",
+        //     this.id,
+        //     this.workerPriorityClass,
+        //     transactionType.getName(),
+        //     preState,
+        //     prePhase.getId());
+
         long start = System.nanoTime();
+
         doWork(configuration.getDatabaseType(), transactionType);
+
         long end = System.nanoTime();
 
         // PART 4: Record results
+
         State postState = workloadState.getGlobalState();
+
+        // for_debugging
+        // LOG.info(
+        //     "[POST] Transaction End: Worker={} | Priority={} | Txn={} | PostState={} |
+        // PostPhase={}",
+        //     this.id,
+        //     this.workerPriorityClass,
+        //     transactionType.getName(),
+        //     postState,
+        //     workloadState.getCurrentPhase().getId());
+
         switch (postState) {
           case MEASURE:
+            // Non-serial measurement. Only measure if the state both
+            // before and after was MEASURE, and the phase hasn't
+            // changed, otherwise we're recording results for a query
+            // that either started during the warmup phase or ended
+            // after the timer went off.
             Phase postPhase = workloadState.getCurrentPhase();
-            if (postPhase != null
-                && preState == MEASURE
-                && postPhase.getId() == currentPhase.getId()) {
+
+            if (postPhase == null) {
+              // Need a null check on postPhase since current phase being null is used in
+              // WorkloadState
+              // and ThreadBench as the indication that the benchmark is over. However, there's a
+              // race
+              // condition with postState not being changed from MEASURE to DONE yet, so we entered
+              // the
+              // switch. In this scenario, just break from the switch.
+              break;
+            }
+            if (preState == MEASURE && postPhase.getId() == prePhase.getId()) {
+              this.txnSuccess.put(transactionType);
+              localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
               latencies.addLatency(
                   transactionType.getId(),
                   start,
                   end,
                   this.id,
-                  postPhase.getId(),
-                  this.workerPriorityClass);
+                  prePhase.getId(),
+                  workerPriorityClass);
               intervalRequests.incrementAndGet();
+              // for_debugging
+              // LOG.info(
+              //     "[THROUGHPUT] Transaction Counted: Worker={} | Priority={} | Txn={} | Phase={}
+              // | IntervalRequests={}",
+              //     this.id,
+              //     this.workerPriorityClass,
+              //     transactionType.getName(),
+              //     prePhase.getId(),
+              //     intervalRequests.get());
             }
-            if (currentPhase.isLatencyRun()) {
+            if (prePhase.isLatencyRun()) {
               workloadState.startColdQuery();
             }
             break;
           case COLD_QUERY:
+            // No recording for cold runs, but next time we will since
+            // it'll be a hot run.
             if (preState == State.COLD_QUERY) {
               workloadState.startHotQuery();
             }
@@ -354,9 +411,16 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             // Do nothing
         }
 
+        // wait after transaction if specified
         long postExecutionWaitInMillis = getPostExecutionWaitInMillis(transactionType);
+
         if (postExecutionWaitInMillis > 0) {
           try {
+            LOG.debug(
+                "{} will sleep for {} ms after executing",
+                transactionType.getName(),
+                postExecutionWaitInMillis);
+
             Thread.sleep(postExecutionWaitInMillis);
           } catch (InterruptedException e) {
             LOG.error("Post-execution sleep interrupted", e);
@@ -365,24 +429,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       }
 
       workloadState.finishedWork();
-
-      // After finishing work for the current phase, we check if the phase has completed
-      // Now we tear down only after the current phase has finished
-      if (workloadState.getCurrentPhase() != currentPhase) {
-        // If the phase has transitioned, perform cleanup after all work for the current phase has
-        // been completed
-        LOG.info(
-            "Worker {}| Priority {}: Phase {} completed. Cleaning up resources for this phase.",
-            this.id,
-            this.workerPriorityClass,
-            currentPhase.getId());
-        tearDown(); // Clean up resources after the work for the phase is completed
-      }
     }
 
-    LOG.debug("Worker calling final teardown");
+    LOG.debug("worker calling teardown");
 
-    // Final cleanup when exiting
     tearDown();
   }
 
@@ -655,12 +705,34 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           }
 
           switch (status) {
-            case UNKNOWN -> this.txnUnknown.put(transactionType);
-            case SUCCESS -> this.txnSuccess.put(transactionType);
-            case USER_ABORTED -> this.txnAbort.put(transactionType);
-            case RETRY -> this.txnRetry.put(transactionType);
-            case RETRY_DIFFERENT -> this.txtRetryDifferent.put(transactionType);
-            case ERROR -> this.txnErrors.put(transactionType);
+            case UNKNOWN -> {
+              this.txnUnknown.put(transactionType);
+            }
+              // for_debugging
+              // case SUCCESS -> {
+              //   this.txnSuccess.put(transactionType);
+              //   localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
+              //   // for_debugging
+              //   // LOG.info(
+              //   //     "[GOODPUT] Transaction Succeeded: Worker={} | Priority={} | Txn={} |
+              //   // SuccessCount={}",
+              //   //     this.id,
+              //   //     this.workerPriorityClass,
+              //   //     transactionType,
+              //   //     this.txnSuccess.get(transactionType));
+              // }
+            case USER_ABORTED -> {
+              this.txnAbort.put(transactionType);
+            }
+            case RETRY -> {
+              this.txnRetry.put(transactionType);
+            }
+            case RETRY_DIFFERENT -> {
+              this.txtRetryDifferent.put(transactionType);
+            }
+            case ERROR -> {
+              this.txnErrors.put(transactionType);
+            }
           }
         }
       }
@@ -797,5 +869,13 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
   protected long getPostExecutionWaitInMillis(TransactionType type) {
     return 0;
+  }
+
+  public int getAttemptedRequests() {
+    return attemptedRequests.get();
+  }
+
+  public Map<String, Integer> getAttemptedRequestsByPriority() {
+    return attemptedRequestsByPriority;
   }
 }

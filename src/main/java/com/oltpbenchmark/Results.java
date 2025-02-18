@@ -19,9 +19,9 @@ package com.oltpbenchmark;
 
 import com.oltpbenchmark.LatencyRecord.Sample;
 import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.TransactionTypes;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.Histogram;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +33,12 @@ public final class Results {
   private final long startTimestampMs;
   private final long nanoseconds;
   private final int measuredRequests;
+  private final int attemptedRequests;
   private final DistributionStatistics distributionStatistics;
   private final List<LatencyRecord.Sample> latencySamples;
   // TransactionTypes transactionTypes;
   private final Map<String, DistributionStatistics> latencyStatsByPriority = new HashMap<>();
+  private final Map<String, Integer> attemptedRequestsByPriority = new HashMap<>();
   private final Map<String, Integer> requestsByPriority = new HashMap<>();
   private final Map<String, Integer> successByPriority = new HashMap<>();
   private final Histogram<TransactionType> unknown = new Histogram<>(false);
@@ -46,21 +48,28 @@ public final class Results {
   private final Histogram<TransactionType> error = new Histogram<>(false);
   private final Histogram<TransactionType> retryDifferent = new Histogram<>(false);
   private final Map<TransactionType, Histogram<String>> abortMessages = new HashMap<>();
+  private final Map<String, Integer> terminalCounts = new HashMap<>();
 
   public Results(
       State state,
       long startTimestampMs,
       long elapsedNanoseconds,
       int measuredRequests,
+      int attemptedRequests,
+      Map<String, Integer> attemptedRequestsByPriority,
       DistributionStatistics distributionStatistics,
       final List<LatencyRecord.Sample> latencySamples,
-      TransactionTypes transactionTypes) {
+      Map<String, Integer> aggregatedSuccessByPriority,
+      Map<String, Integer> terminalCounts) {
 
     this.startTimestampMs = startTimestampMs;
     this.nanoseconds = elapsedNanoseconds;
     this.measuredRequests = measuredRequests;
+    this.attemptedRequests = attemptedRequests;
+    // this.attemptedRequestsByPriority.putAll(attemptedRequestsByPriority);
     this.distributionStatistics = distributionStatistics;
     this.state = state;
+    this.terminalCounts.putAll(terminalCounts);
 
     if (distributionStatistics == null) {
       this.latencySamples = null;
@@ -69,11 +78,14 @@ public final class Results {
     }
     // Group latency samples by priority
     Map<String, List<LatencyRecord.Sample>> samplesByPriority =
-        latencySamples.stream().collect(Collectors.groupingBy(Sample::getWorkerPriority));
+        latencySamples.stream()
+            .collect(
+                Collectors.groupingBy(
+                    sample -> sample.getWorkerPriority().replace("\"", "").trim()));
 
-    for (Map.Entry<String, List<LatencyRecord.Sample>> entry : samplesByPriority.entrySet()) {
-      String priority = entry.getKey();
-      List<LatencyRecord.Sample> prioritySamples = entry.getValue();
+    for (Map.Entry<String, List<LatencyRecord.Sample>> entry1 : samplesByPriority.entrySet()) {
+      String priority = entry1.getKey();
+      List<LatencyRecord.Sample> prioritySamples = entry1.getValue();
 
       int[] latenciesArray = new int[prioritySamples.size()];
       for (int i = 0; i < prioritySamples.size(); i++) {
@@ -83,83 +95,20 @@ public final class Results {
       latencyStatsByPriority.put(
           priority, DistributionStatistics.computeStatistics(latenciesArray));
       requestsByPriority.put(priority, prioritySamples.size());
+
+      Map<String, Integer> cleanedSuccessByPriority = new HashMap<>();
+      for (Map.Entry<String, Integer> entry3 : aggregatedSuccessByPriority.entrySet()) {
+        cleanedSuccessByPriority.put(entry3.getKey().replace("\"", "").trim(), entry3.getValue());
+      }
+      this.successByPriority.putAll(cleanedSuccessByPriority);
+
+      Map<String, Integer> cleanedattemptedRequestsByPriority = new HashMap<>();
+      for (Map.Entry<String, Integer> entry4 : attemptedRequestsByPriority.entrySet()) {
+        cleanedattemptedRequestsByPriority.put(
+            entry4.getKey().replace("\"", "").trim(), entry4.getValue());
+      }
+      this.attemptedRequestsByPriority.putAll(cleanedattemptedRequestsByPriority);
     }
-
-    // Compute success counts for each transaction type
-    for (LatencyRecord.Sample sample : latencySamples) {
-      String priority = sample.getWorkerPriority();
-      TransactionType txnType = transactionTypes.getType(sample.getTransactionType());
-
-      // Get the number of successful executions for this transaction type
-      Integer successCount = success.get(txnType);
-      successCount = (successCount == null) ? 0 : successCount;
-
-      // Update success count per priority
-      successByPriority.put(priority, successByPriority.getOrDefault(priority, 0) + successCount);
-
-      System.out.println(
-          "Priority: "
-              + priority
-              + ", Transaction: "
-              + txnType.getName()
-              + ", Success Count: "
-              + successCount
-              + ", Updated successByPriority: "
-              + successByPriority.get(priority));
-    }
-
-    // Map<String, List<LatencyRecord.Sample>> samplesByPriority =
-    //     latencySamples.stream().collect(Collectors.groupingBy(Sample::getWorkerPriority));
-
-    // for (Map.Entry<String, List<LatencyRecord.Sample>> entry : samplesByPriority.entrySet()) {
-    //   String priority = entry.getKey();
-    //   List<LatencyRecord.Sample> prioritySamples = entry.getValue();
-
-    //   int[] latenciesArray = new int[prioritySamples.size()];
-    //   for (int i = 0; i < prioritySamples.size(); i++) {
-    //     latenciesArray[i] = prioritySamples.get(i).getLatencyMicrosecond();
-    //   }
-
-    //   latencyStatsByPriority.put(
-    //       priority, DistributionStatistics.computeStatistics(latenciesArray));
-
-    //   requestsByPriority.put(priority, prioritySamples.size());
-    // }
-
-    // for (LatencyRecord.Sample sample : latencySamples) {
-    //   String priority = sample.getWorkerPriority();
-    //   TransactionType txnType =
-    //       transactionTypes.getType(sample.getTransactionType()); // ✅ Correct lookup
-
-    //   // Ensure priority exists in the success map
-    //   successByPriority.putIfAbsent(priority, 0);
-
-    //   // Get successful executions for this transaction type
-    //   Integer successCount = success.get(txnType);
-    //   successCount = (successCount == null) ? 0 : successCount;
-
-    //   // If this transaction type has recorded successes, update the counter
-    //   successByPriority.put(priority, successByPriority.get(priority) + successCount);
-
-    //   // Debugging: Print transaction details
-    //   System.out.println(
-    //       "Priority: "
-    //           + priority
-    //           + ", Transaction: "
-    //           + txnType.getName()
-    //           + ", Success Count: "
-    //           + successCount);
-    // }
-
-    // // for (LatencyRecord.Sample sample : latencySamples) {
-    // //   String priority = sample.getWorkerPriority();
-    // //   if (!successByPriority.containsKey(priority)) {
-    // //     successByPriority.put(priority, 0);
-    // //   }
-    // //   if (success.getSampleCount() > 0) {
-    // //     successByPriority.put(priority, successByPriority.get(priority) + 1);
-    // //   }
-    // // }
   }
 
   public State getState() {
@@ -204,6 +153,7 @@ public final class Results {
 
   public double requestsPerSecondGoodput() {
     return (double) success.getSampleCount() / (double) nanoseconds * 1e9;
+    // return (double) latencySamples.size() / (double) nanoseconds * 1e9;
   }
 
   public List<Sample> getLatencySamples() {
@@ -222,6 +172,14 @@ public final class Results {
     return measuredRequests;
   }
 
+  public int getAttemptedRequests() {
+    return attemptedRequests;
+  }
+
+  public double getNewThroughput() {
+    return (double) attemptedRequests / (double) nanoseconds * 1e9;
+  }
+
   public double getThroughputForPriority(String priority) {
     return (double) requestsByPriority.getOrDefault(priority, 0) / nanoseconds * 1e9;
   }
@@ -235,6 +193,38 @@ public final class Results {
         priority, new DistributionStatistics(0, new long[] {-1}, -1, -1));
   }
 
+  public Map<String, DistributionStatistics> getLatencyStatsByPriority() {
+    return Collections.unmodifiableMap(latencyStatsByPriority);
+  }
+
+  public double getNewThroughputForPriority(String priority) {
+    return (double) attemptedRequestsByPriority.getOrDefault(priority, 0) / nanoseconds * 1e9;
+  }
+
+  public double getPerTerminalThroughputForPriority(String priority) {
+    int count = terminalCounts.getOrDefault(priority, 0);
+    if (count == 0) {
+      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+    }
+    return getThroughputForPriority(priority) / count;
+  }
+
+  public double getPerTerminalGoodputForPriority(String priority) {
+    int count = terminalCounts.getOrDefault(priority, 0);
+    if (count == 0) {
+      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+    }
+    return getGoodputForPriority(priority) / count;
+  }
+
+  public double getPerTerminalAttemptedThroughputForPriority(String priority) {
+    int count = terminalCounts.getOrDefault(priority, 0);
+    if (count == 0) {
+      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+    }
+    return getNewThroughputForPriority(priority) / count;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -242,9 +232,17 @@ public final class Results {
     sb.append(state);
     sb.append(", nanoSeconds=");
     sb.append(nanoseconds);
+
+    sb.append(", attemptedRequests=");
+    sb.append(attemptedRequests);
+
     sb.append(", measuredRequests=");
     sb.append(measuredRequests);
+
     sb.append(") = ");
+    sb.append(getNewThroughput());
+    sb.append(" requests/sec (New throughput)");
+    sb.append(", ");
     sb.append(requestsPerSecondThroughput());
     sb.append(" requests/sec (throughput)");
     sb.append(", ");
@@ -255,12 +253,33 @@ public final class Results {
     sb.append(" requests/sec (goodput)");
 
     for (String priority : latencyStatsByPriority.keySet()) {
-      sb.append("\nPriority: ").append(priority);
-      sb.append("\n  Throughput: ")
+      int termCount = terminalCounts.getOrDefault(priority, 0);
+      if (termCount == 0) {
+        throw new IllegalStateException("No terminal count defined for priority: " + priority);
+      }
+
+      sb.append("\nPriority: ")
+          .append(priority)
+          .append("\n  Attempted Throughput: ")
+          .append(getNewThroughputForPriority(priority))
+          .append(" requests/sec")
+          .append("\n  Throughput: ")
           .append(getThroughputForPriority(priority))
-          .append(" requests/sec");
-      sb.append("\n  Goodput: ").append(getGoodputForPriority(priority)).append(" requests/sec");
-      // sb.append("\n  Latency Stats: ").append(getLatencyStatsForPriority(priority));
+          .append(" requests/sec")
+          .append("\n  Goodput: ")
+          .append(getGoodputForPriority(priority))
+          .append(" requests/sec")
+          .append("\n  Per Terminal Attempted Throughput: ")
+          .append(getPerTerminalAttemptedThroughputForPriority(priority))
+          .append(" requests/sec")
+          .append("\n  Per Terminal Throughput: ")
+          .append(getPerTerminalThroughputForPriority(priority))
+          .append(" requests/sec")
+          .append("\n  Per Terminal Goodput: ")
+          .append(getPerTerminalGoodputForPriority(priority))
+          .append(" requests/sec")
+          .append("\n  Latency Stats: ")
+          .append(getLatencyStatsForPriority(priority));
     }
     return sb.toString();
   }

@@ -61,6 +61,28 @@ public class ResultWriter {
     this.collector = DBParameterCollectorGen.getCollector(dbType, dbUrl, username, password);
   }
 
+  private Map<String, Integer> getTerminalCounts() {
+    String weights = expConf.getString("terminalClassesWeights");
+    if (weights == null || weights.trim().isEmpty()) {
+      throw new IllegalStateException("Missing terminalClassesWeights configuration");
+    }
+
+    String[] parts = weights.split(",");
+    if (parts.length < 2) {
+      throw new IllegalStateException("Expected at least two values in terminalClassesWeights");
+    }
+
+    Map<String, Integer> counts = new HashMap<>();
+    try {
+      counts.put("premium", Integer.parseInt(parts[0].trim()));
+      counts.put("freemium", Integer.parseInt(parts[1].trim()));
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid format in terminalClassesWeights: " + weights, e);
+    }
+
+    return counts;
+  }
+
   public void writeParams(PrintStream os) {
     String dbConf = collector.collectParameters();
     os.print(dbConf);
@@ -89,26 +111,59 @@ public class ResultWriter {
     Map<String, Object> summaryMap = new LinkedHashMap<>();
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     Date now = new Date();
+    String[] timeValues = expConf.getStringArray("works.work.time");
+    String[] rateValues = expConf.getStringArray("works.work.rate");
+    Map<String, Integer> terminalCounts = getTerminalCounts();
+
     summaryMap.put("Start timestamp (milliseconds)", results.getStartTimestampMs());
     summaryMap.put("Current Timestamp (milliseconds)", now.getTime());
     summaryMap.put("Elapsed Time (nanoseconds)", results.getNanoseconds());
     summaryMap.put("DBMS Type", dbType);
     summaryMap.put("DBMS Version", collector.collectVersion());
     summaryMap.put("Benchmark Type", benchType);
-    summaryMap.put("Final State", results.getState());
-    summaryMap.put("Measured Requests", results.getMeasuredRequests());
-    String[] timeValues = expConf.getStringArray("works.work.time");
-    String[] rateValues = expConf.getStringArray("works.work.rate");
-
     summaryMap.put("time", timeValues.length > 0 ? timeValues[0] : "NOT FOUND");
     summaryMap.put("rate", rateValues.length > 0 ? rateValues[0] : "NOT FOUND");
-
+    summaryMap.put("Final State", results.getState());
+    summaryMap.put("Measured Requests", results.getMeasuredRequests());
     for (String field : BENCHMARK_KEY_FIELD) {
       summaryMap.put(field, expConf.getString(field));
     }
     summaryMap.put("Latency Distribution", results.getDistributionStatistics().toMap());
+    summaryMap.put("NewThroughput (requests/second)", results.getNewThroughput());
     summaryMap.put("Throughput (requests/second)", results.requestsPerSecondThroughput());
     summaryMap.put("Goodput (requests/second)", results.requestsPerSecondGoodput());
+
+    summaryMap.put("Per-Priority Metrics", new HashMap<>());
+    for (String priority : terminalCounts.keySet()) {
+      Map<String, Object> priorityMetrics = new HashMap<>();
+      priorityMetrics.put(
+          "Attempted Throughput (req/s)", results.getNewThroughputForPriority(priority));
+      priorityMetrics.put("Throughput (req/s)", results.getThroughputForPriority(priority));
+      priorityMetrics.put("Goodput (req/s)", results.getGoodputForPriority(priority));
+
+      priorityMetrics.put(
+          "Per-Terminal Attempted Throughput (req/s)",
+          results.getPerTerminalAttemptedThroughputForPriority(priority));
+      priorityMetrics.put(
+          "Per-Terminal Throughput (req/s)", results.getPerTerminalThroughputForPriority(priority));
+      priorityMetrics.put(
+          "Per-Terminal Goodput (req/s)", results.getPerTerminalGoodputForPriority(priority));
+
+      priorityMetrics.put("Latency Stats", results.getLatencyStatsForPriority(priority));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> perPriorityMetrics =
+          (Map<String, Object>) summaryMap.get("Per-Priority Metrics");
+
+      if (perPriorityMetrics == null) {
+        perPriorityMetrics = new HashMap<>(); // Initialize if null
+        summaryMap.put("Per-Priority Metrics", perPriorityMetrics);
+      }
+
+      perPriorityMetrics.put(priority, priorityMetrics);
+
+      // summaryMap.get("Per-Priority Metrics").put(priority, priorityMetrics);
+    }
     os.println(JSONUtil.format(JSONUtil.toJSONString(summaryMap)));
   }
 

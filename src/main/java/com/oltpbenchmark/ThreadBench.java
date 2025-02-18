@@ -324,6 +324,10 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     try {
       int requests = finalizeWorkers(this.workerThreads);
 
+      int totalAttemptedRequests = 0;
+      Map<String, Integer> totalAttemptedRequestsByPriority = new HashMap<>();
+      Map<String, Integer> aggregatedSuccessByPriority = new HashMap<>();
+
       // Combine all the latencies together in the most disgusting way
       // possible: sorting!
       for (Worker<?> w : workers) {
@@ -340,6 +344,21 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
+      for (Worker<?> w : workers) {
+        // Aggregate attempted requests
+        totalAttemptedRequests += w.getAttemptedRequests();
+        for (Map.Entry<String, Integer> entry : w.getAttemptedRequestsByPriority().entrySet()) {
+          totalAttemptedRequestsByPriority.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+
+        // Aggregate successful requests
+        for (Map.Entry<String, Integer> entry : w.getLocalSuccessByPriority().entrySet()) {
+          aggregatedSuccessByPriority.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+      }
+      Map<String, Integer> terminalCounts = getTerminalCounts(workConfs.get(0));
+      System.out.println("Terminal Counts Map: " + terminalCounts);
+
       Results results =
           new Results(
               // If any errors were thrown during the execution, proprogate that fact to the
@@ -348,9 +367,12 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               startTs,
               measureEnd - start,
               requests,
+              totalAttemptedRequests,
+              totalAttemptedRequestsByPriority,
               stats,
               samples,
-              workConfs.get(0).getTransTypes());
+              aggregatedSuccessByPriority,
+              terminalCounts);
 
       // Compute transaction histogram
       Set<TransactionType> txnTypes = new HashSet<>();
@@ -374,11 +396,32 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         results.getError().putHistogram(w.getTransactionErrorHistogram());
         results.getRetryDifferent().putHistogram(w.getTransactionRetryDifferentHistogram());
       }
-      System.out.println("Success Histogram Contents: " + results.getSuccess());
       return (results);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private Map<String, Integer> getTerminalCounts(WorkloadConfiguration workloadConfig) {
+    List<String> priorityClasses = workloadConfig.getTerminalPriorityClasses();
+    List<Integer> priorityWeights = workloadConfig.getTerminalPriorityClassesWeights();
+
+    if (priorityClasses == null
+        || priorityWeights == null
+        || priorityClasses.size() != priorityWeights.size()) {
+      throw new IllegalStateException(
+          "Mismatch between priority classes and weights in configuration.");
+    }
+
+    Map<String, Integer> terminalCounts = new HashMap<>();
+    for (int i = 0; i < priorityClasses.size(); i++) {
+      // Remove extra quotes and trim spaces from priority names
+      String cleanedPriority = priorityClasses.get(i).replace("\"", "").trim();
+      terminalCounts.put(cleanedPriority, priorityWeights.get(i));
+    }
+
+    System.out.println("Cleaned Terminal Counts: " + terminalCounts);
+    return terminalCounts;
   }
 
   private long getInterval(double lowestRate, Phase.Arrival arrival) {
