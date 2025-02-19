@@ -233,22 +233,20 @@ public final class Results {
     sb.append(", nanoSeconds=");
     sb.append(nanoseconds);
 
-    sb.append(", attemptedRequests=");
-    sb.append(attemptedRequests);
-
     sb.append(", measuredRequests=");
-    sb.append(measuredRequests);
-
-    sb.append(") = ");
-    sb.append(getNewThroughput());
-    sb.append(" requests/sec (New throughput)");
-    sb.append(", ");
-    sb.append(requestsPerSecondThroughput());
-    sb.append(" requests/sec (throughput)");
+    sb.append(attemptedRequests);
     sb.append(", ");
     sb.append("succeededRequests=");
     sb.append(success.getSampleCount());
+
+    sb.append(") = ");
+    // sb.append(getNewThroughput());
+    // sb.append(" requests/sec (New throughput)");
+    // sb.append(", ");
+    sb.append(getNewThroughput());
+    sb.append(" requests/sec (throughput)");
     sb.append(", ");
+
     sb.append(requestsPerSecondGoodput());
     sb.append(" requests/sec (goodput)");
 
@@ -260,20 +258,20 @@ public final class Results {
 
       sb.append("\nPriority: ")
           .append(priority)
-          .append("\n  Attempted Throughput: ")
-          .append(getNewThroughputForPriority(priority))
-          .append(" requests/sec")
+          // .append("\n  Attempted Throughput: ")
+          // .append(getNewThroughputForPriority(priority))
+          // .append(" requests/sec")
           .append("\n  Throughput: ")
-          .append(getThroughputForPriority(priority))
+          .append(getNewThroughputForPriority(priority))
           .append(" requests/sec")
           .append("\n  Goodput: ")
           .append(getGoodputForPriority(priority))
           .append(" requests/sec")
-          .append("\n  Per Terminal Attempted Throughput: ")
-          .append(getPerTerminalAttemptedThroughputForPriority(priority))
-          .append(" requests/sec")
+          // .append("\n  Per Terminal Attempted Throughput: ")
+          // .append(getPerTerminalAttemptedThroughputForPriority(priority))
+          // .append(" requests/sec")
           .append("\n  Per Terminal Throughput: ")
-          .append(getPerTerminalThroughputForPriority(priority))
+          .append(getPerTerminalAttemptedThroughputForPriority(priority))
           .append(" requests/sec")
           .append("\n  Per Terminal Goodput: ")
           .append(getPerTerminalGoodputForPriority(priority))

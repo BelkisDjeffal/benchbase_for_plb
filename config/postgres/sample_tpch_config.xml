@@ -21,7 +21,7 @@
     <!-- The workload -->
     <terminals>50</terminals>
     <terminalClasses>"premium","freemium"</terminalClasses>
-    <terminalClassesWeights>15,35</terminalClassesWeights>
+    <terminalClassesWeights>25,25</terminalClassesWeights>
     <works>
         <work>  
             <serial>false</serial>

@@ -21,12 +21,18 @@ fi
 # Define the output CSV file in the same directory as the script
 OUTPUT_FILE="$SCRIPT_DIR/summary_results_new.csv"
 
-# Overwrite the CSV file and write the header (including per-priority columns)
-header="Experiment Number,Final State,Measured Requests,Isolation,Scale Factor,Terminals,Terminal Classes Weights,Throughput,Goodput,Average Latency,95th Percentile Latency,Maximum Latency,Median Latency,Minimum Latency,25th Percentile Latency,90th Percentile Latency,99th Percentile Latency,75th Percentile Latency,premium_AttemptedThroughput,premium_Throughput,premium_Goodput,premium_LatencyStats,freemium_AttemptedThroughput,freemium_Throughput,freemium_Goodput,freemium_LatencyStats"
-echo "$header" > "$OUTPUT_FILE"
-
-# Experiment counter
-experiment_number=1
+# Check if the CSV file exists
+if [ ! -f "$OUTPUT_FILE" ]; then
+    # If the file doesn't exist, write the header
+    header="Experiment Number,Final State,Measured Requests,Isolation,Scale Factor,Terminals,Terminal Classes Weights,Throughput,Goodput,Average Latency,95th Percentile Latency,Maximum Latency,Median Latency,Minimum Latency,25th Percentile Latency,90th Percentile Latency,99th Percentile Latency,75th Percentile Latency,premium_Throughput,premium_Goodput,premium_PerTerminalThroughput,premium_PerTerminalGoodput,premium_LatencyStats,freemium_Throughput,freemium_Goodput,freemium_PerTerminalThroughput,freemium_PerTerminalGoodput,freemium_LatencyStats"
+    echo "$header" > "$OUTPUT_FILE"
+    experiment_number=1
+else
+    echo "Appending to existing CSV: $OUTPUT_FILE"
+    # Count existing experiments (excluding header)
+    existing_lines=$(tail -n +2 "$OUTPUT_FILE" | wc -l)
+    experiment_number=$((existing_lines + 1))
+fi
 
 # Loop through each .summary.json file in the given directory
 for file in "$INPUT_DIR"/*.summary.json; do
@@ -51,18 +57,20 @@ for file in "$INPUT_DIR"/*.summary.json; do
         latency_75=$(jq -r '."Latency Distribution"."75th Percentile Latency (microseconds)"' "$file")
         
         # Extract per-priority metrics using jq
-        premium_attempted=$(jq -r '."Per-Priority Metrics"."premium"."Attempted Throughput (req/s)"' "$file")
         premium_throughput=$(jq -r '."Per-Priority Metrics"."premium"."Throughput (req/s)"' "$file")
         premium_goodput=$(jq -r '."Per-Priority Metrics"."premium"."Goodput (req/s)"' "$file")
-        premium_latency=$(jq -r '."Per-Priority Metrics"."premium"."Latency Stats"' "$file")
-        
-        freemium_attempted=$(jq -r '."Per-Priority Metrics"."freemium"."Attempted Throughput (req/s)"' "$file")
+        premium_per_terminal_throughput=$(jq -r '."Per-Priority Metrics"."premium"."Per-Terminal Throughput (req/s)"' "$file")
+        premium_per_terminal_goodput=$(jq -r '."Per-Priority Metrics"."premium"."Per-Terminal Goodput (req/s)"' "$file")
+        premium_latency=$(jq -r '."Per-Priority Metrics"."premium"."Latency Stats"' "$file" | sed 's/,/;/g')
+
         freemium_throughput=$(jq -r '."Per-Priority Metrics"."freemium"."Throughput (req/s)"' "$file")
         freemium_goodput=$(jq -r '."Per-Priority Metrics"."freemium"."Goodput (req/s)"' "$file")
-        freemium_latency=$(jq -r '."Per-Priority Metrics"."freemium"."Latency Stats"' "$file")
-        
+        freemium_per_terminal_throughput=$(jq -r '."Per-Priority Metrics"."freemium"."Per-Terminal Throughput (req/s)"' "$file")
+        freemium_per_terminal_goodput=$(jq -r '."Per-Priority Metrics"."freemium"."Per-Terminal Goodput (req/s)"' "$file")
+        freemium_latency=$(jq -r '."Per-Priority Metrics"."freemium"."Latency Stats"' "$file" | sed 's/,/;/g')
+
         # Append the extracted data to the CSV file
-        echo "$experiment_number,$final_state,$measured_requests,$isolation,$scalefactor,$terminals,$terminal_weights,$throughput,$goodput,$latency_avg,$latency_95,$latency_max,$latency_median,$latency_min,$latency_25,$latency_90,$latency_99,$latency_75,$premium_attempted,$premium_throughput,$premium_goodput,\"$premium_latency\",$freemium_attempted,$freemium_throughput,$freemium_goodput,\"$freemium_latency\"" >> "$OUTPUT_FILE"
+        echo "$experiment_number,$final_state,$measured_requests,$isolation,$scalefactor,$terminals,$terminal_weights,$throughput,$goodput,$latency_avg,$latency_95,$latency_max,$latency_median,$latency_min,$latency_25,$latency_90,$latency_99,$latency_75,$premium_throughput,$premium_goodput,$premium_per_terminal_throughput,$premium_per_terminal_goodput,\"$premium_latency\",$freemium_throughput,$freemium_goodput,$freemium_per_terminal_throughput,$freemium_per_terminal_goodput,\"$freemium_latency\"" >> "$OUTPUT_FILE"
         
         # Increment experiment number
         ((experiment_number++))
