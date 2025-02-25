@@ -26,7 +26,6 @@ import com.oltpbenchmark.util.MonitorInfo;
 import com.oltpbenchmark.util.StringUtil;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,59 +64,150 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     return bench.runRateLimitedMultiPhase();
   }
 
-  private void monitorAndSpawnWorkers(int maxConcurrentWorkers, int staggerDelayMs) {
-    AtomicInteger activeWorkers = new AtomicInteger(workers.size());
+  // private void monitorAndSpawnWorkers(int staggerDelayMs) {
+  //   AtomicInteger activeWorkers = new AtomicInteger(0);
+  //   AtomicInteger nextWorkerIndex = new AtomicInteger(0); // To iterate through existing workers
+  //   int maxConcurrentWorkers = workConfs.get(0).getTerminals();
+
+  //   LOG.info("Starting dynamic worker spawner...");
+
+  //   // Compute total workload time across all phases
+  //   int totalWorkTimeSeconds = workConfs.get(0).getPhases().stream()
+  //           .mapToInt(Phase::getTime)
+  //           .sum(); // Sum up time of all phases
+
+  //   while (true) {
+  //       synchronized (workerThreads) {
+  //           // Remove finished workers
+  //           Iterator<Thread> iterator = workerThreads.iterator();
+  //           while (iterator.hasNext()) {
+  //               Thread workerThread = iterator.next();
+  //               if (!workerThread.isAlive()) {
+  //                   iterator.remove();
+  //                   activeWorkers.decrementAndGet();
+  //                   LOG.info("Worker finished. Active workers: {}", activeWorkers.get());
+  //               }
+  //           }
+
+  //           // Spawn new workers if below max limit and available workers exist
+  //           while (activeWorkers.get() < maxConcurrentWorkers && nextWorkerIndex.get() <
+  // workers.size()) {
+  //               Worker<?> newWorker = workers.get(nextWorkerIndex.getAndIncrement()); // Use
+  // pre-created worker
+  //               newWorker.initializeState(); // Same as in createWorkerThreads
+
+  //               Thread newThread = new Thread(newWorker);
+  //               newThread.setUncaughtExceptionHandler(this);
+  //               newThread.start();
+
+  //               workerThreads.add(newThread);
+  //               activeWorkers.incrementAndGet();
+
+  //               LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
+
+  //               try {
+  //                   Thread.sleep(staggerDelayMs); // Delay between spawning new workers
+  //               } catch (InterruptedException e) {
+  //                   LOG.error("Error spawning new worker", e);
+  //                   Thread.currentThread().interrupt();
+  //               }
+  //           }
+  //       }
+
+  //       // Stop monitoring if workload is done
+  //       if (testState.getState() == State.DONE) {
+  //           LOG.info("Workload is done. Stopping worker monitoring.");
+  //           break;
+  //       }
+
+  //       try {
+  //           Thread.sleep(1000); // Monitoring interval
+  //       } catch (InterruptedException e) {
+  //           LOG.error("Worker monitoring loop interrupted", e);
+  //           Thread.currentThread().interrupt();
+  //           break;
+  //       }
+  //   }
+  // }
+  private void monitorAndSpawnWorkers() {
+    int totalWorkTimeSeconds =
+        workConfs.get(0).getPhases().stream().mapToInt(Phase::getTime).sum()
+            * 1000; // Total time in ms
+    int totalWorkers = workConfs.get(0).getTerminals();
+    int maxConcurrentWorkers = workConfs.get(0).getTerminals(); // From config
+
+    AtomicInteger activeWorkers = new AtomicInteger(0);
+    AtomicInteger nextWorkerIndex = new AtomicInteger(0);
+    long startTime = System.currentTimeMillis();
+
+    LOG.info(
+        "Starting adaptive worker spawner for {} workers over {} ms",
+        totalWorkers,
+        totalWorkTimeSeconds);
 
     while (true) {
-        synchronized (workerThreads) {
-            Iterator<Thread> iterator = workerThreads.iterator();
+      synchronized (workerThreads) {
+        Iterator<Thread> iterator = workerThreads.iterator();
 
-            // Remove finished workers
-            while (iterator.hasNext()) {
-                Thread workerThread = iterator.next();
-                if (!workerThread.isAlive()) {
-                    iterator.remove();
-                    activeWorkers.decrementAndGet();
-                    LOG.info("Worker finished. Active workers: {}", activeWorkers.get());
-                }
-            }
-
-            // Spawn new workers if below max limit
-            while (activeWorkers.get() < maxConcurrentWorkers) {
-                Worker<?> newWorker = createNewWorker();
-                newWorker.initializeState();
-
-                Thread newThread = new Thread(newWorker);
-                newThread.setUncaughtExceptionHandler(this);
-                newThread.start();
-
-                workerThreads.add(newThread);
-                activeWorkers.incrementAndGet();
-
-                LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
-
-                try {
-                    Thread.sleep(staggerDelayMs); // Delay between spawning new workers
-                } catch (InterruptedException e) {
-                    LOG.error("Error spawning new worker", e);
-                    Thread.currentThread().interrupt();
-                }
-            }
+        // Remove finished workers
+        while (iterator.hasNext()) {
+          Thread workerThread = iterator.next();
+          if (!workerThread.isAlive()) {
+            iterator.remove();
+            activeWorkers.decrementAndGet();
+            LOG.info("Worker finished. Active workers: {}", activeWorkers.get());
+          }
         }
 
-        // Stop monitoring if workload is done
-        if (testState.getState() == State.DONE) {
-            LOG.info("Workload is done. Stopping worker monitoring.");
-            break;
-        }
+        // Calculate elapsed and remaining time
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        long remainingTime = totalWorkTimeSeconds - elapsedTime;
 
-        try {
-            Thread.sleep(1000); // Monitoring interval
-        } catch (InterruptedException e) {
-            LOG.error("Worker monitoring loop interrupted", e);
+        // **Exit condition:** If workload is done or time elapsed
+        // if (testState.getState() == State.DONE || elapsedTime >= totalWorkTimeSeconds) {
+        //   LOG.info("Workload is done or time elapsed. Stopping worker monitoring.");
+        //   testState.startCoolDown();
+        //   break; // Exit the loop
+        // }
+
+        // Calculate stagger delay
+        int remainingWorkers = totalWorkers - nextWorkerIndex.get();
+        int staggerDelayMs = remainingWorkers > 0 ? (int) (remainingTime / remainingWorkers) : 0;
+
+        // Spawn new workers if below limits
+        while (activeWorkers.get() < maxConcurrentWorkers && nextWorkerIndex.get() < totalWorkers) {
+          Worker<?> newWorker = workers.get(nextWorkerIndex.getAndIncrement());
+          newWorker.initializeState();
+
+          Thread newThread = new Thread(newWorker);
+          newThread.setUncaughtExceptionHandler(this);
+          newThread.start();
+
+          workerThreads.add(newThread);
+          activeWorkers.incrementAndGet();
+
+          LOG.info(
+              "Spawned new worker. Active workers: {}, Stagger Delay: {} ms",
+              activeWorkers.get(),
+              staggerDelayMs);
+
+          try {
+            Thread.sleep(staggerDelayMs);
+          } catch (InterruptedException e) {
+            LOG.error("Error spawning new worker", e);
             Thread.currentThread().interrupt();
             break;
+          }
         }
+      }
+
+      try {
+        Thread.sleep(500); // Shorter monitoring interval for responsiveness
+      } catch (InterruptedException e) {
+        LOG.error("Worker monitoring loop interrupted", e);
+        Thread.currentThread().interrupt();
+        break;
+      }
     }
   }
 
@@ -134,8 +224,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       try {
         Thread.sleep(staggerDelayMs);
       } catch (InterruptedException e) {
-          LOG.error("Worker thread stagger interrupted", e);
-          Thread.currentThread().interrupt();
+        LOG.error("Worker thread stagger interrupted", e);
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -184,7 +274,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       workStates.add(workState.getWorkloadState());
     }
 
-    this.createWorkerThreads();
+    monitorAndSpawnWorkers();
 
     // long measureStart = start;
     Phase phase = null;

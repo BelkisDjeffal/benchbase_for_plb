@@ -204,7 +204,7 @@ public final class Results {
   public double getPerTerminalThroughputForPriority(String priority) {
     int count = terminalCounts.getOrDefault(priority, 0);
     if (count == 0) {
-      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+      return 0.0;
     }
     return getThroughputForPriority(priority) / count;
   }
@@ -212,7 +212,7 @@ public final class Results {
   public double getPerTerminalGoodputForPriority(String priority) {
     int count = terminalCounts.getOrDefault(priority, 0);
     if (count == 0) {
-      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+      return 0.0;
     }
     return getGoodputForPriority(priority) / count;
   }
@@ -220,7 +220,7 @@ public final class Results {
   public double getPerTerminalAttemptedThroughputForPriority(String priority) {
     int count = terminalCounts.getOrDefault(priority, 0);
     if (count == 0) {
-      throw new IllegalStateException("No terminal count defined for priority: " + priority);
+      return 0.0;
     }
     return getNewThroughputForPriority(priority) / count;
   }
@@ -251,11 +251,6 @@ public final class Results {
     sb.append(" requests/sec (goodput)");
 
     for (String priority : latencyStatsByPriority.keySet()) {
-      int termCount = terminalCounts.getOrDefault(priority, 0);
-      if (termCount == 0) {
-        throw new IllegalStateException("No terminal count defined for priority: " + priority);
-      }
-
       sb.append("\nPriority: ")
           .append(priority)
           // .append("\n  Attempted Throughput: ")

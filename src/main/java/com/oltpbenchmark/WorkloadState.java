@@ -181,6 +181,7 @@ public class WorkloadState {
    */
   public void stayAwake() {
     synchronized (this) {
+      LOG.info("Worker entering stayAwake with workerNeedSleep={}", workerNeedSleep);
       while (workerNeedSleep > 0) {
         workerNeedSleep--;
         try {
@@ -189,6 +190,7 @@ public class WorkloadState {
           LOG.error(e.getMessage(), e);
         }
       }
+      LOG.info("Worker exiting stayAwake");
     }
   }
 

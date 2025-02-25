@@ -85,15 +85,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     this.currStatement = null;
     this.transactionTypes = this.configuration.getTransTypes();
 
-    if (!this.configuration.getNewConnectionPerTxn()) {
-      try {
-        this.conn = this.benchmark.makeConnection(workerPriorityClass);
-        this.conn.setAutoCommit(false);
-        this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-      } catch (SQLException ex) {
-        throw new RuntimeException("Failed to connect to database", ex);
-      }
-    }
+    // if (!this.configuration.getNewConnectionPerTxn()) {
+    //   try {
+    //     this.conn = this.benchmark.makeConnection(workerPriorityClass);
+    //     this.conn.setAutoCommit(false);
+    //     this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+    //   } catch (SQLException ex) {
+    //     throw new RuntimeException("Failed to connect to database", ex);
+    //   }
+    // }
 
     // Generate all the Procedures that we're going to need
     this.procedures.putAll(this.benchmark.getProcedures());
@@ -225,6 +225,17 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
   @Override
   public final void run() {
+
+    if (!this.configuration.getNewConnectionPerTxn()) {
+      try {
+        this.conn = this.benchmark.makeConnection(workerPriorityClass);
+        this.conn.setAutoCommit(false);
+        this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+      } catch (SQLException ex) {
+        throw new RuntimeException("Failed to connect to database", ex);
+      }
+    }
+
     Thread t = Thread.currentThread();
     t.setName(this.toString());
 
@@ -239,15 +250,22 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     }
 
     // wait for start
-    workloadState.blockForStart();
+    // workloadState.blockForStart();
+    LOG.info("skipped wait");
 
     while (true) {
 
       // PART 1: Init and check if done
 
       State preState = workloadState.getGlobalState();
+      LOG.info("preState : {}", preState);
 
-      // Do nothing
+      // Exit if workload is DONE or EXIT
+      // if (preState == State.DONE || preState == State.EXIT) {
+      //   LOG.info("Worker {} detected workload completion. Exiting.", this.id);
+      //   break; // Exit the loop
+      // }
+
       if (preState == State.DONE) {
         if (!seenDone) {
           // This is the first time we have observed that the
@@ -260,9 +278,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       }
 
       // PART 2: Wait for work
+      LOG.info("waiting for work");
 
       // Sleep if there's nothing to do.
-      workloadState.stayAwake();
+      workloadState.stayAwake(); // this makes workers stuck in the WARMUP state and never transition to the MEASURE
+      LOG.info("awake test");
 
       Phase prePhase = workloadState.getCurrentPhase();
       if (prePhase == null) {
@@ -274,12 +294,22 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
       SubmittedProcedure pieceOfWork = workloadState.fetchWork();
 
+      // if (pieceOfWork == null) {
+      //   // No more work to do, exit gracefully
+      //   LOG.info("Worker {} has no more work. Exiting.", this.id);
+      //   // workloadState.signalDone();
+      //   break;
+      // }
+
+      LOG.info("after peice of work null test");
+
       prePhase = workloadState.getCurrentPhase();
       if (prePhase == null) {
         continue;
       }
 
       preState = workloadState.getGlobalState();
+      LOG.info("preState : {}", prePhase);
 
       switch (preState) {
         case DONE, EXIT, LATENCY_COMPLETE -> {
