@@ -11,6 +11,7 @@ results
 HELP.md
 PRIVATE.md
 target/
+config/
 profiles/
 docker/benchbase/fullimage/tmp/
 !.mvn/wrapper/maven-wrapper.jar
@@ -27,7 +28,7 @@ buildNumber.properties
 ### STS ###
 .apt_generated
 .classpath
-.factorypath
+.factorypathf
 .project
 .settings
 .springBeans
