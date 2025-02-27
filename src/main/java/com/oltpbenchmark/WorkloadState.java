@@ -165,8 +165,11 @@ public class WorkloadState {
 
   public Phase getNextPhase() {
     if (phaseIterator.hasNext()) {
-      return phaseIterator.next();
+      Phase nextPhase = phaseIterator.next();
+      LOG.info("getNextPhase() returning phase: {}", nextPhase);
+      return nextPhase;
     }
+    LOG.info("getNextPhase() returning NULL (no more phases left).");
     return null;
   }
 
@@ -196,6 +199,7 @@ public class WorkloadState {
 
   public void switchToNextPhase() {
     synchronized (this) {
+      LOG.info("switchToNextPhase() called.");
       this.currentPhase = this.getNextPhase();
 
       // Clear the work from the previous phase.
@@ -207,16 +211,27 @@ public class WorkloadState {
       // Benchmark is over---wake everyone up so they can terminate
       {
         workerNeedSleep = 0;
+        LOG.info("No more phases. Setting workerNeedSleep to 0.");
       } else {
         this.currentPhase.resetSerial();
         if (this.currentPhase.isDisabled())
         // Phase disabled---everyone should sleep
         {
           workerNeedSleep = this.num_terminals;
+          LOG.info(
+              "Current phase is disabled. All {} workers will sleep (workerNeedSleep set to {}).",
+              this.num_terminals,
+              workerNeedSleep);
         } else
         // Phase running---activate the appropriate # of terminals
         {
-          workerNeedSleep = this.num_terminals - this.currentPhase.getActiveTerminals();
+          int activeNeeded = this.currentPhase.getActiveTerminals();
+          workerNeedSleep = this.num_terminals - activeNeeded;
+          LOG.info(
+              "Current phase active terminals: {}. Total terminals: {}. Setting workerNeedSleep to {}.",
+              activeNeeded,
+              this.num_terminals,
+              workerNeedSleep);
         }
       }
 

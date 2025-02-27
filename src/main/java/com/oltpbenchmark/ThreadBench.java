@@ -163,16 +163,18 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         long elapsedTime = System.currentTimeMillis() - startTime;
         long remainingTime = totalWorkTimeSeconds - elapsedTime;
 
-        // **Exit condition:** If workload is done or time elapsed
-        // if (testState.getState() == State.DONE || elapsedTime >= totalWorkTimeSeconds) {
-        //   LOG.info("Workload is done or time elapsed. Stopping worker monitoring.");
-        //   testState.startCoolDown();
-        //   break; // Exit the loop
-        // }
+        // Exit condition: If workload is done or time elapsed
+        if (testState.getState() == State.DONE || elapsedTime >= totalWorkTimeSeconds) {
+          LOG.info("Workload is done or time elapsed. Stopping worker monitoring.");
+          // testState.startCoolDown();
+          break; // Exit the loop
+        }
 
         // Calculate stagger delay
         int remainingWorkers = totalWorkers - nextWorkerIndex.get();
         int staggerDelayMs = remainingWorkers > 0 ? (int) (remainingTime / remainingWorkers) : 0;
+
+        WorkloadState workloadState = workConfs.get(0).getWorkloadState();
 
         // Spawn new workers if below limits
         while (activeWorkers.get() < maxConcurrentWorkers && nextWorkerIndex.get() < totalWorkers) {
@@ -190,6 +192,11 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               "Spawned new worker. Active workers: {}, Stagger Delay: {} ms",
               activeWorkers.get(),
               staggerDelayMs);
+
+          // Wake up any sleeping workers
+          synchronized (workloadState) {
+            workloadState.notifyAll();
+          }
 
           try {
             Thread.sleep(staggerDelayMs);
@@ -274,8 +281,6 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       workStates.add(workState.getWorkloadState());
     }
 
-    monitorAndSpawnWorkers();
-
     // long measureStart = start;
     Phase phase = null;
 
@@ -291,6 +296,12 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
     }
 
+    // Start the worker spawner in a separate thread
+    Thread workerSpawnerThread = new Thread(this::monitorAndSpawnWorkers);
+    workerSpawnerThread.start();
+
+    // this.monitorAndSpawnWorkers();
+    LOG.info("after spawn method call");
     // Change testState to cold query if execution is serial, since we don't
     // have a warm-up phase for serial execution but execute a cold and a
     // measured query in sequence.
@@ -299,6 +310,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         testState.startColdQuery();
       }
     }
+
+    LOG.info("runRateLimitedMultiPhase: debug 1");
 
     long startTs = System.currentTimeMillis();
     long start = System.nanoTime();
@@ -325,11 +338,15 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       this.monitor.start();
     }
 
+    LOG.info("runRateLimitedMultiPhase: debug 2");
+
     // Allow workers to start work.
-    testState.blockForStart();
+    // testState.blockForStart();
+    LOG.info("runRateLimitedMultiPhase: debug 3");
 
     // Main Loop
     while (true) {
+      LOG.info("Entering runratelimited.. main while loop");
       // posting new work... and resetting the queue in case we have new
       // portion of the workload...
 
@@ -362,6 +379,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
 
       boolean phaseComplete = false;
+
       if (phase != null) {
         if (phase.isLatencyRun())
         // Latency runs (serial run through each query) have their own
@@ -369,10 +387,19 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         {
           phaseComplete = testState.getState() == State.LATENCY_COMPLETE;
         } else {
+          LOG.info("DEBUG: Checking test state: {}", testState.getState());
+          LOG.info(
+              "DEBUG: Checking phaseComplete: (start + delta)={} vs now={}", start + delta, now);
           phaseComplete = testState.getState() == State.MEASURE && (start + delta <= now);
+          LOG.info(
+              "DEBUG: start={}, delta={}, now={}, phaseComplete={}",
+              start,
+              delta,
+              now,
+              phaseComplete);
         }
       }
-
+      LOG.info("runRateLimitedMultiPhase: debug 4: phaseComplete= {}", phaseComplete);
       // Go to next phase if this one is complete or enter if error was thrown
       boolean errorThrown = testState.getState() == State.ERROR;
       errorsThrown = errorsThrown || errorThrown;
@@ -389,15 +416,20 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
           }
           for (WorkloadState workState : workStates) {
             synchronized (workState) {
+              LOG.info("Before switchToNextPhase, currentPhase={}", workState.getCurrentPhase());
               workState.switchToNextPhase();
+              LOG.info("After switchToNextPhase, currentPhase={}", workState.getCurrentPhase());
               lowestRate = Integer.MAX_VALUE;
               phase = workState.getCurrentPhase();
               interruptWorkers();
+              LOG.info("debug 6: phase = workState.getCurrentPhase(); ", phase);
               if (phase == null && !lastEntry) {
                 // Last phase
                 lastEntry = true;
                 testState.startCoolDown();
                 measureEnd = now;
+                LOG.info("Workload measurement ended at: {}", measureEnd);
+                LOG.info("Elapsed time (nanos): {}", measureEnd - start);
                 LOG.info(
                     "{} :: Waiting for all terminals to finish ..", StringUtil.bold("TERMINATE"));
               } else if (phase != null) {
@@ -446,8 +478,10 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
             testState.startMeasure();
           }
           interruptWorkers();
+          LOG.info("Forced transition to MEASURE state.", state);
         }
         start = now;
+        LOG.info("Workload measurement started at: {}", start);
         LOG.info("{} :: Warmup complete, starting measurements.", StringUtil.bold("MEASURE"));
         // measureEnd = measureStart + measureSeconds * 1000000000L;
 
@@ -529,6 +563,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               samples,
               aggregatedSuccessByPriority,
               terminalCounts);
+      LOG.info("Start= {} | End= {}", startTs, measureEnd);
 
       // Compute transaction histogram
       Set<TransactionType> txnTypes = new HashSet<>();
