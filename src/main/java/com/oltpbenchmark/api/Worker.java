@@ -17,6 +17,7 @@
 
 package com.oltpbenchmark.api;
 
+import static com.oltpbenchmark.types.State.EXIT;
 import static com.oltpbenchmark.types.State.MEASURE;
 
 import com.oltpbenchmark.*;
@@ -251,12 +252,12 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     // wait for start
     // workloadState.blockForStart();
-    LOG.info("skipped wait");
+    // LOG.info("skipped wait");
 
     long startTime = System.currentTimeMillis();
     long timeLimit = 3500;
     while (true) {
-      LOG.info("Entering main while loop");
+      // LOG.info("Entering main while loop");
       // if (System.currentTimeMillis() - startTime > timeLimit) {
       //   LOG.info("Time limit reached. Exiting loop.");
       //   break;
@@ -265,7 +266,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       // PART 1: Init and check if done
 
       State preState = workloadState.getGlobalState();
-      LOG.info("preState 1: {}", preState);
+      // LOG.info("preState 1: {}", preState);
 
       // Exit if workload is DONE or EXIT
       // if (preState == State.DONE || preState == State.EXIT) {
@@ -279,25 +280,25 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           // test is done notify the global test state, then
           // continue applying load
           seenDone = true;
-          LOG.info("Worker {} is signaling DONE", this.id);
+          // LOG.info("Worker {} is signaling DONE", this.id);
           workloadState.signalDone();
           break;
         }
       }
 
       // PART 2: Wait for work
-      LOG.info("waiting for work");
+      // LOG.info("waiting for work");
 
       // Sleep if there's nothing to do.
       // workloadState.stayAwake(); // this makes workers stuck in the WARMUP state and never
       // transition to the
       // MEASURE
-      LOG.info("awake test");
+      // LOG.info("awake test");
 
       Phase prePhase = workloadState.getCurrentPhase();
-      LOG.info("prePhase 1.1: {}", prePhase);
+      // LOG.info("prePhase 1.1: {}", prePhase);
       if (prePhase == null) {
-        LOG.info("prePhase 1: {}", prePhase);
+        // LOG.info("prePhase 1: {}", prePhase);
         continue;
       }
 
@@ -312,17 +313,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       //   break;
       // }
 
-      LOG.info("after peice of work null test");
-
       prePhase = workloadState.getCurrentPhase();
-      LOG.info("prePhase 2.1: {}", prePhase);
+      // LOG.info("prePhase 2.1: {}", prePhase);
       if (prePhase == null) {
-        LOG.info("prePhase 2: {}", prePhase);
+        // LOG.info("prePhase 2: {}", prePhase);
         continue;
       }
 
       preState = workloadState.getGlobalState();
-      LOG.info("preState 2: {}", preState);
+      // LOG.info("preState 2: {}", preState);
 
       switch (preState) {
         case DONE, EXIT, LATENCY_COMPLETE -> {
@@ -341,7 +340,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
       if (!transactionType.equals(TransactionType.INVALID)) {
-        LOG.info("entered part 3", transactionType);
+        // LOG.info("entered part 3", transactionType);
 
         // TODO: Measuring latency when not rate limited is ... a little
         // weird because if you add more simultaneous clients, you will
@@ -369,16 +368,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           attemptedRequests.incrementAndGet(); // Track all attempted transactions
           attemptedRequestsByPriority.merge(workerPriorityClass, 1, Integer::sum);
         }
-        LOG.info("prestate 3 {}:", preState);
-        // for_debugging
-        // LOG.info(
-        //     "[PRE] Transaction Start: Worker={} | Priority={} | Txn={} | PreState={} |
-        // PrePhase={}",
-        //     this.id,
-        //     this.workerPriorityClass,
-        //     transactionType.getName(),
-        //     preState,
-        //     prePhase.getId());
 
         long start = System.nanoTime();
 
@@ -389,19 +378,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         // PART 4: Record results
 
         State postState = workloadState.getGlobalState();
-
-        // for_debugging
-        // LOG.info(
-        //     "[POST] Transaction End: Worker={} | Priority={} | Txn={} | PostState={} |
-        // PostPhase={}",
-        //     this.id,
-        //     this.workerPriorityClass,
-        //     transactionType.getName(),
-        //     postState,
-        //     workloadState.getCurrentPhase().getId());
-
         switch (postState) {
-          case MEASURE:
+          case MEASURE, DONE, EXIT:
             // Non-serial measurement. Only measure if the state both
             // before and after was MEASURE, and the phase hasn't
             // changed, otherwise we're recording results for a query

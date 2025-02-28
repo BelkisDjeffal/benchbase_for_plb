@@ -67,7 +67,7 @@ public final class BenchmarkState {
 
   public void startMeasure() {
     state = State.MEASURE;
-    LOG.info("State changed to MEASURE");
+    // LOG.info("State changed to MEASURE");
   }
 
   public void startColdQuery() {
@@ -93,7 +93,7 @@ public final class BenchmarkState {
   }
 
   public void startCoolDown() {
-    LOG.info("State changed to DONE");
+    // LOG.info("State changed to DONE");
     state = State.DONE;
 
     // The master thread must also signal that it is done
@@ -104,7 +104,7 @@ public final class BenchmarkState {
   public int signalDone() {
 
     int current = notDoneCount.decrementAndGet();
-    LOG.info("SignalDone called. Remaining workers: {}", current);
+    // LOG.info("SignalDone called. Remaining workers: {}", current);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("%d workers are not done. Waiting until they finish", current));

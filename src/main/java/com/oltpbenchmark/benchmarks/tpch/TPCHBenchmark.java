@@ -31,7 +31,9 @@ import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpch.procedures.Q1;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +78,8 @@ public final class TPCHBenchmark extends BenchmarkModule {
         workers.add(new TPCHWorker(this, workerIdx++, priorityClass));
       }
     }
+
+    Collections.shuffle(workers, new Random(System.currentTimeMillis()));
     return workers;
   }
 
