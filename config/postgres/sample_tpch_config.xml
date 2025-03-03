@@ -19,9 +19,9 @@
     <scalefactor>1</scalefactor>
 
     <!-- The workload -->
-    <terminals>20</terminals>
+    <terminals>30</terminals>
     <terminalClasses>"premium","freemium"</terminalClasses>
-    <terminalClassesWeights>10,10</terminalClassesWeights>
+    <terminalClassesWeights>15,15</terminalClassesWeights>
     <works>
         <work>  
             <serial>false</serial>

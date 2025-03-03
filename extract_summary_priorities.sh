@@ -19,7 +19,7 @@ if [ ! -d "$INPUT_DIR" ]; then
 fi
 
 # Define the output CSV file in the same directory as the script
-OUTPUT_FILE="$SCRIPT_DIR/test.csv"
+OUTPUT_FILE="$SCRIPT_DIR/summary_after_spawn.csv"
 
 # Check if the CSV file exists
 if [ ! -f "$OUTPUT_FILE" ]; then

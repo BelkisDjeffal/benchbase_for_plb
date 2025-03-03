@@ -11,6 +11,7 @@ results
 HELP.md
 PRIVATE.md
 target/
+config/
 profiles/
 docker/benchbase/fullimage/tmp/
 !.mvn/wrapper/maven-wrapper.jar
@@ -23,6 +24,9 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
+*.csv
+*.sh
+*.ipynb
 
 ### STS ###
 .apt_generated
