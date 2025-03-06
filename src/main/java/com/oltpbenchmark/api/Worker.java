@@ -17,10 +17,13 @@
 
 package com.oltpbenchmark.api;
 
-import static com.oltpbenchmark.types.State.EXIT;
 import static com.oltpbenchmark.types.State.MEASURE;
 
-import com.oltpbenchmark.*;
+import com.oltpbenchmark.LatencyRecord;
+import com.oltpbenchmark.Phase;
+import com.oltpbenchmark.SubmittedProcedure;
+import com.oltpbenchmark.WorkloadConfiguration;
+import com.oltpbenchmark.WorkloadState;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.types.DatabaseType;
 import com.oltpbenchmark.types.State;
@@ -252,210 +255,194 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     // wait for start
     // workloadState.blockForStart();
-    // LOG.info("skipped wait");
+
+    long minTime = 10000; // 10 seconds
+    long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
+    ;
+    long executionTime =
+        minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
 
     long startTime = System.currentTimeMillis();
-    long timeLimit = 3500;
-    while (true) {
-      // LOG.info("Entering main while loop");
-      // if (System.currentTimeMillis() - startTime > timeLimit) {
-      //   LOG.info("Time limit reached. Exiting loop.");
-      //   break;
-      // }
 
-      // PART 1: Init and check if done
+    LOG.info("Worker {} will run for {} ms", id, executionTime);
 
-      State preState = workloadState.getGlobalState();
-      // LOG.info("preState 1: {}", preState);
+    try {
+      while (true) {
+        long currentTime = System.currentTimeMillis();
 
-      // Exit if workload is DONE or EXIT
-      // if (preState == State.DONE || preState == State.EXIT) {
-      //   LOG.info("Worker {} detected workload completion. Exiting.", this.id);
-      //   break; // Exit the loop
-      // }
-
-      if (preState == State.DONE) {
-        if (!seenDone) {
-          // This is the first time we have observed that the
-          // test is done notify the global test state, then
-          // continue applying load
-          seenDone = true;
-          // LOG.info("Worker {} is signaling DONE", this.id);
+        // Stop worker if execution time is reached
+        if ((currentTime - startTime) >= executionTime) {
+          LOG.info("Worker {} stopping after {} ms", id, executionTime);
           workloadState.signalDone();
           break;
         }
-      }
+        // PART 1: Init and check if done
 
-      // PART 2: Wait for work
-      // LOG.info("waiting for work");
+        State preState = workloadState.getGlobalState();
 
-      // Sleep if there's nothing to do.
-      // workloadState.stayAwake(); // this makes workers stuck in the WARMUP state and never
-      // transition to the
-      // MEASURE
-      // LOG.info("awake test");
+        // if (preState == State.DONE) {
+        //   if (!seenDone) {
+        //     // This is the first time we have observed that the
+        //     // test is done notify the global test state, then
+        //     // continue applying load
+        //     seenDone = true;
+        //     workloadState.signalDone();
+        //     break;
+        //   }
+        // }
 
-      Phase prePhase = workloadState.getCurrentPhase();
-      // LOG.info("prePhase 1.1: {}", prePhase);
-      if (prePhase == null) {
-        // LOG.info("prePhase 1: {}", prePhase);
-        continue;
-      }
+        // PART 2: Wait for work
+        // LOG.info("waiting for work");
 
-      // Grab some work and update the state, in case it changed while we
-      // waited.
+        // Sleep if there's nothing to do.
+        // workloadState.stayAwake(); // this makes workers stuck in the WARMUP state and never
+        // transition to the MEASURE
 
-      SubmittedProcedure pieceOfWork = workloadState.fetchWork();
-
-      // if (pieceOfWork == null) {
-      //   // No more work to do, exit gracefully
-      //   LOG.info("Worker {} has no more work. Exiting.", this.id);
-      //   break;
-      // }
-
-      prePhase = workloadState.getCurrentPhase();
-      // LOG.info("prePhase 2.1: {}", prePhase);
-      if (prePhase == null) {
-        // LOG.info("prePhase 2: {}", prePhase);
-        continue;
-      }
-
-      preState = workloadState.getGlobalState();
-      // LOG.info("preState 2: {}", preState);
-
-      switch (preState) {
-        case DONE, EXIT, LATENCY_COMPLETE -> {
-          // Once a latency run is complete, we wait until the next
-          // phase or until DONE.
-          LOG.warn("preState is {}? will continue...", preState);
+        Phase prePhase = workloadState.getCurrentPhase();
+        if (prePhase == null) {
           continue;
         }
-        default -> {}
-          // Do nothing
-      }
 
-      // PART 3: Execute work
+        // Grab some work and update the state, in case it changed while we
+        // waited.
+        SubmittedProcedure pieceOfWork = workloadState.fetchWork();
 
-      TransactionType transactionType =
-          getTransactionType(pieceOfWork, prePhase, preState, workloadState);
+        // if (pieceOfWork == null) {
+        //   // No more work to do, exit gracefully
+        //   LOG.info("Worker {} has no more work. Exiting.", this.id);
+        //   break;
+        // }
 
-      if (!transactionType.equals(TransactionType.INVALID)) {
-        // LOG.info("entered part 3", transactionType);
+        prePhase = workloadState.getCurrentPhase();
+        if (prePhase == null) {
+          continue;
+        }
 
-        // TODO: Measuring latency when not rate limited is ... a little
-        // weird because if you add more simultaneous clients, you will
-        // increase latency (queue delay) but we do this anyway since it is
-        // useful sometimes
+        preState = workloadState.getGlobalState();
 
-        // Wait before transaction if specified
-        long preExecutionWaitInMillis = getPreExecutionWaitInMillis(transactionType);
-
-        if (preExecutionWaitInMillis > 0) {
-          try {
-            LOG.debug(
-                "{} will sleep for {} ms before executing",
-                transactionType.getName(),
-                preExecutionWaitInMillis);
-
-            Thread.sleep(preExecutionWaitInMillis);
-          } catch (InterruptedException e) {
-            LOG.error("Pre-execution sleep interrupted", e);
+        switch (preState) {
+          case DONE, EXIT, LATENCY_COMPLETE -> {
+            // Once a latency run is complete, we wait until the next
+            // phase or until DONE.
+            LOG.warn("preState is {}? will continue...", preState);
+            continue;
           }
-        }
-
-        // Track all attempted transactions during MEASURE (before executing)
-        if (preState == MEASURE) {
-          attemptedRequests.incrementAndGet(); // Track all attempted transactions
-          attemptedRequestsByPriority.merge(workerPriorityClass, 1, Integer::sum);
-        }
-
-        long start = System.nanoTime();
-
-        doWork(configuration.getDatabaseType(), transactionType);
-
-        long end = System.nanoTime();
-
-        // PART 4: Record results
-
-        State postState = workloadState.getGlobalState();
-        switch (postState) {
-          case MEASURE, DONE, EXIT:
-            // Non-serial measurement. Only measure if the state both
-            // before and after was MEASURE, and the phase hasn't
-            // changed, otherwise we're recording results for a query
-            // that either started during the warmup phase or ended
-            // after the timer went off.
-            Phase postPhase = workloadState.getCurrentPhase();
-
-            if (postPhase == null) {
-              // Need a null check on postPhase since current phase being null is used in
-              // WorkloadState
-              // and ThreadBench as the indication that the benchmark is over. However, there's a
-              // race
-              // condition with postState not being changed from MEASURE to DONE yet, so we entered
-              // the
-              // switch. In this scenario, just break from the switch.
-              break;
-            }
-            if (preState == MEASURE && postPhase.getId() == prePhase.getId()) {
-              this.txnSuccess.put(transactionType);
-              localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
-              latencies.addLatency(
-                  transactionType.getId(),
-                  start,
-                  end,
-                  this.id,
-                  prePhase.getId(),
-                  workerPriorityClass);
-              intervalRequests.incrementAndGet();
-              // for_debugging
-              // LOG.info(
-              //     "[THROUGHPUT] Transaction Counted: Worker={} | Priority={} | Txn={} | Phase={}
-              // | IntervalRequests={}",
-              //     this.id,
-              //     this.workerPriorityClass,
-              //     transactionType.getName(),
-              //     prePhase.getId(),
-              //     intervalRequests.get());
-            }
-            if (prePhase.isLatencyRun()) {
-              workloadState.startColdQuery();
-            }
-            break;
-          case COLD_QUERY:
-            // No recording for cold runs, but next time we will since
-            // it'll be a hot run.
-            if (preState == State.COLD_QUERY) {
-              workloadState.startHotQuery();
-            }
-            break;
-          default:
+          default -> {}
             // Do nothing
         }
 
-        // wait after transaction if specified
-        long postExecutionWaitInMillis = getPostExecutionWaitInMillis(transactionType);
+        // PART 3: Execute work
 
-        if (postExecutionWaitInMillis > 0) {
-          try {
-            LOG.debug(
-                "{} will sleep for {} ms after executing",
-                transactionType.getName(),
-                postExecutionWaitInMillis);
+        TransactionType transactionType =
+            getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
-            Thread.sleep(postExecutionWaitInMillis);
-          } catch (InterruptedException e) {
-            LOG.error("Post-execution sleep interrupted", e);
+        if (!transactionType.equals(TransactionType.INVALID)) {
+          // TODO: Measuring latency when not rate limited is ... a little
+          // weird because if you add more simultaneous clients, you will
+          // increase latency (queue delay) but we do this anyway since it is
+          // useful sometimes
+
+          // Wait before transaction if specified
+          long preExecutionWaitInMillis = getPreExecutionWaitInMillis(transactionType);
+
+          if (preExecutionWaitInMillis > 0) {
+            try {
+              LOG.debug(
+                  "{} will sleep for {} ms before executing",
+                  transactionType.getName(),
+                  preExecutionWaitInMillis);
+
+              Thread.sleep(preExecutionWaitInMillis);
+            } catch (InterruptedException e) {
+              LOG.error("Pre-execution sleep interrupted", e);
+            }
+          }
+
+          // Track all attempted transactions during MEASURE (before executing)
+          if (preState == MEASURE) {
+            attemptedRequests.incrementAndGet();
+            attemptedRequestsByPriority.merge(workerPriorityClass, 1, Integer::sum);
+          }
+
+          long start = System.nanoTime();
+
+          doWork(configuration.getDatabaseType(), transactionType);
+
+          long end = System.nanoTime();
+
+          // PART 4: Record results
+
+          State postState = workloadState.getGlobalState();
+          switch (postState) {
+            case MEASURE, DONE, EXIT:
+              // Non-serial measurement. Only measure if the state both
+              // before and after was MEASURE, and the phase hasn't
+              // changed, otherwise we're recording results for a query
+              // that either started during the warmup phase or ended
+              // after the timer went off.
+              Phase postPhase = workloadState.getCurrentPhase();
+
+              if (postPhase == null) {
+                // Need a null check on postPhase since current phase being null is used in
+                // WorkloadState
+                // and ThreadBench as the indication that the benchmark is over. However, there's a
+                // race
+                // condition with postState not being changed from MEASURE to DONE yet, so we
+                // entered
+                // the
+                // switch. In this scenario, just break from the switch.
+                break;
+              }
+              if (preState == MEASURE && postPhase.getId() == prePhase.getId()) {
+                this.txnSuccess.put(transactionType);
+                localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
+                latencies.addLatency(
+                    transactionType.getId(),
+                    start,
+                    end,
+                    this.id,
+                    prePhase.getId(),
+                    workerPriorityClass);
+                intervalRequests.incrementAndGet();
+              }
+              if (prePhase.isLatencyRun()) {
+                workloadState.startColdQuery();
+              }
+              break;
+            case COLD_QUERY:
+              // No recording for cold runs, but next time we will since
+              // it'll be a hot run.
+              if (preState == State.COLD_QUERY) {
+                workloadState.startHotQuery();
+              }
+              break;
+            default:
+              // Do nothing
+          }
+
+          // wait after transaction if specified
+          long postExecutionWaitInMillis = getPostExecutionWaitInMillis(transactionType);
+
+          if (postExecutionWaitInMillis > 0) {
+            try {
+              LOG.debug(
+                  "{} will sleep for {} ms after executing",
+                  transactionType.getName(),
+                  postExecutionWaitInMillis);
+
+              Thread.sleep(postExecutionWaitInMillis);
+            } catch (InterruptedException e) {
+              LOG.error("Post-execution sleep interrupted", e);
+            }
           }
         }
+
+        workloadState.finishedWork();
       }
-
-      workloadState.finishedWork();
+    } finally {
+      LOG.debug("worker calling teardown");
+      tearDown();
     }
-
-    LOG.debug("worker calling teardown");
-
-    tearDown();
   }
 
   // fin_run
@@ -730,19 +717,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             case UNKNOWN -> {
               this.txnUnknown.put(transactionType);
             }
-              // for_debugging
-              // case SUCCESS -> {
-              //   this.txnSuccess.put(transactionType);
-              //   localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
-              //   // for_debugging
-              //   // LOG.info(
-              //   //     "[GOODPUT] Transaction Succeeded: Worker={} | Priority={} | Txn={} |
-              //   // SuccessCount={}",
-              //   //     this.id,
-              //   //     this.workerPriorityClass,
-              //   //     transactionType,
-              //   //     this.txnSuccess.get(transactionType));
-              // }
             case USER_ABORTED -> {
               this.txnAbort.put(transactionType);
             }

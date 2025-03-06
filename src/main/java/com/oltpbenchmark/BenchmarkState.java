@@ -93,7 +93,6 @@ public final class BenchmarkState {
   }
 
   public void startCoolDown() {
-    // LOG.info("State changed to DONE");
     state = State.DONE;
 
     // The master thread must also signal that it is done
@@ -104,10 +103,8 @@ public final class BenchmarkState {
   public int signalDone() {
 
     int current = notDoneCount.decrementAndGet();
-    // LOG.info("SignalDone called. Remaining workers: {}", current);
-
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("%d workers are not done. Waiting until they finish", current));
+      LOG.info(String.format("%d workers are not done. Waiting until they finish", current));
     }
     if (current == 0) {
       // We are the last thread to notice that we are done: wake any
