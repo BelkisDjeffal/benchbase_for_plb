@@ -12,6 +12,7 @@ HELP.md
 PRIVATE.md
 target/
 config/
+config/postgres/sample_tpch_config.xml
 profiles/
 docker/benchbase/fullimage/tmp/
 !.mvn/wrapper/maven-wrapper.jar
