@@ -8,11 +8,14 @@ results
 **/*.db
 **/*.db-journal
 
+tpch.sql
 HELP.md
 PRIVATE.md
 target/
 config/
 config/postgres/sample_tpch_config.xml
+playbook2.yml
+playbook1.yml
 profiles/
 docker/benchbase/fullimage/tmp/
 !.mvn/wrapper/maven-wrapper.jar
@@ -66,3 +69,7 @@ docker-compose-*.tar.gz
 # Python
 __pycache__/
 *.py[cod]
+config/postgres/sample_tpch_config.xml
+config/postgres/sample_tpch_config.xml
+run_benchbase.sh
+extract_summary_priorities.sh

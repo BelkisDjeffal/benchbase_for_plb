@@ -1,0 +1,7 @@
+reserved_nodes: [chiclet-1.lille.grid5000.fr, chiclet-2.lille.grid5000.fr, chiclet-3.lille.grid5000.fr,
+  chiclet-4.lille.grid5000.fr, chiclet-5.lille.grid5000.fr, chiclet-6.lille.grid5000.fr]
+
+premium_nodes: [chiclet-1.lille.grid5000.fr, chiclet-2.lille.grid5000.fr]
+
+freemium_nodes: [chiclet-3.lille.grid5000.fr, chiclet-4.lille.grid5000.fr, chiclet-5.lille.grid5000.fr,
+  chiclet-6.lille.grid5000.fr]

@@ -20,6 +20,7 @@ package com.oltpbenchmark.benchmarks.tpch.procedures;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.util.RandomGenerator;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
@@ -86,14 +87,23 @@ public abstract class GenericQuery extends Procedure {
 
   // Method to write the execution plan to the file
   private void writeExecutionPlanToFile(String fileName, String executionPlan, String queryName) {
-    try (BufferedWriter writer =
-        new BufferedWriter(new FileWriter(fileName, true))) { // Open file in append mode
-      writer.write("Query: " + queryName + "\n");
-      writer.write("Query output:\n");
-      writer.write(executionPlan);
-      writer.write("\n\n");
-    } catch (IOException e) {
-      LOG.error("Failed to write execution plan to file", e);
+    final File dir = new File("execution_plans" + firstTimestamp);
+    if (!dir.exists()) {
+      if (!dir.mkdir()) {
+        System.out.println("Folder Not Found!!!");
+        System.exit(0);
+      } else {
+        try (BufferedWriter writer =
+            new BufferedWriter(
+                new FileWriter(new File(dir, fileName), true))) { // Open file in append mode
+          writer.write("Query: " + queryName + "\n");
+          writer.write("Query output:\n");
+          writer.write(executionPlan);
+          writer.write("\n\n");
+        } catch (IOException e) {
+          LOG.error("Failed to write execution plan to file", e);
+        }
+      }
     }
   }
 }

@@ -90,7 +90,7 @@ public class WorkloadState {
 
   public void signalDone() {
     int current = this.benchmarkState.signalDone();
-    if (current == 0) {
+    if (current <= 0) {
       synchronized (this) {
         if (workersWaiting > 0) {
           this.notifyAll();

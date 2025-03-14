@@ -106,7 +106,7 @@ public final class BenchmarkState {
     if (LOG.isDebugEnabled()) {
       LOG.info(String.format("%d workers are not done. Waiting until they finish", current));
     }
-    if (current == 0) {
+    if (current <= 0) {
       // We are the last thread to notice that we are done: wake any
       // blocked workers
       this.state = State.EXIT;

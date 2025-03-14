@@ -148,11 +148,11 @@ public final class Results {
   }
 
   public double requestsPerSecondThroughput() {
-    return (double) measuredRequests / (double) nanoseconds * 1e9;
+    return (double) measuredRequests;
   }
 
   public double requestsPerSecondGoodput() {
-    return (double) success.getSampleCount() / (double) nanoseconds * 1e9;
+    return (double) success.getSampleCount();
     // return (double) latencySamples.size() / (double) nanoseconds * 1e9;
   }
 
@@ -177,15 +177,15 @@ public final class Results {
   }
 
   public double getNewThroughput() {
-    return (double) attemptedRequests / (double) nanoseconds * 1e9;
+    return (double) attemptedRequests;
   }
 
   public double getThroughputForPriority(String priority) {
-    return (double) requestsByPriority.getOrDefault(priority, 0) / nanoseconds * 1e9;
+    return (double) requestsByPriority.getOrDefault(priority, 0);
   }
 
   public double getGoodputForPriority(String priority) {
-    return (double) successByPriority.getOrDefault(priority, 0) / nanoseconds * 1e9;
+    return (double) successByPriority.getOrDefault(priority, 0);
   }
 
   public DistributionStatistics getLatencyStatsForPriority(String priority) {
@@ -198,7 +198,7 @@ public final class Results {
   }
 
   public double getNewThroughputForPriority(String priority) {
-    return (double) attemptedRequestsByPriority.getOrDefault(priority, 0) / nanoseconds * 1e9;
+    return (double) attemptedRequestsByPriority.getOrDefault(priority, 0);
   }
 
   public double getPerTerminalThroughputForPriority(String priority) {
@@ -241,36 +241,36 @@ public final class Results {
 
     sb.append(") = ");
     // sb.append(getNewThroughput());
-    // sb.append(" requests/sec (New throughput)");
+    // sb.append("  (New throughput)");
     // sb.append(", ");
     sb.append(getNewThroughput());
-    sb.append(" requests/sec (throughput)");
+    sb.append("  (throughput)");
     sb.append(", ");
 
     sb.append(requestsPerSecondGoodput());
-    sb.append(" requests/sec (goodput)");
+    sb.append("  (goodput)");
 
     for (String priority : latencyStatsByPriority.keySet()) {
       sb.append("\nPriority: ")
           .append(priority)
           // .append("\n  Attempted Throughput: ")
           // .append(getNewThroughputForPriority(priority))
-          // .append(" requests/sec")
+          // .append(" ")
           .append("\n  Throughput: ")
           .append(getNewThroughputForPriority(priority))
-          .append(" requests/sec")
+          .append(" ")
           .append("\n  Goodput: ")
           .append(getGoodputForPriority(priority))
-          .append(" requests/sec")
+          .append(" ")
           // .append("\n  Per Terminal Attempted Throughput: ")
           // .append(getPerTerminalAttemptedThroughputForPriority(priority))
-          // .append(" requests/sec")
+          // .append(" ")
           .append("\n  Per Terminal Throughput: ")
           .append(getPerTerminalAttemptedThroughputForPriority(priority))
-          .append(" requests/sec")
+          .append(" ")
           .append("\n  Per Terminal Goodput: ")
           .append(getPerTerminalGoodputForPriority(priority))
-          .append(" requests/sec")
+          .append(" ")
           .append("\n  Latency Stats: ")
           .append(getLatencyStatsForPriority(priority));
     }

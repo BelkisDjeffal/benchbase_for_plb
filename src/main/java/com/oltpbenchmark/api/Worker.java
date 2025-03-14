@@ -258,7 +258,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     long minTime = 10000; // 10 seconds
     long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
-    ;
     long executionTime =
         minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
 
@@ -273,7 +272,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         // Stop worker if execution time is reached
         if ((currentTime - startTime) >= executionTime) {
           LOG.info("Worker {} stopping after {} ms", id, executionTime);
-          workloadState.signalDone();
+          // workloadState.signalDone();
           break;
         }
         // PART 1: Init and check if done
@@ -307,11 +306,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         // waited.
         SubmittedProcedure pieceOfWork = workloadState.fetchWork();
 
-        // if (pieceOfWork == null) {
-        //   // No more work to do, exit gracefully
-        //   LOG.info("Worker {} has no more work. Exiting.", this.id);
-        //   break;
-        // }
+        if (pieceOfWork == null) {
+          // No more work to do, exit gracefully
+          LOG.info("Worker {} has no more work. Exiting.", this.id);
+          break;
+        }
 
         prePhase = workloadState.getCurrentPhase();
         if (prePhase == null) {
@@ -441,6 +440,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       }
     } finally {
       LOG.debug("worker calling teardown");
+      workloadState.signalDone();
       tearDown();
     }
   }
