@@ -19,17 +19,11 @@ package com.oltpbenchmark.benchmarks.tpch.procedures;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.util.RandomGenerator;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +32,7 @@ public abstract class GenericQuery extends Procedure {
   protected static final Logger LOG = LoggerFactory.getLogger(GenericQuery.class);
 
   // Static variable to hold the timestamp of the first query execution
-  private static String firstTimestamp = null;
+  // private static String firstTimestamp = null;
 
   private int workerId; // Field to store the worker ID
 
@@ -55,20 +49,9 @@ public abstract class GenericQuery extends Procedure {
 
     PreparedStatement stmt = null;
     try {
-      // Set the timestamp if this is the first query execution
-      if (firstTimestamp == null) {
-        firstTimestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-      }
       stmt = getStatement(conn, rand, scaleFactor);
       try (ResultSet rs = stmt.executeQuery()) {
-        StringBuilder explainOutput = new StringBuilder();
-        while (rs.next()) {
-          explainOutput.append(rs.getString(1)).append("\n");
-        }
-        // Generate a single filename using the first query's timestamp
-        String fileName = generateFileName();
-        // Append the execution plan to the file
-        writeExecutionPlanToFile(fileName, explainOutput.toString(), getClass().getSimpleName());
+        while (rs.next()) {}
       }
     } catch (SQLSyntaxErrorException ex) {
       if (LOG.isDebugEnabled()) {
@@ -76,34 +59,6 @@ public abstract class GenericQuery extends Procedure {
             this.getClass().getName() + ": stmt: " + (stmt != null ? stmt.toString() : "null"));
       }
       throw ex;
-    }
-  }
-
-  // Method to generate the filename for the execution plans file
-  private String generateFileName() {
-    // Use the static timestamp for file naming
-    return String.format("worker_%d_execution_plans_%s.txt", workerId, firstTimestamp);
-  }
-
-  // Method to write the execution plan to the file
-  private void writeExecutionPlanToFile(String fileName, String executionPlan, String queryName) {
-    final File dir = new File("execution_plans" + firstTimestamp);
-    if (!dir.exists()) {
-      if (!dir.mkdir()) {
-        System.out.println("Folder Not Found!!!");
-        System.exit(0);
-      } else {
-        try (BufferedWriter writer =
-            new BufferedWriter(
-                new FileWriter(new File(dir, fileName), true))) { // Open file in append mode
-          writer.write("Query: " + queryName + "\n");
-          writer.write("Query output:\n");
-          writer.write(executionPlan);
-          writer.write("\n\n");
-        } catch (IOException e) {
-          LOG.error("Failed to write execution plan to file", e);
-        }
-      }
     }
   }
 }

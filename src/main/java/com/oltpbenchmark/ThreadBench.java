@@ -15,15 +15,6 @@
 
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.BenchmarkModule;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.api.collectors.monitoring.Monitor;
-import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.MonitorInfo;
-import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,9 +26,20 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.BenchmarkModule;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.api.collectors.monitoring.Monitor;
+import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.StringUtil;
 
 public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ThreadBench.class);
@@ -196,7 +198,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     AtomicInteger activeWorkers = new AtomicInteger(0);
 
     long startTime = System.currentTimeMillis();
-    long endTime = startTime + phaseDurationMs + 10 * 1000L;
+    long endTime = startTime + phaseDurationMs + 20 * 1000L;
 
     double lambda = (double) totalWorkers / (phaseDurationMs / 1000.0);
 
