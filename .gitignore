@@ -12,6 +12,7 @@ tpch.sql
 HELP.md
 PRIVATE.md
 target/
+measurements/data/runs_outputs
 config/
 config/postgres/sample_tpch_config.xml
 profiles/
