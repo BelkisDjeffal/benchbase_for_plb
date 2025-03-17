@@ -56,8 +56,6 @@ public final class TPCHBenchmark extends BenchmarkModule {
     List<String> priorityClasses = workConf.getTerminalPriorityClasses();
     List<Integer> priorityWeights = workConf.getTerminalPriorityClassesWeights();
 
-    // LOG.info(String.format("Creating %d workers for TPC-H with priority classes", numTerminals));
-
     // Ensure the total weights match the number of terminals
     int totalWeights = priorityWeights.stream().mapToInt(Integer::intValue).sum();
     if (totalWeights != numTerminals) {
@@ -72,9 +70,6 @@ public final class TPCHBenchmark extends BenchmarkModule {
       int weight = priorityWeights.get(classIdx);
 
       for (int j = 0; j < weight; j++) {
-        // System.out.printf(
-        //     "TPCHBenchmark: printing worker id = %d and priority = %s!%n",
-        //     workerIdx + 1, priorityClass);
         workers.add(new TPCHWorker(this, workerIdx++, priorityClass));
       }
     }

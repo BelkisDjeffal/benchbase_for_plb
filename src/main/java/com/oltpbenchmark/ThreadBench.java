@@ -15,22 +15,6 @@
 
 package com.oltpbenchmark;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.collections4.map.ListOrderedMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.oltpbenchmark.LatencyRecord.Sample;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.TransactionType;
@@ -40,6 +24,19 @@ import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.MonitorInfo;
 import com.oltpbenchmark.util.StringUtil;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.collections4.map.ListOrderedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ThreadBench.class);
@@ -53,7 +50,6 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private final List<WorkloadConfiguration> workConfs;
   private final ArrayList<LatencyRecord.Sample> samples = new ArrayList<>();
   private final MonitorInfo monitorInfo;
-  Map<Worker<?>, Long> workerStartTimes = new ConcurrentHashMap<>();
 
   private Monitor monitor = null;
 
@@ -76,111 +72,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     return bench.runRateLimitedMultiPhase();
   }
 
-  // private void monitorAndSpawnWorkers() {
-  //   int totalWorkers = workConfs.get(0).getTerminals();
-  //   long totalWorkTimeMs =
-  //       workConfs.get(0).getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
-
-  //   AtomicInteger activeWorkers = new AtomicInteger(0);
-  //   AtomicInteger nextWorkerIndex = new AtomicInteger(0);
-  //   long startTime = System.currentTimeMillis();
-
-  //   LOG.info("Starting Poisson-based worker spawner for {} workers", totalWorkers);
-
-  //   while (true) {
-  //     synchronized (workerThreads) {
-  //       Iterator<Thread> iterator = workerThreads.iterator();
-
-  //       // Remove finished workers
-  //       while (iterator.hasNext()) {
-  //         Thread workerThread = iterator.next();
-  //         if (!workerThread.isAlive()) {
-  //           iterator.remove();
-  //           activeWorkers.decrementAndGet();
-  //           LOG.info("Worker finished. Active workers: {}", activeWorkers.get());
-  //         }
-  //       }
-
-  //       long elapsedTime = System.currentTimeMillis() - startTime;
-  //       long remainingTime = totalWorkTimeMs - elapsedTime;
-
-  //       // Exit condition: Stop when workload is done or time has elapsed
-  //       if (testState.getState() == State.DONE || elapsedTime >= totalWorkTimeMs) {
-  //         LOG.info("Workload is done or time elapsed. Stopping worker monitoring.");
-  //         break;
-  //       }
-
-  //       // Spawn workers following a Poisson-distributed interval
-  //       while (activeWorkers.get() < totalWorkers && nextWorkerIndex.get() < totalWorkers) {
-  //         Worker<?> newWorker = workers.get(nextWorkerIndex.getAndIncrement());
-  //         newWorker.initializeState();
-
-  //         Thread newThread =
-  //             new Thread(
-  //                 () -> {
-  //                   long workerStart = System.currentTimeMillis();
-  //                   workerStartTimes.put(newWorker, workerStart);
-
-  //                   newWorker.run(); // Worker execution
-
-  //                   // Ensure worker runs for at least 10 seconds
-  //                   long elapsedWorkerTime = System.currentTimeMillis() - workerStart;
-  //                   if (elapsedWorkerTime < 10000) {
-  //                     try {
-  //                       Thread.sleep(10000 - elapsedWorkerTime);
-  //                     } catch (InterruptedException e) {
-  //                       Thread.currentThread().interrupt();
-  //                     }
-  //                   }
-  //                 });
-
-  //         newThread.setUncaughtExceptionHandler(this);
-  //         newThread.start();
-
-  //         workerThreads.add(newThread);
-  //         activeWorkers.incrementAndGet();
-
-  //         LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
-
-  //         // **Poisson-distributed delay before next worker spawns**
-  //         long poissonDelayMs =
-  //             getPoissonInterval(1.0 / totalWorkers); // λ = avg workers per second
-  //         try {
-  //           Thread.sleep(poissonDelayMs);
-  //         } catch (InterruptedException e) {
-  //           LOG.error("Error in Poisson worker spawning", e);
-  //           Thread.currentThread().interrupt();
-  //           break;
-  //         }
-  //       }
-  //     }
-
-  //     try {
-  //       Thread.sleep(500); // Shorter monitoring interval for responsiveness
-  //     } catch (InterruptedException e) {
-  //       LOG.error("Worker monitoring loop interrupted", e);
-  //       Thread.currentThread().interrupt();
-  //       break;
-  //     }
-  //   }
-
-  //   List<Long> workerStartLogs = new ArrayList<>();
-  //   for (Worker<?> worker : workerStartTimes.keySet()) {
-  //     workerStartLogs.add(workerStartTimes.get(worker) - startTime);
-  //   }
-
-  //   try {
-  //     Files.write(
-  //         Paths.get("worker_start_times.txt"),
-  //         workerStartLogs.stream().map(String::valueOf).collect(Collectors.toList()),
-  //         StandardOpenOption.CREATE);
-  //   } catch (IOException e) {
-  //     LOG.error("Failed to write worker start times to file", e);
-  //   }
-  // }
-
   private long getPoissonInterval(double lambda) {
-    return (long) ((-Math.log(1 - Math.random()) / lambda) * 1000L); // Convert to milliseconds
+    return (long) ((-Math.log(1 - Math.random()) / lambda) * 1000L);
   }
 
   private void interruptWorkers() {
@@ -207,7 +100,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         totalWorkers,
         phaseDurationMs);
 
-    while (System.currentTimeMillis() < endTime) { // Run until phase time expires
+    while (System.currentTimeMillis() < endTime) {
       synchronized (workerThreads) {
         // Remove finished workers
         Iterator<Thread> iterator = workerThreads.iterator();
@@ -235,7 +128,6 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
           activeWorkers.incrementAndGet();
           LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
 
-          // Wake up any sleeping workers
           synchronized (workloadState) {
             workloadState.notifyAll();
           }
@@ -486,26 +378,6 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       } else if (state == State.EXIT) {
         // All threads have noticed the done, meaning all measure
         // requests have definitely finished.
-        // Ensure all workers have run for at least 10 seconds before exiting
-        // boolean allWorkersRanEnough = false;
-        // if (!workerStartTimes.isEmpty()) { // Ensure map is not empty
-        //   while (!allWorkersRanEnough) {
-        //     long currentTime = System.currentTimeMillis();
-        //     allWorkersRanEnough =
-        //         workerStartTimes.values().stream()
-        //             .allMatch(startTime -> (currentTime - startTime) >= 10000);
-
-        //     if (!allWorkersRanEnough) {
-        //       LOG.info("Waiting for all workers to reach minimum execution time...");
-        //       try {
-        //         Thread.sleep(1000);
-        //       } catch (InterruptedException e) {
-        //         Thread.currentThread().interrupt();
-        //       }
-        //       LOG.info("not all workers run");
-        //     }
-        //   }
-        // }
         // Time to quit.
         break;
       }

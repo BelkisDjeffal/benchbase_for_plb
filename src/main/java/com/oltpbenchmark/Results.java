@@ -17,15 +17,16 @@
 
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.Histogram;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.Histogram;
 
 public final class Results {
 
@@ -153,7 +154,6 @@ public final class Results {
 
   public double requestsPerSecondGoodput() {
     return (double) success.getSampleCount();
-    // return (double) latencySamples.size() / (double) nanoseconds * 1e9;
   }
 
   public List<Sample> getLatencySamples() {
@@ -240,9 +240,6 @@ public final class Results {
     sb.append(success.getSampleCount());
 
     sb.append(") = ");
-    // sb.append(getNewThroughput());
-    // sb.append("  (New throughput)");
-    // sb.append(", ");
     sb.append(getNewThroughput());
     sb.append("  (throughput)");
     sb.append(", ");
@@ -253,18 +250,12 @@ public final class Results {
     for (String priority : latencyStatsByPriority.keySet()) {
       sb.append("\nPriority: ")
           .append(priority)
-          // .append("\n  Attempted Throughput: ")
-          // .append(getNewThroughputForPriority(priority))
-          // .append(" ")
           .append("\n  Throughput: ")
           .append(getNewThroughputForPriority(priority))
           .append(" ")
           .append("\n  Goodput: ")
           .append(getGoodputForPriority(priority))
           .append(" ")
-          // .append("\n  Per Terminal Attempted Throughput: ")
-          // .append(getPerTerminalAttemptedThroughputForPriority(priority))
-          // .append(" ")
           .append("\n  Per Terminal Throughput: ")
           .append(getPerTerminalAttemptedThroughputForPriority(priority))
           .append(" ")

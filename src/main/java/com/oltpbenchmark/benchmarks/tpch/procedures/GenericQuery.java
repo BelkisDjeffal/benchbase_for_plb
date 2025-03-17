@@ -17,34 +17,31 @@
 
 package com.oltpbenchmark.benchmarks.tpch.procedures;
 
-import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.util.RandomGenerator;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.util.RandomGenerator;
 
 public abstract class GenericQuery extends Procedure {
 
   protected static final Logger LOG = LoggerFactory.getLogger(GenericQuery.class);
 
-  // Static variable to hold the timestamp of the first query execution
-  // private static String firstTimestamp = null;
-
-  private int workerId; // Field to store the worker ID
+  private int workerId;
 
   public void setWorkerId(int workerId) {
     this.workerId = workerId;
   }
 
-  // Abstract method to get a PreparedStatement for the query
   protected abstract PreparedStatement getStatement(
       Connection conn, RandomGenerator rand, double scaleFactor) throws SQLException;
 
-  // Main method to run the query and write its execution plan to a file
   public void run(Connection conn, RandomGenerator rand, double scaleFactor) throws SQLException {
 
     PreparedStatement stmt = null;

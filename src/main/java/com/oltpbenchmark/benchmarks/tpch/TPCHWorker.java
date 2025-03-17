@@ -17,14 +17,15 @@
 
 package com.oltpbenchmark.benchmarks.tpch;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpch.procedures.GenericQuery;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.RandomGenerator;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public final class TPCHWorker extends Worker<TPCHBenchmark> {
 
@@ -33,10 +34,7 @@ public final class TPCHWorker extends Worker<TPCHBenchmark> {
   public TPCHWorker(TPCHBenchmark benchmarkModule, int id, String workerPriorityClass) {
     super(benchmarkModule, id, workerPriorityClass);
     this.rng().setSeed(15721);
-    // super(workerPriorityClass);
-    // this.workerPriorityClass = workerPriorityClass;
-    // System.out.printf(
-    //     "TPCHWorker: printing worker id = %d and priority = %s!%n", id, workerPriorityClass);
+
     rand = new RandomGenerator(this.rng().nextInt());
   }
 
@@ -46,9 +44,7 @@ public final class TPCHWorker extends Worker<TPCHBenchmark> {
     try {
       GenericQuery proc = (GenericQuery) this.getProcedure(nextTransaction.getProcedureClass());
 
-      // Set the worker ID on the procedure instance
       proc.setWorkerId(this.getId());
-      // Execute the query
       proc.run(conn, rand, this.configuration.getScaleFactor());
     } catch (ClassCastException e) {
       throw new RuntimeException(e);

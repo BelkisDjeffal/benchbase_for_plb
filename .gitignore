@@ -14,8 +14,6 @@ PRIVATE.md
 target/
 config/
 config/postgres/sample_tpch_config.xml
-playbook2.yml
-playbook1.yml
 profiles/
 docker/benchbase/fullimage/tmp/
 !.mvn/wrapper/maven-wrapper.jar

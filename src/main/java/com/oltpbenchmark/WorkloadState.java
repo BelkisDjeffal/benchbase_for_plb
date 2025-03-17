@@ -17,12 +17,14 @@
 
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.types.State;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.types.State;
 
 /**
  * This class is used to share a state among the workers of a single workload. Worker use it to ask
@@ -166,10 +168,10 @@ public class WorkloadState {
   public Phase getNextPhase() {
     if (phaseIterator.hasNext()) {
       Phase nextPhase = phaseIterator.next();
-      // LOG.info("getNextPhase() returning phase: {}", nextPhase);
+      LOG.debug("getNextPhase() returning phase: {}", nextPhase);
       return nextPhase;
     }
-    // LOG.info("getNextPhase() returning NULL (no more phases left).");
+    LOG.debug("getNextPhase() returning NULL (no more phases left).");
     return null;
   }
 
@@ -184,7 +186,7 @@ public class WorkloadState {
    */
   public void stayAwake() {
     synchronized (this) {
-      // LOG.info("Worker entering stayAwake with workerNeedSleep={}", workerNeedSleep);
+      LOG.debug("Worker entering stayAwake with workerNeedSleep={}", workerNeedSleep);
       while (workerNeedSleep > 0) {
         workerNeedSleep--;
         try {
@@ -193,13 +195,13 @@ public class WorkloadState {
           LOG.error(e.getMessage(), e);
         }
       }
-      // LOG.info("Worker exiting stayAwake");
+      LOG.debug("Worker exiting stayAwake");
     }
   }
 
   public void switchToNextPhase() {
     synchronized (this) {
-      // LOG.info("switchToNextPhase() called.");
+      LOG.debug("switchToNextPhase() called.");
       this.currentPhase = this.getNextPhase();
 
       // Clear the work from the previous phase.
@@ -211,29 +213,20 @@ public class WorkloadState {
       // Benchmark is over---wake everyone up so they can terminate
       {
         workerNeedSleep = 0;
-        // LOG.info("No more phases. Setting workerNeedSleep to 0.");
+        LOG.debug("No more phases. Setting workerNeedSleep to 0.");
       } else {
         this.currentPhase.resetSerial();
         if (this.currentPhase.isDisabled())
         // Phase disabled---everyone should sleep
         {
           workerNeedSleep = this.num_terminals;
-          // LOG.info(
-          //     "Current phase is disabled. All {} workers will sleep (workerNeedSleep set to
-          // {}).",
-          //     this.num_terminals,
-          //     workerNeedSleep);
+          LOG.debug("Current phase is disabled. All {} workers will sleep (workerNeedSleep set to {}).", this.num_terminals, workerNeedSleep);
         } else
         // Phase running---activate the appropriate # of terminals
         {
           int activeNeeded = this.currentPhase.getActiveTerminals();
           workerNeedSleep = this.num_terminals - activeNeeded;
-          // LOG.info(
-          //     "Current phase active terminals: {}. Total terminals: {}. Setting workerNeedSleep
-          // to {}.",
-          //     activeNeeded,
-          //     this.num_terminals,
-          //     workerNeedSleep);
+          LOG.debug("Current phase active terminals: {}. Total terminals: {}. Setting workerNeedSleep to {}.",  activeNeeded, this.num_terminals, workerNeedSleep);
         }
       }
 

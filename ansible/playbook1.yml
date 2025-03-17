@@ -1,0 +1,27 @@
+- name: Choose Cluster and Reserve Nodes
+  hosts: grid5000
+  remote_user: bdjeffal
+  vars:
+    clusters: ["chiclet", "chifflot"]  # Available clusters
+    num_nodes: 5
+    OS_image: ubuntu2204-x64-min
+  tasks:
+    - name: Find available nodes per cluster
+      command: "oarnodes -l -s -p 'network_address ~ \"{{ item }}\"'"
+      loop: "{{ clusters }}"
+      register: available_nodes
+      changed_when: false
+
+    - name: Parse available nodes
+      set_fact:
+        cluster_nodes: "{{ dict(clusters | zip(available_nodes.results | map(attribute='stdout_lines'))) }}"
+
+    - name: Select a cluster with enough nodes
+      set_fact:
+        selected_cluster: "{{ clusters | selectattr('cluster_nodes', 'defined') | selectattr('cluster_nodes', 'length', '>=', num_nodes) | first }}"
+      when: clusters | selectattr('cluster_nodes', 'defined') | selectattr('cluster_nodes', 'length', '>=', num_nodes) | length > 0
+
+    - name: Fail if no cluster has enough nodes
+      fail:
+        msg: "No cluster has enough available nodes!"
+      when: selected_cluster is not defined
