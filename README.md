@@ -1,5 +1,5 @@
 # **Quick Guide**
-For now, please work on the `spawn_poisson branch instead of master`. The master branch is not up to date, 
+For now, please work on the `spawn_poisson` branch instead of `master`. The master branch is not up to date, 
 
 1. **Build BenchBase**:
    ```sh
