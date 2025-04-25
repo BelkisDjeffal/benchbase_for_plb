@@ -297,7 +297,7 @@
         chdir: /home/benchbase
 
     - name: Run BenchBase Workload
-      ansible.builtin.shell: ./run_benchbase.sh 20
+      ansible.builtin.shell: ./run_benchbase.sh 10
       args:
         chdir: /home/benchbase
       register: benchbase_run_output
@@ -311,10 +311,5 @@
       args:
         chdir: /home/benchbase
 
-    - name: Run extract_summary_priorities.sh after BenchBase completes
-      ansible.builtin.shell: ./extract_summary_priorities.sh target/benchbase-postgres/results
-      args:
-        chdir: /home/benchbase
-      when: benchbase_run_output.rc == 0 
 
     

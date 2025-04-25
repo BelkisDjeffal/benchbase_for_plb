@@ -17,16 +17,15 @@
 
 package com.oltpbenchmark;
 
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.Histogram;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.Histogram;
 
 public final class Results {
 

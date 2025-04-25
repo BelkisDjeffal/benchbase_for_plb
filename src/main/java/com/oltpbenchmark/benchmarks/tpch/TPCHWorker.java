@@ -17,15 +17,14 @@
 
 package com.oltpbenchmark.benchmarks.tpch;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpch.procedures.GenericQuery;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.RandomGenerator;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public final class TPCHWorker extends Worker<TPCHBenchmark> {
 

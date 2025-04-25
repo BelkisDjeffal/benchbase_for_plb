@@ -20,7 +20,7 @@ cd ../../target/benchbase-postgres || { echo "Directory not found!"; exit 1; }
 for ((i=1; i<=n; i++))
 do
   echo "Running iteration $i at $(date)..."
-  java -cp benchbase.jar:lib/plb-0.0.1-SNAPSHOT.jar -Djava.util.logging.config.file=src/main/resources/logging.properties com.oltpbenchmark.DBWorkload -b tpch -c config/postgres/sample_tpch_config.xml --create=false --load=false --execute=true > "../../measurements/data/$output_dir/run_output_$i.txt"
+  java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml --create=false --load=false --execute=true > "../../measurements/data/$output_dir/run_output_$i.log"
 done
 
 echo "Completed $n iterations. Results saved in $output_dir."

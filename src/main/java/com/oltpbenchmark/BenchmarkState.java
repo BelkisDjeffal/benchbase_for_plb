@@ -17,13 +17,11 @@
 
 package com.oltpbenchmark;
 
+import com.oltpbenchmark.types.State;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oltpbenchmark.types.State;
 
 public final class BenchmarkState {
 

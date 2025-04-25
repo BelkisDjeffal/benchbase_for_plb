@@ -91,7 +91,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     AtomicInteger activeWorkers = new AtomicInteger(0);
 
     long startTime = System.currentTimeMillis();
-    long endTime = startTime + phaseDurationMs + 20 * 1000L;
+    long deadline = startTime + phaseDurationMs;
 
     double lambda = (double) totalWorkers / (phaseDurationMs / 1000.0);
 
@@ -100,7 +100,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         totalWorkers,
         phaseDurationMs);
 
-    while (System.currentTimeMillis() < endTime) {
+    while (nextWorkerIndex.get() < totalWorkers) {
       synchronized (workerThreads) {
         // Remove finished workers
         Iterator<Thread> iterator = workerThreads.iterator();
@@ -113,42 +113,42 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
           }
         }
 
+        // Spawn new worker
+        Worker<?> newWorker = workers.get(nextWorkerIndex.getAndIncrement());
+        newWorker.initializeState();
+        Thread newThread = new Thread(newWorker);
+        newThread.setUncaughtExceptionHandler(this);
+        newThread.start();
+
+        workerThreads.add(newThread);
+        activeWorkers.incrementAndGet();
+        LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
+
+        // Notify workload state
         WorkloadState workloadState = workConfs.get(0).getWorkloadState();
-
-        // Check if we need to spawn more workers
-        if (nextWorkerIndex.get() < totalWorkers) {
-          Worker<?> newWorker = workers.get(nextWorkerIndex.getAndIncrement());
-          newWorker.initializeState();
-
-          Thread newThread = new Thread(newWorker);
-          newThread.setUncaughtExceptionHandler(this);
-          newThread.start();
-
-          workerThreads.add(newThread);
-          activeWorkers.incrementAndGet();
-          LOG.info("Spawned new worker. Active workers: {}", activeWorkers.get());
-
-          synchronized (workloadState) {
-            workloadState.notifyAll();
-          }
-
-          // Wait for Poisson-distributed interval before spawning the next worker
-          long poissonDelayMs = getPoissonInterval(lambda);
-          long remainingTime = endTime - System.currentTimeMillis();
-          if (poissonDelayMs > remainingTime) break; // Stop if phase time is about to end
-
-          try {
-            Thread.sleep(poissonDelayMs);
-          } catch (InterruptedException e) {
-            LOG.error("Worker spawner interrupted", e);
-            Thread.currentThread().interrupt();
-            break;
-          }
+        synchronized (workloadState) {
+          workloadState.notifyAll();
         }
+      }
+
+      // Log if we're spawning past the deadline (but don't stop)
+      long now = System.currentTimeMillis();
+      if (now > deadline) {
+        LOG.warn("Spawning worker past intended phase duration ({} ms exceeded)", now - deadline);
+      }
+
+      // Sleep before next spawn
+      long poissonDelayMs = getPoissonInterval(lambda);
+      try {
+        Thread.sleep(poissonDelayMs);
+      } catch (InterruptedException e) {
+        LOG.error("Worker spawner interrupted", e);
+        Thread.currentThread().interrupt();
+        break;
       }
     }
 
-    LOG.info("Worker spawner finished. All workers started or time expired.");
+    LOG.info("Worker spawner finished. All {} workers have been started.", totalWorkers);
   }
 
   private int finalizeWorkers(ArrayList<Thread> workerThreads) throws InterruptedException {

@@ -17,14 +17,12 @@
 
 package com.oltpbenchmark;
 
+import com.oltpbenchmark.types.State;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oltpbenchmark.types.State;
 
 /**
  * This class is used to share a state among the workers of a single workload. Worker use it to ask
@@ -220,13 +218,20 @@ public class WorkloadState {
         // Phase disabled---everyone should sleep
         {
           workerNeedSleep = this.num_terminals;
-          LOG.debug("Current phase is disabled. All {} workers will sleep (workerNeedSleep set to {}).", this.num_terminals, workerNeedSleep);
+          LOG.debug(
+              "Current phase is disabled. All {} workers will sleep (workerNeedSleep set to {}).",
+              this.num_terminals,
+              workerNeedSleep);
         } else
         // Phase running---activate the appropriate # of terminals
         {
           int activeNeeded = this.currentPhase.getActiveTerminals();
           workerNeedSleep = this.num_terminals - activeNeeded;
-          LOG.debug("Current phase active terminals: {}. Total terminals: {}. Setting workerNeedSleep to {}.",  activeNeeded, this.num_terminals, workerNeedSleep);
+          LOG.debug(
+              "Current phase active terminals: {}. Total terminals: {}. Setting workerNeedSleep to {}.",
+              activeNeeded,
+              this.num_terminals,
+              workerNeedSleep);
         }
       }
 

@@ -1,0 +1,322 @@
+Classpath entries:
+benchbase.jar
+lib/plb-0.0.1-SNAPSHOT.jar
+[INFO ] 2025-03-19 13:21:04,810 [main]  com.prioritylb.config.ReplicaGroupConfig loadConfig - Loaded premium replicas: [replica1, replica2]
+[INFO ] 2025-03-19 13:21:04,811 [main]  com.prioritylb.config.ReplicaGroupConfig loadConfig - Loaded freemium replicas: [replica5, replica4, replica3]
+Registered driver: org.postgresql.Driver
+Registered driver: com.prioritylb.driver.PLBDriver
+[INFO ] 2025-03-19 13:21:04,888 [main]  org.apache.commons.beanutils.FluentPropertyBeanIntrospector introspect - Error when creating PropertyDescriptor for public final void org.apache.commons.configuration2.AbstractConfiguration.setProperty(java.lang.String,java.lang.Object)! Ignoring this property.
+[INFO ] 2025-03-19 13:21:04,941 [main]  com.oltpbenchmark.DBWorkload main - Loaded terminal priority classes: ["premium", "freemium"]
+[INFO ] 2025-03-19 13:21:04,941 [main]  com.oltpbenchmark.DBWorkload main - Loaded terminal priority classes weights: [20, 10]
+[INFO ] 2025-03-19 13:21:05,031 [main]  com.oltpbenchmark.DBWorkload main - ======================================================================
+
+Benchmark:                         TPCH {com.oltpbenchmark.benchmarks.tpch.TPCHBenchmark}
+Configuration:                     config/postgres/sample_tpch_config.xml
+Type:                              POSTGRES
+Driver:                            com.prioritylb.driver.PLBDriver
+URL:                               jdbc:prioritylb://localhost:9997/benchbase
+Isolation:                         TRANSACTION_READ_COMMITTED
+Batch Size:                        1024
+Scale Factor:                      1.0
+Terminals:                         30
+Terminal Priority Classes:         ["premium", "freemium"]
+Terminal Priority Classes Weights: [20, 10]
+New Connection Per Txn:            false
+Reconnect on Connection Failure:   true
+
+[INFO ] 2025-03-19 13:21:05,032 [main]  com.oltpbenchmark.DBWorkload main - ======================================================================
+[WARN ] 2025-03-19 13:21:05,055 [main]  com.oltpbenchmark.DBWorkload main - rounded weight [21] does not equal 100.  Original weight is [21.0]
+[INFO ] 2025-03-19 13:21:05,056 [main]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:05,105 [main]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:21:05,195 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:21:05,195 [main]  com.oltpbenchmark.DBWorkload runWorkload - Creating 30 virtual terminals...
+[INFO ] 2025-03-19 13:21:05,205 [main]  com.oltpbenchmark.DBWorkload runWorkload - Launching the TPCH Benchmark with 1 Phase...
+[INFO ] 2025-03-19 13:21:05,207 [main]  com.oltpbenchmark.ThreadBench runRateLimitedMultiPhase - [0;1mPHASE START[0;0m :: [Workload=TPCH] [Serial=false] [Time=60] [WarmupTime=0] [Rate=unlimited] [Arrival=REGULAR] [Ratios=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]] [ActiveWorkers=30]
+[INFO ] 2025-03-19 13:21:05,209 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Starting Poisson-based worker spawner for 30 workers over 60000 ms
+[INFO ] 2025-03-19 13:21:05,209 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 1
+[INFO ] 2025-03-19 13:21:05,210 [Thread-1]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:05,213 [Thread-1]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:21:05,215 [TPCHWorker<001>]  com.oltpbenchmark.api.Worker run - Worker 1 will run for 27718 ms
+[INFO ] 2025-03-19 13:21:06,208 [main]  com.oltpbenchmark.ThreadBench runRateLimitedMultiPhase - [0;1mMEASURE[0;0m :: Warmup complete, starting measurements.
+[INFO ] 2025-03-19 13:21:06,624 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 2
+[INFO ] 2025-03-19 13:21:06,624 [Thread-2]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:06,629 [Thread-2]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:21:06,631 [TPCHWorker<002>]  com.oltpbenchmark.api.Worker run - Worker 2 will run for 17967 ms
+[INFO ] 2025-03-19 13:21:08,097 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 3
+[INFO ] 2025-03-19 13:21:08,098 [Thread-3]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:08,102 [Thread-3]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:21:08,108 [TPCHWorker<004>]  com.oltpbenchmark.api.Worker run - Worker 4 will run for 13495 ms
+[INFO ] 2025-03-19 13:21:12,071 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 4
+[INFO ] 2025-03-19 13:21:12,071 [Thread-4]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:12,076 [Thread-4]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:21:12,078 [TPCHWorker<010>]  com.oltpbenchmark.api.Worker run - Worker 10 will run for 57707 ms
+[INFO ] 2025-03-19 13:21:14,236 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 5
+[INFO ] 2025-03-19 13:21:14,237 [Thread-5]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:14,243 [Thread-5]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:21:14,244 [TPCHWorker<013>]  com.oltpbenchmark.api.Worker run - Worker 13 will run for 36121 ms
+[INFO ] 2025-03-19 13:21:19,213 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 6
+[INFO ] 2025-03-19 13:21:19,214 [Thread-6]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:19,220 [Thread-6]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:21:19,221 [TPCHWorker<027>]  com.oltpbenchmark.api.Worker run - Worker 27 will run for 11208 ms
+[INFO ] 2025-03-19 13:21:25,089 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 7
+[INFO ] 2025-03-19 13:21:25,089 [Thread-7]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:25,094 [Thread-7]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:21:25,095 [TPCHWorker<024>]  com.oltpbenchmark.api.Worker run - Worker 24 will run for 50069 ms
+[INFO ] 2025-03-19 13:21:25,164 [TPCHWorker<004>]  com.oltpbenchmark.api.Worker run - Worker 4 stopping after 13495 ms
+[INFO ] 2025-03-19 13:21:25,165 [TPCHWorker<004>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:21:25,190 [TPCHWorker<002>]  com.oltpbenchmark.api.Worker run - Worker 2 stopping after 17967 ms
+[INFO ] 2025-03-19 13:21:25,191 [TPCHWorker<002>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:21:25,451 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 6
+[INFO ] 2025-03-19 13:21:25,452 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 5
+[INFO ] 2025-03-19 13:21:25,452 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 6
+[INFO ] 2025-03-19 13:21:25,452 [Thread-8]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:25,459 [Thread-8]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:21:25,460 [TPCHWorker<007>]  com.oltpbenchmark.api.Worker run - Worker 7 will run for 41759 ms
+[INFO ] 2025-03-19 13:21:30,652 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 7
+[INFO ] 2025-03-19 13:21:30,652 [Thread-9]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:30,658 [Thread-9]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:21:30,660 [TPCHWorker<011>]  com.oltpbenchmark.api.Worker run - Worker 11 will run for 16624 ms
+[INFO ] 2025-03-19 13:21:31,052 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 8
+[INFO ] 2025-03-19 13:21:31,053 [Thread-10]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:31,055 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 9
+[INFO ] 2025-03-19 13:21:31,056 [Thread-11]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:31,060 [Thread-10]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:21:31,062 [TPCHWorker<023>]  com.oltpbenchmark.api.Worker run - Worker 23 will run for 51820 ms
+[INFO ] 2025-03-19 13:21:31,070 [Thread-11]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:21:31,072 [TPCHWorker<000>]  com.oltpbenchmark.api.Worker run - Worker 0 will run for 54709 ms
+[INFO ] 2025-03-19 13:21:31,356 [TPCHWorker<027>]  com.oltpbenchmark.api.Worker run - Worker 27 stopping after 11208 ms
+[INFO ] 2025-03-19 13:21:31,360 [TPCHWorker<027>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:21:32,114 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 8
+[INFO ] 2025-03-19 13:21:32,115 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 9
+[INFO ] 2025-03-19 13:21:32,115 [Thread-12]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:32,123 [Thread-12]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:21:32,124 [TPCHWorker<016>]  com.oltpbenchmark.api.Worker run - Worker 16 will run for 26100 ms
+[INFO ] 2025-03-19 13:21:33,896 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 10
+[INFO ] 2025-03-19 13:21:33,899 [Thread-13]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:33,914 [Thread-13]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:21:33,917 [TPCHWorker<028>]  com.oltpbenchmark.api.Worker run - Worker 28 will run for 50847 ms
+[INFO ] 2025-03-19 13:21:36,240 [TPCHWorker<001>]  com.oltpbenchmark.api.Worker run - Worker 1 stopping after 27718 ms
+[INFO ] 2025-03-19 13:21:36,242 [TPCHWorker<001>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:21:39,326 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 9
+[INFO ] 2025-03-19 13:21:39,326 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 10
+[INFO ] 2025-03-19 13:21:39,327 [Thread-14]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:39,338 [Thread-14]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:21:39,340 [TPCHWorker<008>]  com.oltpbenchmark.api.Worker run - Worker 8 will run for 45000 ms
+[INFO ] 2025-03-19 13:21:42,750 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 11
+[INFO ] 2025-03-19 13:21:42,750 [Thread-15]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:42,758 [Thread-15]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:21:42,759 [TPCHWorker<014>]  com.oltpbenchmark.api.Worker run - Worker 14 will run for 23462 ms
+[INFO ] 2025-03-19 13:21:43,627 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 12
+[INFO ] 2025-03-19 13:21:43,627 [Thread-16]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:43,638 [Thread-16]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 5
+[INFO ] 2025-03-19 13:21:43,639 [TPCHWorker<018>]  com.oltpbenchmark.api.Worker run - Worker 18 will run for 11205 ms
+[INFO ] 2025-03-19 13:21:44,017 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 13
+[INFO ] 2025-03-19 13:21:44,018 [Thread-17]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:44,030 [Thread-17]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:21:44,032 [TPCHWorker<025>]  com.oltpbenchmark.api.Worker run - Worker 25 will run for 27572 ms
+[INFO ] 2025-03-19 13:21:45,243 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 14
+[INFO ] 2025-03-19 13:21:45,244 [Thread-18]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:45,252 [Thread-18]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 5
+[INFO ] 2025-03-19 13:21:45,254 [TPCHWorker<006>]  com.oltpbenchmark.api.Worker run - Worker 6 will run for 55070 ms
+[INFO ] 2025-03-19 13:21:48,721 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 15
+[INFO ] 2025-03-19 13:21:48,722 [Thread-19]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:48,724 [Thread-19]  com.prioritylb.service.PLBConnectionManager borrowFreemiumReplica - Checking borrowing conditions. True available freemium replicas: 3
+[INFO ] 2025-03-19 13:21:48,724 [Thread-19]  com.prioritylb.service.PLBConnectionManager borrowFreemiumReplica - Borrowed freemium replica: jdbc:postgresql://localhost:5437/benchbase for premium use. Remaining truly available freemium replicas: 2
+[INFO ] 2025-03-19 13:21:48,732 [Thread-19]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5437/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:21:48,734 [TPCHWorker<003>]  com.oltpbenchmark.api.Worker run - Worker 3 will run for 22095 ms
+[INFO ] 2025-03-19 13:21:51,566 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 16
+[INFO ] 2025-03-19 13:21:51,567 [Thread-20]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:51,588 [Thread-20]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 5
+[INFO ] 2025-03-19 13:21:51,589 [TPCHWorker<022>]  com.oltpbenchmark.api.Worker run - Worker 22 will run for 44567 ms
+[INFO ] 2025-03-19 13:21:53,783 [TPCHWorker<011>]  com.oltpbenchmark.api.Worker run - Worker 11 stopping after 16624 ms
+[INFO ] 2025-03-19 13:21:53,787 [TPCHWorker<011>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 4
+[INFO ] 2025-03-19 13:21:54,121 [TPCHWorker<013>]  com.oltpbenchmark.api.Worker run - Worker 13 stopping after 36121 ms
+[INFO ] 2025-03-19 13:21:54,122 [TPCHWorker<013>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:21:55,093 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 15
+[INFO ] 2025-03-19 13:21:55,094 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 14
+[INFO ] 2025-03-19 13:21:55,094 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 15
+[INFO ] 2025-03-19 13:21:55,095 [Thread-21]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:21:55,106 [Thread-21]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5437/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:21:55,110 [TPCHWorker<015>]  com.oltpbenchmark.api.Worker run - Worker 15 will run for 53523 ms
+[INFO ] 2025-03-19 13:21:56,981 [TPCHWorker<018>]  com.oltpbenchmark.api.Worker run - Worker 18 stopping after 11205 ms
+[INFO ] 2025-03-19 13:21:56,982 [TPCHWorker<018>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:21:58,431 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 14
+[INFO ] 2025-03-19 13:21:58,431 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 15
+[INFO ] 2025-03-19 13:21:58,432 [Thread-22]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:58,442 [Thread-22]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 6
+[INFO ] 2025-03-19 13:21:58,445 [TPCHWorker<021>]  com.oltpbenchmark.api.Worker run - Worker 21 will run for 44718 ms
+[INFO ] 2025-03-19 13:21:58,629 [TPCHWorker<016>]  com.oltpbenchmark.api.Worker run - Worker 16 stopping after 26100 ms
+[INFO ] 2025-03-19 13:21:58,629 [TPCHWorker<016>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:21:58,652 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 14
+[INFO ] 2025-03-19 13:21:58,652 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 15
+[INFO ] 2025-03-19 13:21:58,653 [Thread-23]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:21:58,660 [Thread-23]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 7
+[INFO ] 2025-03-19 13:21:58,661 [TPCHWorker<029>]  com.oltpbenchmark.api.Worker run - Worker 29 will run for 36481 ms
+[INFO ] 2025-03-19 13:22:02,645 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 16
+[INFO ] 2025-03-19 13:22:02,649 [Thread-24]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:22:02,670 [Thread-24]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 2
+[INFO ] 2025-03-19 13:22:02,671 [TPCHWorker<019>]  com.oltpbenchmark.api.Worker run - Worker 19 will run for 44240 ms
+[INFO ] 2025-03-19 13:22:05,528 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 17
+[INFO ] 2025-03-19 13:22:05,531 [Thread-25]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:22:05,537 [Thread-25]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5437/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:22:05,538 [TPCHWorker<026>]  com.oltpbenchmark.api.Worker run - Worker 26 will run for 33834 ms
+[INFO ] 2025-03-19 13:22:05,636 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 18
+[INFO ] 2025-03-19 13:22:05,637 [Thread-26]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:22:05,659 [Thread-26]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:22:05,660 [TPCHWorker<005>]  com.oltpbenchmark.api.Worker run - Worker 5 will run for 52025 ms
+[INFO ] 2025-03-19 13:22:06,780 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 19
+[INFO ] 2025-03-19 13:22:06,781 [Thread-27]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:22:06,797 [Thread-27]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5437/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:22:06,798 [TPCHWorker<009>]  com.oltpbenchmark.api.Worker run - Worker 9 will run for 56442 ms
+[INFO ] 2025-03-19 13:22:07,006 [TPCHWorker<014>]  com.oltpbenchmark.api.Worker run - Worker 14 stopping after 23462 ms
+[INFO ] 2025-03-19 13:22:07,008 [TPCHWorker<014>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 4
+[INFO ] 2025-03-19 13:22:07,211 [main]  com.oltpbenchmark.ThreadBench runRateLimitedMultiPhase - [0;1mTERMINATE[0;0m :: Waiting for all terminals to finish ..
+[INFO ] 2025-03-19 13:22:08,986 [TPCHWorker<007>]  com.oltpbenchmark.api.Worker run - Worker 7 stopping after 41759 ms
+[INFO ] 2025-03-19 13:22:08,991 [TPCHWorker<007>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:22:09,785 [TPCHWorker<010>]  com.oltpbenchmark.api.Worker run - Worker 10 stopping after 57707 ms
+[INFO ] 2025-03-19 13:22:09,786 [TPCHWorker<010>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:22:10,383 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 18
+[INFO ] 2025-03-19 13:22:10,384 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 17
+[INFO ] 2025-03-19 13:22:10,384 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 16
+[INFO ] 2025-03-19 13:22:10,388 [Thread-28]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:22:10,388 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 17
+[INFO ] 2025-03-19 13:22:10,402 [Thread-28]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5437/benchbase | connection count = 5
+[INFO ] 2025-03-19 13:22:10,403 [TPCHWorker<020>]  com.oltpbenchmark.api.Worker run - Worker 20 will run for 49848 ms
+[INFO ] 2025-03-19 13:22:10,832 [TPCHWorker<003>]  com.oltpbenchmark.api.Worker run - Worker 3 stopping after 22095 ms
+[INFO ] 2025-03-19 13:22:10,832 [TPCHWorker<003>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5437/benchbase closed. Current count: 4
+[INFO ] 2025-03-19 13:22:10,999 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 16
+[INFO ] 2025-03-19 13:22:11,000 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 17
+[INFO ] 2025-03-19 13:22:11,000 [Thread-29]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:22:11,006 [Thread-29]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5435/benchbase | connection count = 3
+[INFO ] 2025-03-19 13:22:11,007 [TPCHWorker<017>]  com.oltpbenchmark.api.Worker run - Worker 17 will run for 15373 ms
+[INFO ] 2025-03-19 13:22:12,156 [TPCHWorker<025>]  com.oltpbenchmark.api.Worker run - Worker 25 stopping after 27572 ms
+[INFO ] 2025-03-19 13:22:12,156 [TPCHWorker<025>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 6
+[INFO ] 2025-03-19 13:22:15,164 [TPCHWorker<024>]  com.oltpbenchmark.api.Worker run - Worker 24 stopping after 50069 ms
+[INFO ] 2025-03-19 13:22:15,164 [TPCHWorker<024>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 5
+[INFO ] 2025-03-19 13:22:15,848 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 16
+[INFO ] 2025-03-19 13:22:15,848 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 15
+[INFO ] 2025-03-19 13:22:15,848 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Spawned new worker. Active workers: 16
+[INFO ] 2025-03-19 13:22:15,848 [Thread-30]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a premium priority
+[INFO ] 2025-03-19 13:22:15,852 [Thread-30]  com.prioritylb.service.PLBConnectionManager createConnection - Created Premium connection jdbc:postgresql://localhost:5434/benchbase | connection count = 4
+[INFO ] 2025-03-19 13:22:15,853 [TPCHWorker<012>]  com.oltpbenchmark.api.Worker run - Worker 12 will run for 41887 ms
+[INFO ] 2025-03-19 13:22:22,882 [TPCHWorker<023>]  com.oltpbenchmark.api.Worker run - Worker 23 stopping after 51820 ms
+[INFO ] 2025-03-19 13:22:22,882 [TPCHWorker<023>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 4
+[INFO ] 2025-03-19 13:22:22,882 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 15
+[INFO ] 2025-03-19 13:22:24,340 [TPCHWorker<008>]  com.oltpbenchmark.api.Worker run - Worker 8 stopping after 45000 ms
+[INFO ] 2025-03-19 13:22:24,340 [TPCHWorker<008>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:22:24,340 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 14
+[INFO ] 2025-03-19 13:22:24,764 [TPCHWorker<028>]  com.oltpbenchmark.api.Worker run - Worker 28 stopping after 50847 ms
+[INFO ] 2025-03-19 13:22:24,764 [TPCHWorker<028>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:22:24,764 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker finished. Active workers: 13
+[INFO ] 2025-03-19 13:22:25,209 [Thread-0]  com.oltpbenchmark.ThreadBench monitorAndSpawnWorkers - Worker spawner finished. All workers started or time expired.
+[INFO ] 2025-03-19 13:22:25,781 [TPCHWorker<000>]  com.oltpbenchmark.api.Worker run - Worker 0 stopping after 54709 ms
+[INFO ] 2025-03-19 13:22:25,781 [TPCHWorker<000>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:22:26,380 [TPCHWorker<017>]  com.oltpbenchmark.api.Worker run - Worker 17 stopping after 15373 ms
+[INFO ] 2025-03-19 13:22:26,380 [TPCHWorker<017>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:22:35,142 [TPCHWorker<029>]  com.oltpbenchmark.api.Worker run - Worker 29 stopping after 36481 ms
+[INFO ] 2025-03-19 13:22:35,142 [TPCHWorker<029>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:22:36,156 [TPCHWorker<022>]  com.oltpbenchmark.api.Worker run - Worker 22 stopping after 44567 ms
+[INFO ] 2025-03-19 13:22:36,156 [TPCHWorker<022>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:22:39,372 [TPCHWorker<026>]  com.oltpbenchmark.api.Worker run - Worker 26 stopping after 33834 ms
+[INFO ] 2025-03-19 13:22:39,372 [TPCHWorker<026>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5437/benchbase closed. Current count: 3
+[INFO ] 2025-03-19 13:22:40,324 [TPCHWorker<006>]  com.oltpbenchmark.api.Worker run - Worker 6 stopping after 55070 ms
+[INFO ] 2025-03-19 13:22:40,324 [TPCHWorker<006>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:22:43,162 [TPCHWorker<021>]  com.oltpbenchmark.api.Worker run - Worker 21 stopping after 44718 ms
+[INFO ] 2025-03-19 13:22:43,162 [TPCHWorker<021>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:22:46,911 [TPCHWorker<019>]  com.oltpbenchmark.api.Worker run - Worker 19 stopping after 44240 ms
+[INFO ] 2025-03-19 13:22:46,911 [TPCHWorker<019>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:22:48,633 [TPCHWorker<015>]  com.oltpbenchmark.api.Worker run - Worker 15 stopping after 53523 ms
+[INFO ] 2025-03-19 13:22:48,633 [TPCHWorker<015>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5437/benchbase closed. Current count: 2
+[INFO ] 2025-03-19 13:22:57,685 [TPCHWorker<005>]  com.oltpbenchmark.api.Worker run - Worker 5 stopping after 52025 ms
+[INFO ] 2025-03-19 13:22:57,685 [TPCHWorker<005>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:22:57,740 [TPCHWorker<012>]  com.oltpbenchmark.api.Worker run - Worker 12 stopping after 41887 ms
+[INFO ] 2025-03-19 13:22:57,740 [TPCHWorker<012>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:00,251 [TPCHWorker<020>]  com.oltpbenchmark.api.Worker run - Worker 20 stopping after 49848 ms
+[INFO ] 2025-03-19 13:23:00,251 [TPCHWorker<020>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5437/benchbase closed. Current count: 1
+[INFO ] 2025-03-19 13:23:03,240 [TPCHWorker<009>]  com.oltpbenchmark.api.Worker run - Worker 9 stopping after 56442 ms
+[INFO ] 2025-03-19 13:23:03,240 [TPCHWorker<009>]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5437/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,240 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,240 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,240 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,240 [Thread-31]  com.oltpbenchmark.ThreadBench run - Starting WatchDogThread
+[INFO ] 2025-03-19 13:23:03,240 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5435/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5434/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,241 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+Cleaned Terminal Counts: {premium=20, freemium=10}
+Terminal Counts Map: {premium=20, freemium=10}
+[INFO ] 2025-03-19 13:23:03,244 [main]  com.oltpbenchmark.DBWorkload runWorkload - ======================================================================
+[INFO ] 2025-03-19 13:23:03,249 [main]  com.oltpbenchmark.DBWorkload runWorkload - Rate limited reqs/s: 
+Results(state=EXIT, nanoSeconds=61002971405, measuredRequests=187, succeededRequests=169) = 187.0  (throughput), 169.0  (goodput)
+Priority: premium
+  Throughput: 134.0 
+  Goodput: 124.0 
+  Per Terminal Throughput: 6.7 
+  Per Terminal Goodput: 6.2 
+  Latency Stats: in milliseconds [min=79, 25th=1284, median=2371, avg=3159, 75th=4162, 90th=7407, 95th=8797, 99th=11180, max=13305]
+Priority: freemium
+  Throughput: 53.0 
+  Goodput: 45.0 
+  Per Terminal Throughput: 5.3 
+  Per Terminal Goodput: 4.5 
+  Latency Stats: in milliseconds [min=247, 25th=967, median=1843, avg=3084, 75th=3828, 90th=8000, 95th=10438, 99th=13247, max=13247]
+[INFO ] 2025-03-19 13:23:03,251 [main]  com.prioritylb.service.PLBConnectionManager handleConnection - Handling a freemium priority
+[INFO ] 2025-03-19 13:23:03,254 [main]  com.prioritylb.service.PLBConnectionManager createConnection - Created Freemium connection jdbc:postgresql://localhost:5438/benchbase | connection count = 1
+[INFO ] 2025-03-19 13:23:03,281 [main]  com.prioritylb.driver.PLBConnectionWrapper close - Connection to replica jdbc:postgresql://localhost:5438/benchbase closed. Current count: 0
+[INFO ] 2025-03-19 13:23:03,284 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output Raw data into file: tpch_2025-03-19_13-23-03.raw.csv
+[INFO ] 2025-03-19 13:23:03,289 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output samples into file: tpch_2025-03-19_13-23-03.samples.csv
+[INFO ] 2025-03-19 13:23:03,295 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output summary data into file: tpch_2025-03-19_13-23-03.summary.json
+[INFO ] 2025-03-19 13:23:03,300 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output DBMS parameters into file: tpch_2025-03-19_13-23-03.params.json
+[INFO ] 2025-03-19 13:23:03,302 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output DBMS metrics into file: tpch_2025-03-19_13-23-03.metrics.json
+[INFO ] 2025-03-19 13:23:03,306 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output benchmark config into file: tpch_2025-03-19_13-23-03.config.xml
+[INFO ] 2025-03-19 13:23:03,326 [main]  com.oltpbenchmark.DBWorkload writeOutputs - Output results into file: tpch_2025-03-19_13-23-03.results.csv with window size 5
+[INFO ] 2025-03-19 13:23:03,342 [main]  com.oltpbenchmark.DBWorkload writeHistograms - ======================================================================
+[INFO ] 2025-03-19 13:23:03,342 [main]  com.oltpbenchmark.DBWorkload writeHistograms - Workload Histograms:
+
+[0;1mCompleted Transactions:[0;0m
+com.oltpbenchmark.benchmarks.tpch.procedures.Q1/01                               [   4] *********************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q2/02                               [   6] ********************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q3/03                               [  10] *****************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q4/04                               [  12] ****************************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q5/05                               [   5] **************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q6/06                               [   9] ************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q7/07                               [   9] ************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q8/08                               [   8] ******************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q9/09                               [   6] ********************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q10/10                              [  15] ********************************************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q11/11                              [   5] **************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q12/12                              [   7] *************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q13/13                              [   9] ************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q14/14                              [  11] **********************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q15/15                              [   0] 
+com.oltpbenchmark.benchmarks.tpch.procedures.Q16/16                              [   6] ********************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q17/17                              [   7] *************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q18/18                              [   7] *************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q19/19                              [  10] *****************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q20/20                              [   9] ************************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q21/21                              [   7] *************************************
+com.oltpbenchmark.benchmarks.tpch.procedures.Q22/22                              [   7] *************************************
+
+[0;1mAborted Transactions:[0;0m
+<EMPTY>
+
+[0;1mRejected Transactions (Server Retry):[0;0m
+<EMPTY>
+
+[0;1mRejected Transactions (Retry Different):[0;0m
+<EMPTY>
+
+[0;1mUnexpected SQL Errors:[0;0m
+<EMPTY>
+
+[0;1mUnknown Status Transactions:[0;0m
+<EMPTY>
+
+
+[INFO ] 2025-03-19 13:23:03,342 [main]  com.oltpbenchmark.DBWorkload writeHistograms - ======================================================================
