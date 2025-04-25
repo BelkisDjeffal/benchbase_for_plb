@@ -26,7 +26,12 @@ import com.oltpbenchmark.api.collectors.DBParameterCollector;
 import com.oltpbenchmark.api.collectors.DBParameterCollectorGen;
 import com.oltpbenchmark.types.DatabaseType;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -138,15 +143,14 @@ public class ResultWriter {
       Map<String, Object> priorityMetrics = new HashMap<>();
       // priorityMetrics.put(
       //  "Attempted Throughput (req/s)", results.getNewThroughputForPriority(priority));
-      priorityMetrics.put("Throughput (req/s)", results.getNewThroughputForPriority(priority));
+      priorityMetrics.put("Throughput (req/s)", results.getThroughputForPriority(priority));
       priorityMetrics.put("Goodput (req/s)", results.getGoodputForPriority(priority));
 
       // priorityMetrics.put(
       //     "Per-Terminal Attempted Throughput (req/s)",
       //     results.getPerTerminalAttemptedThroughputForPriority(priority));
       priorityMetrics.put(
-          "Per-Terminal Throughput (req/s)",
-          results.getPerTerminalAttemptedThroughputForPriority(priority));
+          "Per-Terminal Throughput (req/s)", results.getPerTerminalThroughputForPriority(priority));
       priorityMetrics.put(
           "Per-Terminal Goodput (req/s)", results.getPerTerminalGoodputForPriority(priority));
 

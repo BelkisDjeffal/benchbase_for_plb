@@ -418,6 +418,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
+      Map<String, Long> workerExecutionTimes = new HashMap<>();
+
       for (Worker<?> w : workers) {
         // Aggregate attempted requests
         totalAttemptedRequests += w.getAttemptedRequests();
@@ -429,7 +431,11 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         for (Map.Entry<String, Integer> entry : w.getLocalSuccessByPriority().entrySet()) {
           aggregatedSuccessByPriority.merge(entry.getKey(), entry.getValue(), Integer::sum);
         }
+
+        long execTime = w.getActualEndTimeMs() - w.getActualStartTimeMs();
+        workerExecutionTimes.merge(w.getWorkerPriorityClass(), execTime, Long::sum);
       }
+      System.out.println("Execution Times: " + workerExecutionTimes);
       Map<String, Integer> terminalCounts = getTerminalCounts(workConfs.get(0));
       System.out.println("Terminal Counts Map: " + terminalCounts);
 
@@ -446,7 +452,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               stats,
               samples,
               aggregatedSuccessByPriority,
-              terminalCounts);
+              terminalCounts,
+              workerExecutionTimes);
       // LOG.info("Start= {} | End= {}", startTs, measureEnd);
 
       // Compute transaction histogram

@@ -67,6 +67,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   protected final Map<String, Procedure> name_procedures = new HashMap<>();
   protected final Map<Class<? extends Procedure>, Procedure> class_procedures = new HashMap<>();
 
+  private long actualStartTimeMs;
+  private long actualEndTimeMs;
   private final Histogram<TransactionType> txnUnknown = new Histogram<>();
   private final Histogram<TransactionType> txnSuccess = new Histogram<>();
   private final Histogram<TransactionType> txnAbort = new Histogram<>();
@@ -216,6 +218,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     return localSuccessByPriority;
   }
 
+  public long getActualStartTimeMs() {
+    return actualStartTimeMs;
+  }
+
+  public long getActualEndTimeMs() {
+    return actualEndTimeMs;
+  }
+
   /** Stop executing the current statement. */
   public synchronized void cancelStatement() {
     try {
@@ -239,6 +249,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         throw new RuntimeException("Failed to connect to database", ex);
       }
     }
+    this.actualStartTimeMs = System.currentTimeMillis();
 
     Thread t = Thread.currentThread();
     t.setName(this.toString());
@@ -443,6 +454,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       workloadState.signalDone();
       tearDown();
     }
+    this.actualEndTimeMs = System.currentTimeMillis();
   }
 
   private TransactionType getTransactionType(

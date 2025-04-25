@@ -49,6 +49,9 @@ public final class Results {
   private final Histogram<TransactionType> retryDifferent = new Histogram<>(false);
   private final Map<TransactionType, Histogram<String>> abortMessages = new HashMap<>();
   private final Map<String, Integer> terminalCounts = new HashMap<>();
+  private final Map<String, Double> avgExecutionTimeByPriority = new HashMap<>();
+  private double totalRuntimeSeconds = 0.0;
+  private final Map<String, Long> workerExecutionTimes;
 
   public Results(
       State state,
@@ -60,7 +63,8 @@ public final class Results {
       DistributionStatistics distributionStatistics,
       final List<LatencyRecord.Sample> latencySamples,
       Map<String, Integer> aggregatedSuccessByPriority,
-      Map<String, Integer> terminalCounts) {
+      Map<String, Integer> terminalCounts,
+      Map<String, Long> workerExecutionTimes) {
 
     this.startTimestampMs = startTimestampMs;
     this.nanoseconds = elapsedNanoseconds;
@@ -70,6 +74,7 @@ public final class Results {
     this.distributionStatistics = distributionStatistics;
     this.state = state;
     this.terminalCounts.putAll(terminalCounts);
+    this.workerExecutionTimes = workerExecutionTimes;
 
     if (distributionStatistics == null) {
       this.latencySamples = null;
@@ -109,6 +114,10 @@ public final class Results {
       }
       this.attemptedRequestsByPriority.putAll(cleanedattemptedRequestsByPriority);
     }
+  }
+
+  public Map<String, Long> getWorkerExecutionTimes() {
+    return workerExecutionTimes;
   }
 
   public State getState() {
@@ -179,12 +188,10 @@ public final class Results {
     return (double) attemptedRequests;
   }
 
-  public double getThroughputForPriority(String priority) {
-    return (double) requestsByPriority.getOrDefault(priority, 0);
-  }
-
   public double getGoodputForPriority(String priority) {
-    return (double) successByPriority.getOrDefault(priority, 0);
+    long timeMs = workerExecutionTimes.getOrDefault(priority, 0L);
+    if (timeMs == 0) return 0.0;
+    return (double) successByPriority.getOrDefault(priority, 0) / (timeMs / 1000.0);
   }
 
   public DistributionStatistics getLatencyStatsForPriority(String priority) {
@@ -196,16 +203,10 @@ public final class Results {
     return Collections.unmodifiableMap(latencyStatsByPriority);
   }
 
-  public double getNewThroughputForPriority(String priority) {
-    return (double) attemptedRequestsByPriority.getOrDefault(priority, 0);
-  }
-
-  public double getPerTerminalThroughputForPriority(String priority) {
-    int count = terminalCounts.getOrDefault(priority, 0);
-    if (count == 0) {
-      return 0.0;
-    }
-    return getThroughputForPriority(priority) / count;
+  public double getThroughputForPriority(String priority) {
+    long timeMs = workerExecutionTimes.getOrDefault(priority, 0L);
+    if (timeMs == 0) return 0.0;
+    return (double) attemptedRequestsByPriority.getOrDefault(priority, 0) / (timeMs / 1000.0);
   }
 
   public double getPerTerminalGoodputForPriority(String priority) {
@@ -216,12 +217,12 @@ public final class Results {
     return getGoodputForPriority(priority) / count;
   }
 
-  public double getPerTerminalAttemptedThroughputForPriority(String priority) {
+  public double getPerTerminalThroughputForPriority(String priority) {
     int count = terminalCounts.getOrDefault(priority, 0);
     if (count == 0) {
       return 0.0;
     }
-    return getNewThroughputForPriority(priority) / count;
+    return getThroughputForPriority(priority) / count;
   }
 
   @Override
@@ -250,13 +251,13 @@ public final class Results {
       sb.append("\nPriority: ")
           .append(priority)
           .append("\n  Throughput: ")
-          .append(getNewThroughputForPriority(priority))
+          .append(getThroughputForPriority(priority))
           .append(" ")
           .append("\n  Goodput: ")
           .append(getGoodputForPriority(priority))
           .append(" ")
           .append("\n  Per Terminal Throughput: ")
-          .append(getPerTerminalAttemptedThroughputForPriority(priority))
+          .append(getPerTerminalThroughputForPriority(priority))
           .append(" ")
           .append("\n  Per Terminal Goodput: ")
           .append(getPerTerminalGoodputForPriority(priority))
