@@ -296,15 +296,15 @@
       args:
         chdir: /home/benchbase
 
-    - name: Run BenchBase Workload
-      ansible.builtin.shell: ./run_benchbase.sh 10
-      args:
-        chdir: /home/benchbase
-      register: benchbase_run_output
+    # - name: Run BenchBase Workload
+    #   ansible.builtin.shell: ./run_benchbase.sh 10
+    #   args:
+    #     chdir: /home/benchbase
+    #   register: benchbase_run_output
 
-    - name: Debug BenchBase output
-      debug:
-        var: benchbase_run_output.stdout_lines
+    # - name: Debug BenchBase output
+    #   debug:
+    #     var: benchbase_run_output.stdout_lines
 
     - name: Ensure extract_summary_priorities.sh is executable
       ansible.builtin.shell: chmod +x extract_summary_priorities.sh
