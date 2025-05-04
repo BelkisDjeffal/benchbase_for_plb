@@ -25,6 +25,7 @@ import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.MonitorInfo;
 import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -416,11 +417,16 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       for (int i = 0; i < samples.size(); ++i) {
         latencies[i] = samples.get(i).getLatencyMicrosecond();
       }
+      System.err.printf("LATENCIES:");
+      System.out.println(Arrays.toString(latencies));
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
       Map<String, Long> workerExecutionTimes = new HashMap<>();
+      List<WorkerRecord> workerRecords = new ArrayList<>();
 
       for (Worker<?> w : workers) {
+        String priority = w.getWorkerPriorityClass();
+
         // Aggregate attempted requests
         totalAttemptedRequests += w.getAttemptedRequests();
         for (Map.Entry<String, Integer> entry : w.getAttemptedRequestsByPriority().entrySet()) {
@@ -434,7 +440,31 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
 
         long execTime = w.getActualEndTimeMs() - w.getActualStartTimeMs();
         workerExecutionTimes.merge(w.getWorkerPriorityClass(), execTime, Long::sum);
+
+        workerRecords.add(
+            new WorkerRecord(
+                w.getId(),
+                priority,
+                w.getAttemptedRequests(),
+                w.getLocalSuccessByPriority().getOrDefault(priority, 0),
+                w.getActualStartTimeMs(),
+                w.getActualEndTimeMs()));
       }
+      Map<String, List<WorkerMetrics>> metricsByPriority =
+          ExecutionDistributionStatistics.computeMetrics(workerRecords);
+      System.out.println("Computed WorkerMetrics:");
+      for (var entry : metricsByPriority.entrySet()) {
+        for (WorkerMetrics wm : entry.getValue()) {
+          System.out.printf(
+              "  %s: throughput=%.3f, goodput=%.3f%n", wm.workerId, wm.throughput, wm.goodput);
+        }
+      }
+
+      Map<String, DistributionStatistics> throughputStats =
+          ExecutionDistributionStatistics.computeThroughputStats(metricsByPriority);
+      Map<String, DistributionStatistics> goodputStats =
+          ExecutionDistributionStatistics.computeGoodputStats(metricsByPriority);
+
       System.out.println("Execution Times: " + workerExecutionTimes);
       Map<String, Integer> terminalCounts = getTerminalCounts(workConfs.get(0));
       System.out.println("Terminal Counts Map: " + terminalCounts);
@@ -453,8 +483,9 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               samples,
               aggregatedSuccessByPriority,
               terminalCounts,
-              workerExecutionTimes);
-      // LOG.info("Start= {} | End= {}", startTs, measureEnd);
+              workerExecutionTimes,
+              throughputStats,
+              goodputStats);
 
       // Compute transaction histogram
       Set<TransactionType> txnTypes = new HashSet<>();

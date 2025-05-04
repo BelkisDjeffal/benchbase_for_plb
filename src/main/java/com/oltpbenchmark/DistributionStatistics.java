@@ -20,7 +20,6 @@ package com.oltpbenchmark;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +39,12 @@ public class DistributionStatistics {
   private static final int MAXIMUM = 7;
 
   private final int count;
-  private final long[] percentiles;
+  private final double[] percentiles;
   private final double average;
   private final double standardDeviation;
 
   public DistributionStatistics(
-      int count, long[] percentiles, double average, double standardDeviation) {
+      int count, double[] percentiles, double average, double standardDeviation) {
     this.count = count;
     this.percentiles = Arrays.copyOfRange(percentiles, 0, PERCENTILES.length);
     this.average = average;
@@ -55,7 +54,7 @@ public class DistributionStatistics {
   /** Computes distribution statistics over values. WARNING: This will sort values. */
   public static DistributionStatistics computeStatistics(int[] valuesAsMicroseconds) {
     if (valuesAsMicroseconds.length == 0) {
-      long[] percentiles = new long[PERCENTILES.length];
+      double[] percentiles = new double[PERCENTILES.length];
       Arrays.fill(percentiles, -1);
       return new DistributionStatistics(0, percentiles, -1, -1);
     }
@@ -81,7 +80,7 @@ public class DistributionStatistics {
     // NOTE: NIST recommends interpolating. This just selects the closest
     // value, which is described as another common technique.
     // http://www.itl.nist.gov/div898/handbook/prc/section2/prc252.htm
-    long[] percentiles = new long[PERCENTILES.length];
+    double[] percentiles = new double[PERCENTILES.length];
     for (int i = 0; i < percentiles.length; ++i) {
       int index = (int) (PERCENTILES[i] * valuesAsMicroseconds.length);
       if (index == valuesAsMicroseconds.length) {
@@ -90,8 +89,38 @@ public class DistributionStatistics {
       percentiles[i] = valuesAsMicroseconds[index];
     }
 
-    return new DistributionStatistics(
-        valuesAsMicroseconds.length, percentiles, average, standardDeviation);
+    // Convert to seconds
+    double[] valuesInSeconds =
+        Arrays.stream(valuesAsMicroseconds).mapToDouble(v -> v / 1_000_000.0).toArray();
+
+    return computeStatistics(valuesInSeconds);
+  }
+
+  public static DistributionStatistics computeStatistics(double[] values) {
+    if (values.length == 0) {
+      double[] percentiles = new double[PERCENTILES.length];
+      Arrays.fill(percentiles, -1);
+      return new DistributionStatistics(0, percentiles, -1, -1);
+    }
+
+    Arrays.sort(values);
+
+    double average = Arrays.stream(values).average().orElse(-1);
+    double stddev = 0;
+    if (values.length > 1) {
+      double variance =
+          Arrays.stream(values).map(v -> (v - average) * (v - average)).sum() / (values.length - 1);
+      stddev = Math.sqrt(variance);
+    }
+
+    double[] percentiles = new double[PERCENTILES.length];
+    for (int i = 0; i < PERCENTILES.length; i++) {
+      int index = (int) (PERCENTILES[i] * values.length);
+      if (index == values.length) index = values.length - 1;
+      percentiles[i] = values[index];
+    }
+
+    return new DistributionStatistics(values.length, percentiles, average, stddev);
   }
 
   public int getCount() {
@@ -140,46 +169,62 @@ public class DistributionStatistics {
 
   @Override
   public String toString() {
-    return "in milliseconds [min="
-        + TimeUnit.MICROSECONDS.toMillis((long) getMinimum())
-        + ", "
-        + "25th="
-        + TimeUnit.MICROSECONDS.toMillis((long) get25thPercentile())
-        + ", "
-        + "median="
-        + TimeUnit.MICROSECONDS.toMillis((long) getMedian())
-        + ", "
-        + "avg="
-        + TimeUnit.MICROSECONDS.toMillis((long) getAverage())
-        + ", "
-        + "75th="
-        + TimeUnit.MICROSECONDS.toMillis((long) get75thPercentile())
-        + ", "
-        + "90th="
-        + TimeUnit.MICROSECONDS.toMillis((long) get90thPercentile())
-        + ", "
-        + "95th="
-        + TimeUnit.MICROSECONDS.toMillis((long) get95thPercentile())
-        + ", "
-        + "99th="
-        + TimeUnit.MICROSECONDS.toMillis((long) get99thPercentile())
-        + ", "
-        + "max="
-        + TimeUnit.MICROSECONDS.toMillis((long) getMaximum())
+    return "in seconds [min="
+        + String.format("%.3f", getMinimum())
+        + ", 25th="
+        + String.format("%.3f", get25thPercentile())
+        + ", median="
+        + String.format("%.3f", getMedian())
+        + ", avg="
+        + String.format("%.3f", getAverage())
+        + ", 75th="
+        + String.format("%.3f", get75thPercentile())
+        + ", 90th="
+        + String.format("%.3f", get90thPercentile())
+        + ", 95th="
+        + String.format("%.3f", get95thPercentile())
+        + ", 99th="
+        + String.format("%.3f", get99thPercentile())
+        + ", max="
+        + String.format("%.3f", getMaximum())
+        + "]";
+  }
+
+  public String toPlainString() {
+    return "[count="
+        + count
+        + ", min="
+        + getMinimum()
+        + ", 25th="
+        + get25thPercentile()
+        + ", median="
+        + getMedian()
+        + ", avg="
+        + getAverage()
+        + ", 75th="
+        + get75thPercentile()
+        + ", 90th="
+        + get90thPercentile()
+        + ", 95th="
+        + get95thPercentile()
+        + ", 99th="
+        + get99thPercentile()
+        + ", max="
+        + getMaximum()
         + "]";
   }
 
   public Map<String, Integer> toMap() {
     Map<String, Integer> distMap = new LinkedHashMap<>();
-    distMap.put("Minimum Latency (microseconds)", (int) getMinimum());
-    distMap.put("25th Percentile Latency (microseconds)", (int) get25thPercentile());
-    distMap.put("Median Latency (microseconds)", (int) getMedian());
-    distMap.put("Average Latency (microseconds)", (int) getAverage());
-    distMap.put("75th Percentile Latency (microseconds)", (int) get75thPercentile());
-    distMap.put("90th Percentile Latency (microseconds)", (int) get90thPercentile());
-    distMap.put("95th Percentile Latency (microseconds)", (int) get95thPercentile());
-    distMap.put("99th Percentile Latency (microseconds)", (int) get99thPercentile());
-    distMap.put("Maximum Latency (microseconds)", (int) getMaximum());
+    distMap.put("Minimum Latency (seconds)", (int) getMinimum());
+    distMap.put("25th Percentile Latency (seconds)", (int) get25thPercentile());
+    distMap.put("Median Latency (seconds)", (int) getMedian());
+    distMap.put("Average Latency (seconds)", (int) getAverage());
+    distMap.put("75th Percentile Latency (seconds)", (int) get75thPercentile());
+    distMap.put("90th Percentile Latency (seconds)", (int) get90thPercentile());
+    distMap.put("95th Percentile Latency (seconds)", (int) get95thPercentile());
+    distMap.put("99th Percentile Latency (seconds)", (int) get99thPercentile());
+    distMap.put("Maximum Latency (seconds)", (int) getMaximum());
     return distMap;
   }
 }
