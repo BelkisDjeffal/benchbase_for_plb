@@ -129,32 +129,22 @@ public class ResultWriter {
     summaryMap.put("time", timeValues.length > 0 ? timeValues[0] : "NOT FOUND");
     summaryMap.put("rate", rateValues.length > 0 ? rateValues[0] : "NOT FOUND");
     summaryMap.put("Final State", results.getState());
-    summaryMap.put("Measured Requests", results.getMeasuredRequests());
+    summaryMap.put("Measured Requests", results.getAttemptedRequests());
     for (String field : BENCHMARK_KEY_FIELD) {
       summaryMap.put(field, expConf.getString(field));
     }
-    summaryMap.put("Latency Distribution", results.getDistributionStatistics().toMap());
-    // summaryMap.put("NewThroughput (requests/second)", results.getNewThroughput());
-    summaryMap.put("Throughput (requests/second)", results.getNewThroughput());
-    summaryMap.put("Goodput (requests/second)", results.requestsPerSecondGoodput());
-
+    summaryMap.put("Throughput Distribution (requests/second)", results.getOverallThroughput());
+    summaryMap.put("Goodput Distribution (requests/second)", results.getOverallGoodput());
+    summaryMap.put("Latency Distribution", results.getDistributionStatistics());
     summaryMap.put("Per-Priority Metrics", new HashMap<>());
     for (String priority : terminalCounts.keySet()) {
       Map<String, Object> priorityMetrics = new HashMap<>();
-      // priorityMetrics.put(
-      //  "Attempted Throughput (req/s)", results.getNewThroughputForPriority(priority));
-      priorityMetrics.put("Throughput (req/s)", results.getThroughputForPriority(priority));
-      priorityMetrics.put("Goodput (req/s)", results.getGoodputForPriority(priority));
 
-      // priorityMetrics.put(
-      //     "Per-Terminal Attempted Throughput (req/s)",
-      //     results.getPerTerminalAttemptedThroughputForPriority(priority));
       priorityMetrics.put(
-          "Per-Terminal Throughput (req/s)", results.getPerTerminalThroughputForPriority(priority));
+          "Throughput Distribution (req/s)", results.getThroughputStatsForPriority(priority));
       priorityMetrics.put(
-          "Per-Terminal Goodput (req/s)", results.getPerTerminalGoodputForPriority(priority));
-
-      priorityMetrics.put("Latency Stats", results.getLatencyStatsForPriority(priority));
+          "Goodput Distribution (req/s)", results.getGoodputStatsForPriority(priority));
+      priorityMetrics.put("Latency Distribution", results.getLatencyStatsForPriority(priority));
 
       @SuppressWarnings("unchecked")
       Map<String, Object> perPriorityMetrics =
@@ -166,8 +156,6 @@ public class ResultWriter {
       }
 
       perPriorityMetrics.put(priority, priorityMetrics);
-
-      // summaryMap.get("Per-Priority Metrics").put(priority, priorityMetrics);
     }
     os.println(JSONUtil.format(JSONUtil.toJSONString(summaryMap)));
   }

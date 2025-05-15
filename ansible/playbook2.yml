@@ -77,7 +77,7 @@
     - name: Deploy OS on all reserved nodes (Start asynchronously)
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
-      async: 300  
+      async: 400  
       poll: 0      
       register: os_deployment_jobs
 
@@ -242,6 +242,11 @@
     - name: Install additional software 
       apt:
         name: maven
+        state: present
+
+    - name: Install jq 
+      apt:
+        name: jq
         state: present
 
     - name: Log Java Installation

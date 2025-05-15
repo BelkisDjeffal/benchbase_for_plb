@@ -417,7 +417,6 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       for (int i = 0; i < samples.size(); ++i) {
         latencies[i] = samples.get(i).getLatencyMicrosecond();
       }
-      System.err.printf("LATENCIES:");
       System.out.println(Arrays.toString(latencies));
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
@@ -460,6 +459,10 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
         }
       }
 
+      DistributionStatistics overallThroughput =
+          ExecutionDistributionStatistics.computeOverallThroughputStats(workerRecords);
+      DistributionStatistics overallGoodput =
+          ExecutionDistributionStatistics.computeOverallGoodputStats(workerRecords);
       Map<String, DistributionStatistics> throughputStats =
           ExecutionDistributionStatistics.computeThroughputStats(metricsByPriority);
       Map<String, DistributionStatistics> goodputStats =
@@ -484,6 +487,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
               aggregatedSuccessByPriority,
               terminalCounts,
               workerExecutionTimes,
+              overallThroughput,
+              overallGoodput,
               throughputStats,
               goodputStats);
 

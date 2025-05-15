@@ -19,6 +19,7 @@ package com.oltpbenchmark;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,24 +170,26 @@ public class DistributionStatistics {
 
   @Override
   public String toString() {
-    return "in seconds [min="
-        + String.format("%.3f", getMinimum())
+    return "[min="
+        + String.format(Locale.US, "%.6f", getMinimum())
         + ", 25th="
-        + String.format("%.3f", get25thPercentile())
+        + String.format(Locale.US, "%.6f", get25thPercentile())
         + ", median="
-        + String.format("%.3f", getMedian())
+        + String.format(Locale.US, "%.6f", getMedian())
         + ", avg="
-        + String.format("%.3f", getAverage())
+        + String.format(Locale.US, "%.6f", getAverage())
+        + ", stddev="
+        + String.format(Locale.US, "%.6f", getStandardDeviation())
         + ", 75th="
-        + String.format("%.3f", get75thPercentile())
+        + String.format(Locale.US, "%.6f", get75thPercentile())
         + ", 90th="
-        + String.format("%.3f", get90thPercentile())
+        + String.format(Locale.US, "%.6f", get90thPercentile())
         + ", 95th="
-        + String.format("%.3f", get95thPercentile())
+        + String.format(Locale.US, "%.6f", get95thPercentile())
         + ", 99th="
-        + String.format("%.3f", get99thPercentile())
+        + String.format(Locale.US, "%.6f", get99thPercentile())
         + ", max="
-        + String.format("%.3f", getMaximum())
+        + String.format(Locale.US, "%.6f", getMaximum())
         + "]";
   }
 
@@ -194,37 +197,53 @@ public class DistributionStatistics {
     return "[count="
         + count
         + ", min="
-        + getMinimum()
+        + String.format(Locale.US, "%.6f", getMinimum())
         + ", 25th="
-        + get25thPercentile()
+        + String.format(Locale.US, "%.6f", get25thPercentile())
         + ", median="
-        + getMedian()
+        + String.format(Locale.US, "%.6f", getMedian())
         + ", avg="
-        + getAverage()
+        + String.format(Locale.US, "%.6f", getAverage())
+        + ", stdv="
+        + String.format(Locale.US, "%.6f", getStandardDeviation())
         + ", 75th="
-        + get75thPercentile()
+        + String.format(Locale.US, "%.6f", get75thPercentile())
         + ", 90th="
-        + get90thPercentile()
+        + String.format(Locale.US, "%.6f", get90thPercentile())
         + ", 95th="
-        + get95thPercentile()
+        + String.format(Locale.US, "%.6f", get95thPercentile())
         + ", 99th="
-        + get99thPercentile()
+        + String.format(Locale.US, "%.6f", get99thPercentile())
         + ", max="
-        + getMaximum()
+        + String.format(Locale.US, "%.6f", getMaximum())
         + "]";
   }
 
-  public Map<String, Integer> toMap() {
-    Map<String, Integer> distMap = new LinkedHashMap<>();
-    distMap.put("Minimum Latency (seconds)", (int) getMinimum());
-    distMap.put("25th Percentile Latency (seconds)", (int) get25thPercentile());
-    distMap.put("Median Latency (seconds)", (int) getMedian());
-    distMap.put("Average Latency (seconds)", (int) getAverage());
-    distMap.put("75th Percentile Latency (seconds)", (int) get75thPercentile());
-    distMap.put("90th Percentile Latency (seconds)", (int) get90thPercentile());
-    distMap.put("95th Percentile Latency (seconds)", (int) get95thPercentile());
-    distMap.put("99th Percentile Latency (seconds)", (int) get99thPercentile());
-    distMap.put("Maximum Latency (seconds)", (int) getMaximum());
+  // public Map<String, Integer> toMap() {
+  //   Map<String, Integer> distMap = new LinkedHashMap<>();
+  //   distMap.put("Minimum Latency (seconds)", (int) getMinimum());
+  //   distMap.put("25th Percentile Latency (seconds)", (int) get25thPercentile());
+  //   distMap.put("Median Latency (seconds)", (int) getMedian());
+  //   distMap.put("Average Latency (seconds)", (int) getAverage());
+  //   distMap.put("75th Percentile Latency (seconds)", (int) get75thPercentile());
+  //   distMap.put("90th Percentile Latency (seconds)", (int) get90thPercentile());
+  //   distMap.put("95th Percentile Latency (seconds)", (int) get95thPercentile());
+  //   distMap.put("99th Percentile Latency (seconds)", (int) get99thPercentile());
+  //   distMap.put("Maximum Latency (seconds)", (int) getMaximum());
+  //   return distMap;
+  // }
+
+  public Map<String, Double> toMap() {
+    Map<String, Double> distMap = new LinkedHashMap<>();
+    distMap.put("Minimum Latency (seconds)", getMinimum());
+    distMap.put("25th Percentile Latency (seconds)", get25thPercentile());
+    distMap.put("Median Latency (seconds)", getMedian());
+    distMap.put("Average Latency (seconds)", getAverage());
+    distMap.put("75th Percentile Latency (seconds)", get75thPercentile());
+    distMap.put("90th Percentile Latency (seconds)", get90thPercentile());
+    distMap.put("95th Percentile Latency (seconds)", get95thPercentile());
+    distMap.put("99th Percentile Latency (seconds)", get99thPercentile());
+    distMap.put("Maximum Latency (seconds)", getMaximum());
     return distMap;
   }
 }

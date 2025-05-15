@@ -36,6 +36,34 @@ public class ExecutionDistributionStatistics {
     return result;
   }
 
+  public static DistributionStatistics computeOverallThroughputStats(List<WorkerRecord> records) {
+    double[] values =
+        records.stream()
+            .filter(r -> (r.endTimeMs - r.startTimeMs) > 0)
+            .mapToDouble(
+                r -> {
+                  double durationSec = (r.endTimeMs - r.startTimeMs) / 1000.0;
+                  return r.attempted / durationSec;
+                })
+            .toArray();
+
+    return DistributionStatistics.computeStatistics(values);
+  }
+
+  public static DistributionStatistics computeOverallGoodputStats(List<WorkerRecord> records) {
+    double[] values =
+        records.stream()
+            .filter(r -> (r.endTimeMs - r.startTimeMs) > 0)
+            .mapToDouble(
+                r -> {
+                  double durationSec = (r.endTimeMs - r.startTimeMs) / 1000.0;
+                  return r.succeeded / durationSec;
+                })
+            .toArray();
+
+    return DistributionStatistics.computeStatistics(values);
+  }
+
   public static Map<String, DistributionStatistics> computeThroughputStats(
       Map<String, List<WorkerMetrics>> metricsByPriority) {
     Map<String, DistributionStatistics> result = new HashMap<>();
