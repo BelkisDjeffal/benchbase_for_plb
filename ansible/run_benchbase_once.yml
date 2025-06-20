@@ -1,0 +1,24 @@
+# run_benchbase_once.yml
+- name: Generate customized XML config
+  template:
+    src: /home/spirals/phd/experiments/janvier/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Run BenchBase workload
+  ansible.builtin.shell: ./run_benchbase.sh 10
+  args:
+    chdir: /home/benchbase
+
+- name: Get latest result directory
+  ansible.builtin.shell: |
+    ls -td /home/benchbase/measurements/data/runs_outputs/*/ | head -1
+  register: result_dir
+
+- name: Sync results to local machine
+  ansible.builtin.synchronize:
+    src: "{{ result_dir.stdout }}/"
+    dest: "/home/spirals/phd/experiments/janvier/benchbase/measurements/data/runs_outputs/"
+    mode: pull
+  delegate_to: localhost 
+  become: false    

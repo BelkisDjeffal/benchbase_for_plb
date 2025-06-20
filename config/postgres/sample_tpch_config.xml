@@ -19,14 +19,14 @@
     <scalefactor>1</scalefactor>
 
     <!-- The workload -->
-    <terminals>400</terminals>
+    <terminals>200</terminals>
     <terminalClasses>"premium","freemium"</terminalClasses>
-    <terminalClassesWeights>200,200</terminalClassesWeights>
+    <terminalClassesWeights>100,100</terminalClassesWeights>
     <works>
         <work>  
             <serial>false</serial>
             <rate>unlimited</rate>
-            <time>300</time> 
+            <time>180</time> 
             <weights>1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1</weights>
         </work>
         <!-- <work>  
