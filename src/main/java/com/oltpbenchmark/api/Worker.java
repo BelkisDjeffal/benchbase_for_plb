@@ -270,7 +270,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
     long minTime = 60 * 1000L; // 60 seconds
     // long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
-    long maxTime = 3 * 60 * 1000L; // 3 minutes'
+    long maxTime = 2 * 60 * 1000L; // 3 minutes'
     long executionTime =
         minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
 

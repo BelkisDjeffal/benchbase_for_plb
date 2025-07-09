@@ -1,15 +1,15 @@
 all:
   vars:
     grid_site: lille
-    grid_time: '12:00:00'
+    grid_time: '10:00:00'
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
     grid_hosts:
           - chiclet-1
+          - chiclet-2
           - chiclet-3
+          - chiclet-4
           - chiclet-5
           - chiclet-8
-          - chiclet-7
-          - chiclet-6
   hosts:
     grid5000:
       ansible_host: "frontend.{{ grid_site }}.grid5000.fr"

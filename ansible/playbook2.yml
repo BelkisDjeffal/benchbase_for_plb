@@ -61,6 +61,7 @@
       
 
     - name: Add reserved nodes to inventory
+      tags: add_inventory
       add_host:
         name: "{{ item }}"
         ansible_host: "{{ item }}"
@@ -69,6 +70,7 @@
       tags: always
 
     - name: Add the separate node for Java/Other
+      tags: add_inventory
       add_host:
         name: "{{ reserved_nodes[5] }}"
         ansible_host: "{{ reserved_nodes[5] }}"
@@ -116,6 +118,7 @@
 - name: Install and configure PostgreSQL
   hosts: postgres_servers
   remote_user: root
+  tags: postgres
   tasks:
     - name: Install required packages
       apt:
@@ -210,6 +213,7 @@
         msg: "TPCH database restored on {{ inventory_hostname }}"
 - name: Ensure reserved nodes are added to inventory
   hosts: localhost
+  tags: Ensure reserved nodes are added to inventory
   tasks:
     - name: Reload group variables 2
       include_vars:
@@ -252,6 +256,12 @@
       apt:
         name: jq
         state: present
+
+    - name: Install Ansible 
+      apt:
+        name: ansible
+        state: present
+
 
     - name: Log Java Installation
       debug:
@@ -302,99 +312,13 @@
         chdir: /home/benchbase
       register: benchbase_build_output
 
-    # - name: Run Java benchbase.jar command 
-    #   ansible.builtin.shell: |
-    #     java -cp benchbase.jar:lib/plb-0.0.1-SNAPSHOT.jar -Djava.util.logging.config.file=src/main/resources/logging.properties com.oltpbenchmark.DBWorkload -b tpch -c config/postgres/sample_tpch_config.xml --create=false --load=false --execute=true
-    #   args:
-    #     chdir: /home/benchbase/target/benchbase-postgres
-    #   register: benchbase_run_output
-
-    # - name: Display BenchBase execution output
-    #   debug:
-    #     msg: "{{ benchbase_run_output.stdout_lines }}"
-
     - name: Ensure run_benchbase.sh is executable
       ansible.builtin.shell: chmod +x run_benchbase.sh
       args:
         chdir: /home/benchbase
 
-    # - name: Run BenchBase Workload
-    #   ansible.builtin.shell: ./run_benchbase.sh 10
-    #   args:
-    #     chdir: /home/benchbase
-    #   register: benchbase_run_output
-
-    # - name: Debug BenchBase output
-    #   debug:
-    #     var: benchbase_run_output.stdout_lines
-
     - name: Ensure extract_summary_priorities.sh is executable
       ansible.builtin.shell: chmod +x extract_summary_priorities.sh
       args:
         chdir: /home/benchbase/measurements/data
-
-    # - name: Generate config and run BenchBase
-    #   tags: benchbase_runs
-    #   vars:
-    #     benchbase_runs:
-    #       - { terminals: 50,  weights: "25,25" }
-    #       - { terminals: 100, weights: "50,50" }
-    #   loop: "{{ benchbase_runs }}"
-    #   loop_control:
-    #     loop_var: run
-    #   include_tasks: run_benchbase_once.yml
-    #   vars:
-    #     terminals: "{{ run.terminals }}"
-    #     weights: "{{ run.weights }}"
-
-    - name: Generate config and run BenchBase
-      tags: benchbase_runs
-      vars:
-        benchbase_runs:
-          - { terminals: 350, weights: "200,150" }
-          - { terminals: 450, weights: "225,225" }
-          - { terminals: 450, weights: "200,250" }
-          - { terminals: 450, weights: "250,200" }
-          - { terminals: 550, weights: "275,275" }
-          - { terminals: 550, weights: "250,300" }
-          - { terminals: 550, weights: "300,250" }
-          
-      block:
-        - name: Run each config
-          loop: "{{ benchbase_runs }}"
-          loop_control:
-            loop_var: run
-          include_tasks: run_benchbase_once.yml
-          vars:
-            terminals: "{{ run.terminals }}"
-            weights: "{{ run.weights }}"
-
-    - name: Get latest runs_outputs folder name
-      tags: finalisation
-      ansible.builtin.shell: |
-        basename $(ls -td /home/benchbase/measurements/data/runs_outputs/*/ | head -1)
-      register: latest_folder_name
-
-    - name: Show latest folder name
-      tags: finalisation
-      debug:
-        msg: "Latest run output folder is: {{ latest_folder_name.stdout }}"
-
-    - name: Extract summary priorities into runs_outputs folder
-      tags: finalisation
-      ansible.builtin.shell: |
-        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results  {{ latest_folder_name.stdout }}
-      args:
-        chdir: /home/benchbase
-        
-    - name: Sync full run output folder (with summary) to local
-      tags: finalisation
-      ansible.builtin.synchronize:
-        src: "/home/benchbase/measurements/data/runs_outputs/{{ latest_folder_name.stdout }}/"
-        dest: "/home/spirals/phd/experiments/janvier/benchbase/measurements/data/runs_outputs/{{ latest_folder_name.stdout }}/"
-        mode: pull
-      delegate_to: localhost
-      become: false
-
-
     

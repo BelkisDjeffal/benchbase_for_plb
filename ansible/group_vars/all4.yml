@@ -1,0 +1,11 @@
+reserved_nodes: [gros-100.nancy.grid5000.fr, gros-101.nancy.grid5000.fr, gros-102.nancy.grid5000.fr,
+  gros-103.nancy.grid5000.fr, gros-104.nancy.grid5000.fr, gros-105.nancy.grid5000.fr]
+
+postgres_servers: [gros-100.nancy.grid5000.fr, gros-101.nancy.grid5000.fr, gros-102.nancy.grid5000.fr,
+  gros-103.nancy.grid5000.fr, gros-104.nancy.grid5000.fr]
+  
+injector_node: [gros-105.nancy.grid5000.fr]
+ 
+premium_nodes: [gros-100.nancy.grid5000.fr, gros-101.nancy.grid5000.fr]
+
+freemium_nodes: [gros-102.nancy.grid5000.fr, gros-103.nancy.grid5000.fr, gros-104.nancy.grid5000.fr]
