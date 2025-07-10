@@ -1,0 +1,23 @@
+#run_one_iteration
+- name: Start monitoring
+  include_tasks: start_monitoring.yml
+
+- name: Run BenchBase workload (run {{ run_id }})
+  shell: >
+    java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+    --create=false --load=false --execute=true
+    > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
+  args:
+    chdir: /home/benchbase/target/benchbase-postgres
+
+- name: Stop monitoring
+  include_tasks: stop_monitoring.yml
+
+- name: Fetch monitoring logs
+  include_tasks: fetch_monitoring.yml
+
+
+
+
+
+

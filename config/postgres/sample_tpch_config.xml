@@ -26,7 +26,7 @@
         <work>  
             <serial>false</serial>
             <rate>unlimited</rate>
-            <time>60</time> 
+            <time>30</time> 
             <weights>1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1</weights>
         </work>
         <!-- <work>  

@@ -1,0 +1,29 @@
+#run_benchbase_once_injector_monitor
+- name: Get timestamp as a fact
+  vars:
+    ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  set_fact:
+    run_label: "runs_outputs_{{ ts }}"
+    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs_{{ ts }}"   
+
+- name: Create output folder
+  file:
+    path: "{{ benchbase_output_dir }}"
+    state: directory
+
+- name: Generate customized XML config
+  template:
+    src: /home/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Loop over 2 repeated runs
+  include_tasks: run_one_iteration.yml
+  loop: [1, 2]
+  loop_control:
+    loop_var: run_id
+
+
+
+
+

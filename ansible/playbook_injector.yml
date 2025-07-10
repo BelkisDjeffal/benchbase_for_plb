@@ -3,10 +3,6 @@
   connection: local
   vars:
     benchbase_runs:
-
-      - { terminals: 200, weights: "50,150" }
-
-      - { terminals: 250, weights: "125,125" }
       - { terminals: 250, weights: "75,175" }
       - { terminals: 250, weights: "175,75" }
 
