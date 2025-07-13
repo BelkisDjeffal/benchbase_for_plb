@@ -1,0 +1,9 @@
+all:
+  children:
+    postgres_servers:
+      hosts:
+{% for host in postgres_servers %}
+        {{ host }}:
+          ansible_host: {{ host }}
+          ansible_user: root
+{% endfor %}

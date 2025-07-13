@@ -39,19 +39,10 @@
         premium_nodes: "{{ reserved_nodes[:2] }}"
         freemium_nodes: "{{ reserved_nodes[2:5] }}"
 
-    - name: Overwrite inventory_monitor.yml with current replica list
-      copy:
+    - name: Generate inventory_monitor.yml from template
+      template:
+        src: /home/spirals/phd/experiments/janvier/benchbase/templates/inventory_monitor.yml.j2
         dest: /home/spirals/phd/experiments/janvier/benchbase/ansible/inventory_monitor.yml
-        content: |
-          all:
-            children:
-              postgres_servers:
-                hosts:
-{% for host in postgres_servers %}
-                  {{ host }}:
-                    ansible_host: {{ host }}
-                    ansible_user: root
-{% endfor %}
       delegate_to: localhost
       run_once: true
 
@@ -131,6 +122,7 @@
 
     # Backup existing authorized_keys on injector (just in case)
     - name: Backup authorized_keys before editing
+      tags: Backup authorized_keys before editing
       delegate_to: "{{ injector_node[0] }}"
       remote_user: root
       copy:

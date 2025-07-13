@@ -17,13 +17,22 @@
     dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
     backup: yes
 
-- name: Loop over 2 repeated runs
-  include_tasks: run_one_iteration.yml
+- name: Loop over repeated runs
   loop: [1, 2]
   loop_control:
     loop_var: run_id
+  shell: >
+    ansible-playbook -i /home/benchbase/ansible/inventory_monitor.yml
+    /home/benchbase/ansible/run_one_iteration.yml
+    --extra-vars "run_id={{ run_id }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
+  register: play_output
+  ignore_errors: yes
 
+- name: Show output of sub-playbook
+  debug:
+    var: play_output.stdout_lines
 
-
-
-
+- name: Show error output if failed
+  when: play_output.rc != 0
+  debug:
+    var: play_output.stderr_lines
