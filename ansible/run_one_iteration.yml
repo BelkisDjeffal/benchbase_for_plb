@@ -1,4 +1,4 @@
-# run_one_iteration_playbook.yml
+# File: run_one_iteration.yml
 - name: Start monitoring
   hosts: postgres_servers
   become: yes
@@ -46,4 +46,3 @@
         src: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log"
         dest: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}/{{ replica_roles[inventory_hostname] }}_{{ inventory_hostname }}.log"
         flat: yes
-

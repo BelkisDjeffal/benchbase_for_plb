@@ -3,13 +3,14 @@
   delegate_to: "{{ item }}"
   with_items: "{{ groups['postgres_servers'] }}"
 
-- name: Start pidstat
+- name: Start pidstat 
   shell: |
-    nohup pidstat -h -r -u -p $(pgrep -u postgres | paste -sd ',' -) 1 \
+    nohup pidstat -e -r -u 1 \
     > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1 &
     echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid
   args:
     executable: /bin/bash
   delegate_to: "{{ item }}"
   with_items: "{{ groups['postgres_servers'] }}"
+
 
