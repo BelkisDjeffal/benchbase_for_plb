@@ -2,18 +2,12 @@ all:
   children:
     postgres_servers:
       hosts:
-        chiclet-1.lille.grid5000.fr:
-          ansible_host: chiclet-1.lille.grid5000.fr
+        gros-104.nancy.grid5000.fr:
+          ansible_host: gros-104.nancy.grid5000.fr
           ansible_user: root
-        chiclet-2.lille.grid5000.fr:
-          ansible_host: chiclet-2.lille.grid5000.fr
+        gros-105.nancy.grid5000.fr:
+          ansible_host: gros-105.nancy.grid5000.fr
           ansible_user: root
-        chiclet-3.lille.grid5000.fr:
-          ansible_host: chiclet-3.lille.grid5000.fr
-          ansible_user: root
-        chiclet-4.lille.grid5000.fr:
-          ansible_host: chiclet-4.lille.grid5000.fr
-          ansible_user: root
-        chiclet-5.lille.grid5000.fr:
-          ansible_host: chiclet-5.lille.grid5000.fr
+        gros-106.nancy.grid5000.fr:
+          ansible_host: gros-106.nancy.grid5000.fr
           ansible_user: root

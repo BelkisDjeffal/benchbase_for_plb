@@ -5,12 +5,9 @@
 
 - name: Start pidstat 
   shell: |
-    nohup pidstat -e -r -u 1 \
-    > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1 &
-    echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid
+    nohup pidstat -r -u -p ALL 1 > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1>
+    echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid  
   args:
     executable: /bin/bash
   delegate_to: "{{ item }}"
   with_items: "{{ groups['postgres_servers'] }}"
-
-

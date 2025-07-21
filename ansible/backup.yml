@@ -4,6 +4,14 @@
   vars:
     benchbase_runs:
 
+      - { terminals: 20, weights: "4,16" }
+      - { terminals: 20, weights: "10,10" }
+      - { terminals: 20, weights: "16,4" }
+
+      - { terminals: 10, weights: "2,8" }
+      - { terminals: 10, weights: "5,5" }
+      - { terminals: 10, weights: "8,2" }
+
       - { terminals: 30, weights: "10,20" }
       - { terminals: 30, weights: "15,15" }
       - { terminals: 30, weights: "20,10" }
@@ -23,6 +31,10 @@
       - { terminals: 150, weights: "75,75" }
       - { terminals: 150, weights: "100,50" }
       - { terminals: 150, weights: "50,100" }
+
+      - { terminals: 170, weights: "85,85" }
+      - { terminals: 170, weights: "120,50" }
+      - { terminals: 170, weights: "50,120" }
 
       - { terminals: 200, weights: "100,100" }
       - { terminals: 200, weights: "150,50" }
@@ -68,21 +80,11 @@
       - { terminals: 125, weights: "62,63" }
       - { terminals: 125, weights: "25,100" }
 
-      - { terminals: 170, weights: "85,85" }
-      - { terminals: 170, weights: "120,50" }
-      - { terminals: 170, weights: "50,120" }
-
       - { terminals: 225, weights: "200,25" }
       - { terminals: 225, weights: "112,113" }
       - { terminals: 225, weights: "25,200" }
       
-      - { terminals: 20, weights: "4,16" }
-      - { terminals: 20, weights: "10,10" }
-      - { terminals: 20, weights: "16,4" }
 
-      - { terminals: 10, weights: "2,8" }
-      - { terminals: 10, weights: "5,5" }
-      - { terminals: 10, weights: "8,2" }
       
   tasks:
     - name: Ensure run_benchbase.sh is executable
