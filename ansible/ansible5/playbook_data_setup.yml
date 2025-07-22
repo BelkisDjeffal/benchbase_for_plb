@@ -1,0 +1,94 @@
+- name: Full setup from injector (data load, rsync, benchbase build)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    - name: Load data on first node 
+      tags: data_loading
+      ansible.builtin.shell: java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml --create=true --load=true --execute=false
+      args:
+        chdir: /home/benchbase/target/benchbase-postgres
+
+    - name: Stop PostgreSQL on all replica nodes before sync
+      shell: pg_ctlcluster 14 main stop
+      delegate_to: "{{ item }}"
+      loop: "{{ replica_nodes }}"
+
+
+    - name: Rsync data dir from first node to all replicas in parallel
+      tags: after_data_loading
+      delegate_to: "{{ source_host }}"
+      remote_user: root
+      shell: >
+        rsync -az --delete --whole-file
+        --exclude=pg_stat --exclude=pg_wal
+        -e "ssh -o StrictHostKeyChecking=no"
+        {{ source_data_dir }}/
+        root@{{ item }}:{{ replica_data_dir }}/
+      loop: "{{ postgres_servers | difference([source_host]) }}"
+      async: 7200
+      poll: 0
+      register: rsync_jobs
+
+    - name: Wait for all rsync jobs to finish
+      tags: wait
+      delegate_to: "{{ source_host }}"
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: rsync_status_result
+      until: rsync_status_result.finished
+      retries: 100
+      delay: 30
+      loop: "{{ rsync_jobs.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+        loop_var: item
+
+    - name: Print rsync results
+      tags: after_data_loading
+      debug:
+        msg: "Replica {{ item.item }} rsync finished with status: {{ item.finished }}"
+      loop: "{{ rsync_status_result.results }}"
+
+    - name: Start PostgreSQL on all replica nodes after sync
+      tags: after_data_loading
+      shell: pg_ctlcluster 14 main start
+      delegate_to: "{{ item }}"
+      remote_user: root
+      loop: "{{ postgres_servers | difference([source_host]) }}"
+
+    - name: Confirm PostgreSQL is ready on all replicas
+      tags: after_data_loading
+      shell: pg_isready
+      delegate_to: "{{ item }}"
+      register: replica_status
+      remote_user: root
+      loop: "{{ postgres_servers | difference([source_host]) }}"
+
+    - name: Print PostgreSQL replica readiness
+      tags: after_data_loading
+      debug:
+        msg: "Replica {{ item.item }} status: {{ item.stdout }}"
+      loop: "{{ replica_status.results }}"
+
+    - name: Build BenchBase after warmup
+      tags: after_data_loading
+      ansible.builtin.shell: |
+        ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
+      args:
+        chdir: /home/benchbase
+      register: benchbase_build_output
+
+    - name: Ensure run_benchbase.sh is executable
+      tags: after_data_loading
+      ansible.builtin.shell: chmod +x run_benchbase.sh
+      args:
+        chdir: /home/benchbase
+
+    - name: Ensure extract_summary_priorities.sh is executable
+      tags: after_data_loading
+      ansible.builtin.shell: chmod +x extract_summary_priorities.sh
+      args:
+        chdir: /home/benchbase/measurements/data
