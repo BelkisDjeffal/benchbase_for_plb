@@ -3,11 +3,11 @@
 
     <!-- Connection details -->
     <type>POSTGRES</type>
-    <driver>org.postgresql.Driver</driver>
+    <!-- <driver>org.postgresql.Driver</driver>
     <url>jdbc:postgresql://localhost:5432/benchbase?sslmode=disable&amp;ApplicationName=tpch&amp;reWriteBatchedInserts=true</url> 
-    
-    <!--<driver>com.prioritylb.driver.PLBDriver</driver> 
-    <url>jdbc:prioritylb://localhost:9997/benchbase</url>-->
+     -->
+    <driver>com.prioritylb.driver.PLBDriver</driver> 
+    <url>jdbc:prioritylb://localhost:9997/benchbase</url>
 
     <username>admin</username>
     <password>password</password>

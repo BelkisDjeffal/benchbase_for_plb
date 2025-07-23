@@ -184,6 +184,8 @@
       remote_user: root
       with_items: "{{ postgres_servers }}"
 
+# ---- JDBC Config ----------------------
+
 - name: Generate updated JDBC configuration
   hosts: localhost
   tags: jdbc_config
@@ -204,6 +206,7 @@
         dest: /home/spirals/phd/experiments/decembre/plb/src/main/resources/replicas-grid5000.properties
         backup: yes
 
+# ---- Pstgres Setup ----------------------
 
 - name: Install and configure PostgreSQL
   hosts: postgres_servers
@@ -328,30 +331,58 @@
         proto: tcp
       register: ufw_config
 
-
-- name: Ensure reserved nodes are added to inventory
-  hosts: localhost
-  tags: Ensure reserved nodes are added to inventory
-  tasks:
-    - name: Reload group variables 2
-      include_vars:
-        file: group_vars/all.yml
-
-    - name: Ensure postgres_servers are added to inventory
-      add_host:
-        name: "{{ item }}"
-        ansible_host: "{{ item }}"
-        groups: postgres_servers
+    - name: Copy directory dump to each PostgreSQL server
+      tags: copy_benchbase_dump
+      delegate_to: localhost
+      become: false
+      synchronize:
+        src: /home/spirals/phd/experiments/benchbase_dump/
+        dest: /tmp/benchbase_dump/
+        mode: push
       loop: "{{ postgres_servers }}"
-      when: postgres_servers is defined and postgres_servers | length > 0
+      loop_control:
+        loop_var: replica
+      vars:
+        ansible_host: "{{ replica }}"
 
-    - name: Ensure injector_node is added to inventory
-      add_host:
-        name: "{{ item }}"
-        ansible_host: "{{ item }}"
-        groups: injector_node
-      loop: "{{ injector_node }}"
-      when: injector_node is defined and injector_node | length > 0
+    - name: Restore pre-data and data sections (no indexes)
+      tags: restore_pgdata
+      become: true
+      shell: |
+        sudo -i -u postgres pg_restore \
+          --section=pre-data --section=data \
+          -d benchbase \
+          /tmp/benchbase_dump/
+      environment:
+        PGPASSWORD: password
+      register: restore_phase1
+      changed_when: "'ERROR' not in restore_phase1.stderr"
+
+    - name: Log Phase 1 status
+      tags: restore_pgdata
+      debug:
+        msg: "Phase 1 (schema + data) complete on {{ inventory_hostname }}"
+
+    - name: Restore post-data section (indexes & constraints)
+      tags: restore_pgdata
+      become: true
+      shell: |
+        sudo -i -u postgres pg_restore \
+          --section=post-data \
+          -j 1 \
+          -d benchbase \
+          /tmp/benchbase_dump/
+      environment:
+        PGPASSWORD: password
+      register: restore_phase2
+      changed_when: "'ERROR' not in restore_phase2.stderr"
+
+    - name: Log Phase 2 status
+      tags: restore_pgdata
+      debug:
+        msg: "Phase 2 (indexes & constraints) complete on {{ inventory_hostname }}"
+
+# ---- Injector Setup ----------------------
 
 - name: Install Java & Other Tools
   hosts: injector_node
@@ -425,7 +456,7 @@
     - name: Generate sample_tpch_config.xml from template
       tags: generate_xml
       template:
-        src: /home/benchbase/ansible/templates/sample_tpch_config.xml.j2
+        src: templates/sample_tpch_config.xml.j2
         dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
 
     - name: Generate SSH key on source host

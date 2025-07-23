@@ -1,23 +1,45 @@
+# playbook_data_setup.yml
+
+- name: Stop PostgreSQL on all replica nodes before sync
+  hosts: postgres_servers
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Stop PostgreSQL 14 main service
+      systemd:
+        name: postgresql@14-main
+        state: stopped
+      when: inventory_hostname != source_host
+
+
 - name: Full setup from injector (data load, rsync, benchbase build)
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars:
+    source_data_dir: /var/lib/postgresql/14/main
+    replica_data_dir: /var/lib/postgresql/14/main
+
   tasks:
 
     - name: Load data on first node 
       tags: data_loading
-      ansible.builtin.shell: java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml --create=true --load=true --execute=false
+      ansible.builtin.shell: >
+        java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+        --create=true --load=true --execute=false
       args:
         chdir: /home/benchbase/target/benchbase-postgres
 
-    - name: Stop PostgreSQL on all replica nodes before sync
-      tags: after_data_loading
-      shell: pg_ctlcluster 14 main stop
-      delegate_to: "{{ item }}"
-      remote_user: root
-      loop: "{{ postgres_servers | difference([source_host]) }}"
-      ignore_errors: true
+    - name: Check which host is running this (should be source_host)
+      delegate_to: "{{ source_host }}"
+      shell: hostname
+      register: host_check
+
+    - name: Confirm delegation is working
+      debug:
+        msg: "Rsync will be executed from: {{ host_check.stdout }}"
 
     - name: Rsync data dir from first node to all replicas in parallel
       tags: after_data_loading
@@ -29,7 +51,7 @@
         -e "ssh -o StrictHostKeyChecking=no"
         {{ source_data_dir }}/
         root@{{ item }}:{{ replica_data_dir }}/
-      loop: "{{ postgres_servers | difference([source_host]) }}"
+      loop: "{{ groups['postgres_servers'] | difference([source_host]) }}"
       async: 7200
       poll: 0
       register: rsync_jobs
@@ -54,27 +76,6 @@
         msg: "Replica {{ item.item }} rsync finished with status: {{ item.finished }}"
       loop: "{{ rsync_status_result.results }}"
 
-    - name: Start PostgreSQL on all replica nodes after sync
-      tags: after_data_loading
-      shell: pg_ctlcluster 14 main start
-      delegate_to: "{{ item }}"
-      remote_user: root
-      loop: "{{ postgres_servers | difference([source_host]) }}"
-
-    - name: Confirm PostgreSQL is ready on all replicas
-      tags: after_data_loading
-      shell: pg_isready
-      delegate_to: "{{ item }}"
-      register: replica_status
-      remote_user: root
-      loop: "{{ postgres_servers | difference([source_host]) }}"
-
-    - name: Print PostgreSQL replica readiness
-      tags: after_data_loading
-      debug:
-        msg: "Replica {{ item.item }} status: {{ item.stdout }}"
-      loop: "{{ replica_status.results }}"
-
     - name: Build BenchBase after warmup
       tags: after_data_loading
       ansible.builtin.shell: |
@@ -94,3 +95,26 @@
       ansible.builtin.shell: chmod +x extract_summary_priorities.sh
       args:
         chdir: /home/benchbase/measurements/data
+
+
+- name: Start PostgreSQL on all replica nodes after sync
+  hosts: postgres_servers
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Start PostgreSQL 14 main service
+      systemd:
+        name: postgresql@14-main
+        state: started
+      when: inventory_hostname != source_host
+
+    - name: Confirm PostgreSQL is ready
+      shell: pg_isready
+      register: pg_status
+      when: inventory_hostname != source_host
+
+    - name: Print readiness
+      debug:
+        msg: "Replica {{ inventory_hostname }} status: {{ pg_status.stdout }}"
+      when: inventory_hostname != source_host

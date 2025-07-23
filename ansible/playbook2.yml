@@ -211,6 +211,7 @@
     - name: Log restore status
       debug:
         msg: "TPCH database restored on {{ inventory_hostname }}"
+        
 - name: Ensure reserved nodes are added to inventory
   hosts: localhost
   tags: Ensure reserved nodes are added to inventory
