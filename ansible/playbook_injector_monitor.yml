@@ -28,6 +28,10 @@
       - { terminals: 700, weights: "350,350" }
 
       - { terminals: 800, weights: "400,400" }
+      - { terminals: 1000, weights: "500,500" }
+      - { terminals: 1500, weights: "750,750" }
+      - { terminals: 2000, weights: "1000,1000" }
+      - { terminals: 25000, weights: "1250,1250" }
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh

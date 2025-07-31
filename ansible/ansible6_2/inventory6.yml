@@ -1,16 +1,16 @@
-#inventory
 all:
   vars:
     grid_site: nancy
-    grid_time: '48:00:00'
+    grid_time: '58:00:00'
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
     grid_hosts:
-          - gros-1
-          - gros-2
-          - gros-3
-          - gros-4
-          - gros-5
-          - gros-6
+          - gros-24
+          - gros-25
+          - gros-26
+          - gros-27
+          - gros-28
+          - gros-29
+
   hosts:
     grid5000:
       ansible_host: "frontend.{{ grid_site }}.grid5000.fr"

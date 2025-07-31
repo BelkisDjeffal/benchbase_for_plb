@@ -1,0 +1,410 @@
+Terminals 	Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	Strategy < RR 	Strategy better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	30 	5PLB 	Overall Avg Latency 	2.7757 	10.8005 	9.2552 	3.0457e-02 	Significant (* p < 0.05) 	False 	False 	1.5145 	Degrades (large effect) 	+16.70% 	NaN
+1 	30 	6PLB 	Overall Avg Latency 	1.0056 	NaN 	9.2552 	3.4351e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4743 	Degrades (small effect) 	+6.51% 	9.8578
+2 	40 	5PLB 	Overall Avg Latency 	2.6529 	11.6190 	9.6864 	2.6545e-02 	Significant (* p < 0.05) 	False 	False 	1.1992 	Degrades (large effect) 	+19.95% 	NaN
+3 	40 	6PLB 	Overall Avg Latency 	3.2854 	NaN 	9.6864 	1.4995e-02 	Significant (* p < 0.05) 	False 	False 	1.7661 	Degrades (large effect) 	+22.45% 	11.8607
+4 	50 	5PLB 	Overall Avg Latency 	5.4497 	12.1045 	9.8898 	1.2564e-04 	Very significant (*** p < 0.001) 	False 	False 	2.1485 	Degrades (large effect) 	+22.39% 	NaN
+5 	50 	6PLB 	Overall Avg Latency 	4.9032 	NaN 	9.8898 	4.4206e-04 	Very significant (*** p < 0.001) 	False 	False 	2.0165 	Degrades (large effect) 	+19.21% 	11.7900
+6 	100 	5PLB 	Overall Avg Latency 	2.6014 	13.7788 	12.7142 	3.1964e-02 	Significant (* p < 0.05) 	False 	False 	1.2479 	Degrades (large effect) 	+8.37% 	NaN
+7 	100 	6PLB 	Overall Avg Latency 	2.8274 	NaN 	12.7142 	1.4831e-02 	Significant (* p < 0.05) 	False 	False 	1.1201 	Degrades (large effect) 	+10.70% 	14.0749
+8 	150 	5PLB 	Overall Avg Latency 	3.7496 	15.4803 	14.2566 	2.4883e-03 	Significant (** p < 0.01) 	False 	False 	1.4676 	Degrades (large effect) 	+8.58% 	NaN
+9 	150 	6PLB 	Overall Avg Latency 	2.4779 	NaN 	14.2566 	2.6432e-02 	Significant (* p < 0.05) 	False 	False 	0.9348 	Degrades (large effect) 	+5.97% 	15.1077
+10 	200 	5PLB 	Overall Avg Latency 	0.7868 	16.9336 	16.5740 	4.5981e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4287 	Degrades (small effect) 	+2.17% 	NaN
+11 	200 	6PLB 	Overall Avg Latency 	-0.5995 	NaN 	16.5740 	5.6588e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.2891 	Improves (small effect) 	-1.75% 	16.2832
+12 	250 	5PLB 	Overall Avg Latency 	2.1851 	19.4482 	18.3087 	5.1456e-02 	Weak evidence (p < 0.1) 	False 	False 	0.9065 	Degrades (large effect) 	+6.22% 	NaN
+13 	250 	6PLB 	Overall Avg Latency 	-1.2924 	NaN 	18.3087 	2.2788e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.5773 	Improves (medium effect) 	-3.45% 	17.6766
+14 	300 	5PLB 	Overall Avg Latency 	2.3354 	21.0761 	19.7807 	4.0547e-02 	Significant (* p < 0.05) 	False 	False 	0.9863 	Degrades (large effect) 	+6.55% 	NaN
+15 	300 	6PLB 	Overall Avg Latency 	-1.5612 	NaN 	19.7807 	1.6606e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.8406 	Improves (large effect) 	-3.76% 	19.0371
+16 	350 	5PLB 	Overall Avg Latency 	2.6226 	22.1440 	20.9351 	2.8396e-02 	Significant (* p < 0.05) 	False 	False 	1.1975 	Degrades (large effect) 	+5.77% 	NaN
+17 	350 	6PLB 	Overall Avg Latency 	-0.3575 	NaN 	20.9351 	7.2932e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1640 	Improves (negligible effect) 	-0.78% 	20.7708
+18 	400 	5PLB 	Overall Avg Latency 	1.9535 	23.9172 	22.5431 	9.8920e-02 	Weak evidence (p < 0.1) 	False 	False 	1.1126 	Degrades (large effect) 	+6.10% 	NaN
+19 	400 	6PLB 	Overall Avg Latency 	-1.5765 	NaN 	22.5431 	1.7724e-01 	Not significant (p ≥ 0.1) 	True 	True 	-1.0830 	Improves (large effect) 	-4.66% 	21.4916
+20 	450 	5PLB 	Overall Avg Latency 	0.9563 	24.9778 	24.5538 	3.6321e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4251 	Degrades (small effect) 	+1.73% 	NaN
+21 	450 	6PLB 	Overall Avg Latency 	-3.371 	NaN 	24.5538 	6.9253e-03 	Significant (** p < 0.01) 	True 	True 	-1.4401 	Improves (large effect) 	-6.29% 	23.0094
+22 	500 	5PLB 	Overall Avg Latency 	1.0423 	26.9216 	26.3626 	3.2680e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4880 	Degrades (small effect) 	+2.12% 	NaN
+23 	500 	6PLB 	Overall Avg Latency 	-4.0588 	NaN 	26.3626 	2.2848e-03 	Significant (** p < 0.01) 	True 	True 	-1.7464 	Improves (large effect) 	-8.79% 	24.0443
+24 	550 	5PLB 	Overall Avg Latency 	-0.2754 	27.6392 	27.8393 	7.9161e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1480 	Improves (negligible effect) 	-0.72% 	NaN
+25 	550 	6PLB 	Overall Avg Latency 	-3.1558 	NaN 	27.8393 	2.2384e-02 	Significant (* p < 0.05) 	True 	True 	-1.9329 	Improves (large effect) 	-7.87% 	25.6496
+26 	600 	5PLB 	Overall Avg Latency 	-0.3753 	28.4877 	28.6889 	7.1633e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1706 	Improves (negligible effect) 	-0.70% 	NaN
+27 	600 	6PLB 	Overall Avg Latency 	-4.9483 	NaN 	28.6889 	7.3658e-04 	Very significant (*** p < 0.001) 	True 	True 	-2.2037 	Improves (large effect) 	-9.39% 	25.9962
+28 	700 	5PLB 	Overall Avg Latency 	-1.0576 	30.3671 	31.1774 	3.3878e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.7082 	Improves (medium effect) 	-2.60% 	NaN
+29 	700 	6PLB 	Overall Avg Latency 	-3.1802 	NaN 	31.1774 	1.8109e-02 	Significant (* p < 0.05) 	True 	True 	-1.7530 	Improves (large effect) 	-8.30% 	28.5912
+30 	800 	5PLB 	Overall Avg Latency 	0.2919 	32.5320 	32.3677 	7.7746e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.1357 	Degrades (negligible effect) 	+0.51% 	NaN
+31 	800 	6PLB 	Overall Avg Latency 	-4.208 	NaN 	32.3677 	6.3201e-03 	Significant (** p < 0.01) 	True 	True 	-2.4827 	Improves (large effect) 	-6.55% 	30.2487
+32 	1000 	5PLB 	Overall Avg Latency 	-2.8696 	35.3412 	36.8619 	1.0209e-02 	Significant (* p < 0.05) 	True 	True 	-0.9511 	Improves (large effect) 	-4.13% 	NaN
+33 	1000 	6PLB 	Overall Avg Latency 	-11.4719 	NaN 	36.8619 	1.7577e-09 	Very significant (*** p < 0.001) 	True 	True 	-3.9654 	Improves (large effect) 	-14.54% 	31.5022
+34 	1500 	5PLB 	Overall Avg Latency 	-1.2243 	34.7186 	35.5982 	2.4891e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.6721 	Improves (medium effect) 	-2.47% 	NaN
+35 	1500 	6PLB 	Overall Avg Latency 	-6.7043 	NaN 	35.5982 	2.0580e-04 	Very significant (*** p < 0.001) 	True 	True 	-3.3040 	Improves (large effect) 	-10.13% 	31.9915
+36 	2000 	5PLB 	Overall Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+37 	2000 	6PLB 	Overall Avg Latency 	-7.2083 	NaN 	36.1155 	2.7455e-05 	Very significant (*** p < 0.001) 	True 	True 	-3.6338 	Improves (large effect) 	-14.90% 	30.7357
+38 	2500 	5PLB 	Overall Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+39 	2500 	6PLB 	Overall Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+
+Terminals 	Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	Strategy < RR 	Strategy better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	30 	5PLB 	Premium Avg Latency 	0.1721 	10.0839 	9.8718 	8.7037e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.1205 	Degrades (negligible effect) 	+2.15% 	NaN
+1 	30 	6PLB 	Premium Avg Latency 	-0.3816 	NaN 	9.8718 	7.1744e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.2377 	Improves (small effect) 	-4.90% 	9.3881
+2 	40 	5PLB 	Premium Avg Latency 	0.6324 	10.0697 	9.6263 	5.4454e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.2988 	Degrades (small effect) 	+4.61% 	NaN
+3 	40 	6PLB 	Premium Avg Latency 	1.0254 	NaN 	9.6263 	3.2532e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4106 	Degrades (small effect) 	+8.60% 	10.4537
+4 	50 	5PLB 	Premium Avg Latency 	0.7426 	10.7182 	10.1306 	4.7192e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.2970 	Degrades (small effect) 	+5.80% 	NaN
+5 	50 	6PLB 	Premium Avg Latency 	-0.04 	NaN 	10.1306 	9.6880e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.0163 	Improves (negligible effect) 	-0.31% 	10.0996
+6 	100 	5PLB 	Premium Avg Latency 	0.0395 	13.0053 	12.9768 	9.6913e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0161 	Degrades (negligible effect) 	+0.22% 	NaN
+7 	100 	6PLB 	Premium Avg Latency 	-0.3288 	NaN 	12.9768 	7.4793e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1314 	Improves (negligible effect) 	-1.86% 	12.7358
+8 	150 	5PLB 	Premium Avg Latency 	0.2715 	14.8264 	14.6279 	7.9302e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.1308 	Degrades (negligible effect) 	+1.36% 	NaN
+9 	150 	6PLB 	Premium Avg Latency 	-0.6052 	NaN 	14.6279 	5.6342e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.3028 	Improves (small effect) 	-2.96% 	14.1946
+10 	200 	5PLB 	Premium Avg Latency 	-1.2459 	15.6101 	16.4638 	2.4568e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.5729 	Improves (medium effect) 	-5.19% 	NaN
+11 	200 	6PLB 	Premium Avg Latency 	-1.5278 	NaN 	16.4638 	1.5278e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.6154 	Improves (medium effect) 	-7.14% 	15.2885
+12 	250 	5PLB 	Premium Avg Latency 	-1.0909 	17.8762 	18.6626 	3.0760e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.5237 	Improves (medium effect) 	-4.21% 	NaN
+13 	250 	6PLB 	Premium Avg Latency 	-2.0994 	NaN 	18.6626 	6.8796e-02 	Weak evidence (p < 0.1) 	True 	True 	-0.9962 	Improves (large effect) 	-8.17% 	17.1386
+14 	300 	5PLB 	Premium Avg Latency 	0.1636 	20.1535 	20.0279 	8.7464e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0834 	Degrades (negligible effect) 	+0.63% 	NaN
+15 	300 	6PLB 	Premium Avg Latency 	-2.0701 	NaN 	20.0279 	9.3684e-02 	Weak evidence (p < 0.1) 	True 	True 	-1.3940 	Improves (large effect) 	-7.21% 	18.5836
+16 	350 	5PLB 	Premium Avg Latency 	-0.9538 	19.6942 	20.7840 	3.5753e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.3708 	Improves (small effect) 	-5.24% 	NaN
+17 	350 	6PLB 	Premium Avg Latency 	-1.8314 	NaN 	20.7840 	9.9681e-02 	Weak evidence (p < 0.1) 	True 	True 	-0.8180 	Improves (large effect) 	-8.77% 	18.9610
+18 	400 	5PLB 	Premium Avg Latency 	-1.3495 	21.5443 	22.7863 	2.0812e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.5906 	Improves (medium effect) 	-5.45% 	NaN
+19 	400 	6PLB 	Premium Avg Latency 	-2.3026 	NaN 	22.7863 	6.1664e-02 	Weak evidence (p < 0.1) 	True 	True 	-1.3227 	Improves (large effect) 	-8.04% 	20.9554
+20 	450 	5PLB 	Premium Avg Latency 	-2.9645 	21.7478 	24.4952 	8.7437e-03 	Significant (** p < 0.01) 	True 	True 	-0.9166 	Improves (large effect) 	-11.22% 	NaN
+21 	450 	6PLB 	Premium Avg Latency 	-5.1454 	NaN 	24.4952 	6.7841e-05 	Very significant (*** p < 0.001) 	True 	True 	-1.6852 	Improves (large effect) 	-13.97% 	21.0741
+22 	500 	5PLB 	Premium Avg Latency 	-3.4143 	23.4274 	27.2726 	3.3272e-03 	Significant (** p < 0.01) 	True 	True 	-1.1922 	Improves (large effect) 	-14.10% 	NaN
+23 	500 	6PLB 	Premium Avg Latency 	-5.8519 	NaN 	27.2726 	5.8299e-05 	Very significant (*** p < 0.001) 	True 	True 	-2.2839 	Improves (large effect) 	-19.92% 	21.8407
+24 	550 	5PLB 	Premium Avg Latency 	-3.2746 	24.4926 	28.0141 	4.2919e-03 	Significant (** p < 0.01) 	True 	True 	-1.1089 	Improves (large effect) 	-12.57% 	NaN
+25 	550 	6PLB 	Premium Avg Latency 	-4.9754 	NaN 	28.0141 	1.6581e-04 	Very significant (*** p < 0.001) 	True 	True 	-1.8337 	Improves (large effect) 	-15.80% 	23.5877
+26 	600 	5PLB 	Premium Avg Latency 	-4.4189 	25.2456 	29.1629 	4.7351e-04 	Very significant (*** p < 0.001) 	True 	True 	-1.3233 	Improves (large effect) 	-13.43% 	NaN
+27 	600 	6PLB 	Premium Avg Latency 	-8.9012 	NaN 	29.1629 	1.1915e-07 	Very significant (*** p < 0.001) 	True 	True 	-2.7137 	Improves (large effect) 	-20.39% 	23.2176
+28 	700 	5PLB 	Premium Avg Latency 	-2.9694 	27.8734 	30.5840 	1.4136e-02 	Significant (* p < 0.05) 	True 	True 	-1.2810 	Improves (large effect) 	-8.86% 	NaN
+29 	700 	6PLB 	Premium Avg Latency 	-3.7032 	NaN 	30.5840 	4.2365e-03 	Significant (** p < 0.01) 	True 	True 	-1.6082 	Improves (large effect) 	-10.99% 	27.2224
+30 	800 	5PLB 	Premium Avg Latency 	-3.4795 	29.3146 	32.7040 	2.8114e-03 	Significant (** p < 0.01) 	True 	True 	-1.1987 	Improves (large effect) 	-10.36% 	NaN
+31 	800 	6PLB 	Premium Avg Latency 	-4.7823 	NaN 	32.7040 	2.2607e-04 	Very significant (*** p < 0.001) 	True 	True 	-1.7448 	Improves (large effect) 	-12.58% 	28.5894
+32 	1000 	5PLB 	Premium Avg Latency 	-3.6089 	32.0258 	37.0109 	2.4196e-03 	Significant (** p < 0.01) 	True 	True 	-1.0879 	Improves (large effect) 	-13.47% 	NaN
+33 	1000 	6PLB 	Premium Avg Latency 	-7.0459 	NaN 	37.0109 	2.5195e-06 	Very significant (*** p < 0.001) 	True 	True 	-2.1486 	Improves (large effect) 	-22.38% 	28.7261
+34 	1500 	5PLB 	Premium Avg Latency 	-6.9524 	29.4885 	35.8027 	1.4646e-04 	Very significant (*** p < 0.001) 	True 	True 	-3.5124 	Improves (large effect) 	-17.64% 	NaN
+35 	1500 	6PLB 	Premium Avg Latency 	-6.7625 	NaN 	35.8027 	2.5110e-06 	Very significant (*** p < 0.001) 	True 	True 	-2.1822 	Improves (large effect) 	-13.89% 	30.8297
+36 	2000 	5PLB 	Premium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+37 	2000 	6PLB 	Premium Avg Latency 	-7.3504 	NaN 	35.7305 	6.1116e-06 	Very significant (*** p < 0.001) 	True 	True 	-3.1120 	Improves (large effect) 	-21.26% 	28.1346
+38 	2500 	5PLB 	Premium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+39 	2500 	6PLB 	Premium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+
+ 	Terminals 	Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	Strategy < RR 	Strategy better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	30 	5PLB 	Freemium Avg Latency 	3.8939 	11.4521 	8.9857 	1.1122e-03 	Significant (** p < 0.01) 	False 	False 	1.2280 	Degrades (large effect) 	+27.45% 	NaN
+1 	30 	6PLB 	Freemium Avg Latency 	1.7484 	NaN 	8.9857 	9.8073e-02 	Weak evidence (p < 0.1) 	False 	False 	0.5481 	Degrades (medium effect) 	+12.81% 	10.1366
+2 	40 	5PLB 	Freemium Avg Latency 	3.0777 	13.1783 	9.8030 	8.4103e-03 	Significant (** p < 0.01) 	False 	False 	1.1772 	Degrades (large effect) 	+34.43% 	NaN
+3 	40 	6PLB 	Freemium Avg Latency 	2.7839 	NaN 	9.8030 	1.6949e-02 	Significant (* p < 0.05) 	False 	False 	1.1293 	Degrades (large effect) 	+28.96% 	12.6419
+4 	50 	5PLB 	Freemium Avg Latency 	4.8611 	12.8610 	9.6524 	1.6164e-04 	Very significant (*** p < 0.001) 	False 	False 	1.4870 	Degrades (large effect) 	+33.24% 	NaN
+5 	50 	6PLB 	Freemium Avg Latency 	6.9434 	NaN 	9.6524 	1.9473e-06 	Very significant (*** p < 0.001) 	False 	False 	2.1996 	Degrades (large effect) 	+36.02% 	13.1292
+6 	100 	5PLB 	Freemium Avg Latency 	3.7537 	14.0431 	12.5094 	1.5622e-03 	Significant (** p < 0.01) 	False 	False 	1.2998 	Degrades (large effect) 	+12.26% 	NaN
+7 	100 	6PLB 	Freemium Avg Latency 	6.2805 	NaN 	12.5094 	6.7011e-06 	Very significant (*** p < 0.001) 	False 	False 	2.1094 	Degrades (large effect) 	+22.35% 	15.3052
+8 	150 	5PLB 	Freemium Avg Latency 	3.2079 	15.9664 	14.0457 	1.0578e-02 	Significant (* p < 0.05) 	False 	False 	1.4389 	Degrades (large effect) 	+13.67% 	NaN
+9 	150 	6PLB 	Freemium Avg Latency 	3.2573 	NaN 	14.0457 	1.1660e-02 	Significant (* p < 0.05) 	False 	False 	1.5545 	Degrades (large effect) 	+13.32% 	15.9167
+10 	200 	5PLB 	Freemium Avg Latency 	2.2518 	17.9777 	16.6817 	3.7577e-02 	Significant (* p < 0.05) 	False 	False 	0.7742 	Degrades (medium effect) 	+7.77% 	NaN
+11 	200 	6PLB 	Freemium Avg Latency 	0.1514 	NaN 	16.6817 	8.8168e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0558 	Degrades (negligible effect) 	+0.45% 	16.7569
+12 	250 	5PLB 	Freemium Avg Latency 	4.0968 	21.1103 	18.0344 	6.7705e-04 	Very significant (*** p < 0.001) 	False 	False 	1.3446 	Degrades (large effect) 	+17.06% 	NaN
+13 	250 	6PLB 	Freemium Avg Latency 	0.0212 	NaN 	18.0344 	9.8342e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0081 	Degrades (negligible effect) 	+0.06% 	18.0455
+14 	300 	5PLB 	Freemium Avg Latency 	4.2973 	22.8614 	19.5635 	5.0585e-04 	Very significant (*** p < 0.001) 	False 	False 	1.3235 	Degrades (large effect) 	+16.86% 	NaN
+15 	300 	6PLB 	Freemium Avg Latency 	1.374 	NaN 	19.5635 	1.8646e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.4402 	Degrades (small effect) 	+4.12% 	20.3695
+16 	350 	5PLB 	Freemium Avg Latency 	4.208 	23.6980 	21.1766 	8.3300e-04 	Very significant (*** p < 0.001) 	False 	False 	1.5784 	Degrades (large effect) 	+11.91% 	NaN
+17 	350 	6PLB 	Freemium Avg Latency 	2.5929 	NaN 	21.1766 	2.1517e-02 	Significant (* p < 0.05) 	False 	False 	0.9886 	Degrades (large effect) 	+7.16% 	22.6927
+18 	400 	5PLB 	Freemium Avg Latency 	5.5568 	26.8661 	22.2950 	6.0694e-04 	Very significant (*** p < 0.001) 	False 	False 	2.6924 	Degrades (large effect) 	+20.50% 	NaN
+19 	400 	6PLB 	Freemium Avg Latency 	-0.2466 	NaN 	22.2950 	8.1410e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1492 	Improves (negligible effect) 	-0.83% 	22.1103
+20 	450 	5PLB 	Freemium Avg Latency 	4.077 	27.9377 	24.6223 	7.5753e-04 	Very significant (*** p < 0.001) 	False 	False 	1.4016 	Degrades (large effect) 	+13.46% 	NaN
+21 	450 	6PLB 	Freemium Avg Latency 	0.0159 	NaN 	24.6223 	9.8766e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0071 	Degrades (negligible effect) 	+0.04% 	24.6313
+22 	500 	5PLB 	Freemium Avg Latency 	4.4471 	29.2315 	25.4566 	3.1842e-04 	Very significant (*** p < 0.001) 	False 	False 	1.4231 	Degrades (large effect) 	+14.83% 	NaN
+23 	500 	6PLB 	Freemium Avg Latency 	0.6177 	NaN 	25.4566 	5.4539e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.2205 	Degrades (small effect) 	+1.45% 	25.8267
+24 	550 	5PLB 	Freemium Avg Latency 	2.6131 	30.5623 	27.6824 	3.5780e-02 	Significant (* p < 0.05) 	False 	False 	1.3636 	Degrades (large effect) 	+10.40% 	NaN
+25 	550 	6PLB 	Freemium Avg Latency 	0.0252 	NaN 	27.6824 	9.8076e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0144 	Degrades (negligible effect) 	+0.10% 	27.7091
+26 	600 	5PLB 	Freemium Avg Latency 	2.3838 	30.6004 	28.5027 	3.2088e-02 	Significant (* p < 0.05) 	False 	False 	0.9079 	Degrades (large effect) 	+7.36% 	NaN
+27 	600 	6PLB 	Freemium Avg Latency 	0.56 	NaN 	28.5027 	5.8544e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.2217 	Degrades (small effect) 	+1.64% 	28.9710
+28 	700 	5PLB 	Freemium Avg Latency 	1.284 	32.9099 	31.7602 	2.3622e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.6212 	Degrades (medium effect) 	+3.62% 	NaN
+29 	700 	6PLB 	Freemium Avg Latency 	-1.8176 	NaN 	31.7602 	1.1308e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.9444 	Improves (large effect) 	-4.94% 	30.1918
+30 	800 	5PLB 	Freemium Avg Latency 	6.0291 	36.1470 	32.0520 	2.0846e-04 	Very significant (*** p < 0.001) 	False 	False 	2.7342 	Degrades (large effect) 	+12.78% 	NaN
+31 	800 	6PLB 	Freemium Avg Latency 	-0.0108 	NaN 	32.0520 	9.9153e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.0043 	Improves (negligible effect) 	-0.03% 	32.0436
+32 	1000 	5PLB 	Freemium Avg Latency 	0.8805 	37.6424 	36.6870 	3.9494e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.3456 	Degrades (small effect) 	+2.60% 	NaN
+33 	1000 	6PLB 	Freemium Avg Latency 	-3.5915 	NaN 	36.6870 	5.4113e-03 	Significant (** p < 0.01) 	True 	True 	-1.5853 	Improves (large effect) 	-9.46% 	33.2181
+34 	1500 	5PLB 	Freemium Avg Latency 	3.0214 	39.7453 	35.3874 	1.3815e-02 	Significant (* p < 0.05) 	False 	False 	1.5925 	Degrades (large effect) 	+12.31% 	NaN
+35 	1500 	6PLB 	Freemium Avg Latency 	-1.7178 	NaN 	35.3874 	1.1040e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.6776 	Improves (medium effect) 	-5.19% 	33.5507
+36 	2000 	5PLB 	Freemium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+37 	2000 	6PLB 	Freemium Avg Latency 	-3.6887 	NaN 	36.5224 	3.5839e-03 	Significant (** p < 0.01) 	True 	True 	-1.8001 	Improves (large effect) 	-12.04% 	32.1234
+38 	2500 	5PLB 	Freemium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+39 	2500 	6PLB 	Freemium Avg Latency 	ERROR 	NaN 	NaN 	Not enough data points for t-test 	N/A 	None 	None 	NaN 	N/A 	N/A 	NaN
+
+Terminals 	Ratio 	Metric 	Test mean 	Baseline mean 	Percent change 	t-stat 	p-value 	Significance 	Cohen's d 	Effect size 	Direction
+0 	30 	10:20 	Premium Avg Latency 	8.7811 	9.8718 	-11.05% 	-0.8510 	4.31e-01 	ns 	-0.5382 	medium 	improves
+1 	30 	15:15 	Premium Avg Latency 	10.0302 	9.8718 	+1.60% 	0.1291 	9.03e-01 	ns 	0.0816 	negligible 	degrades
+2 	30 	20:10 	Premium Avg Latency 	11.4403 	9.8718 	+15.89% 	1.2715 	2.62e-01 	ns 	0.8042 	large 	degrades
+3 	40 	10:30 	Premium Avg Latency 	9.0492 	9.6263 	-5.99% 	-0.7629 	4.68e-01 	ns 	-0.4825 	small 	improves
+4 	40 	20:20 	Premium Avg Latency 	10.3631 	9.6263 	+7.65% 	0.8091 	4.43e-01 	ns 	0.5117 	medium 	degrades
+5 	40 	30:10 	Premium Avg Latency 	10.7969 	9.6263 	+12.16% 	1.2800 	2.38e-01 	ns 	0.8095 	large 	degrades
+6 	50 	10:40 	Premium Avg Latency 	8.6796 	10.1306 	-14.32% 	-1.5716 	1.57e-01 	ns 	-0.9940 	large 	improves
+7 	50 	25:25 	Premium Avg Latency 	11.0821 	10.1306 	+9.39% 	1.0666 	3.18e-01 	ns 	0.6746 	medium 	degrades
+8 	50 	40:10 	Premium Avg Latency 	12.3929 	10.1306 	+22.33% 	2.6238 	3.09e-02 	* p < 0.05 	1.6594 	large 	degrades
+9 	100 	30:70 	Premium Avg Latency 	11.2377 	12.9768 	-13.40% 	-2.4812 	3.85e-02 	* p < 0.05 	-1.5693 	large 	improves
+10 	100 	50:50 	Premium Avg Latency 	12.6605 	12.9768 	-2.44% 	-0.4774 	6.47e-01 	ns 	-0.3020 	small 	improves
+11 	100 	70:30 	Premium Avg Latency 	15.1177 	12.9768 	+16.50% 	2.9635 	1.81e-02 	* p < 0.05 	1.8743 	large 	degrades
+12 	150 	100:50 	Premium Avg Latency 	15.7040 	14.6279 	+7.36% 	1.4707 	1.85e-01 	ns 	0.9301 	large 	degrades
+13 	150 	50:100 	Premium Avg Latency 	14.0240 	14.6279 	-4.13% 	-0.7115 	4.97e-01 	ns 	-0.4500 	small 	improves
+14 	150 	75:75 	Premium Avg Latency 	14.7511 	14.6279 	+0.84% 	0.1122 	9.14e-01 	ns 	0.0710 	negligible 	degrades
+15 	200 	100:100 	Premium Avg Latency 	15.7508 	16.4638 	-4.33% 	-1.1503 	2.95e-01 	ns 	-0.7275 	medium 	improves
+16 	200 	150:50 	Premium Avg Latency 	17.0403 	16.4638 	+3.50% 	0.8672 	4.15e-01 	ns 	0.5485 	medium 	degrades
+17 	200 	50:150 	Premium Avg Latency 	14.0391 	16.4638 	-14.73% 	-2.9917 	1.74e-02 	* p < 0.05 	-1.8921 	large 	improves
+18 	250 	125:125 	Premium Avg Latency 	18.4520 	18.6626 	-1.13% 	-0.3164 	7.63e-01 	ns 	-0.2001 	small 	improves
+19 	250 	175:75 	Premium Avg Latency 	18.9359 	18.6626 	+1.46% 	0.3235 	7.55e-01 	ns 	0.2046 	small 	degrades
+20 	250 	75:175 	Premium Avg Latency 	16.2407 	18.6626 	-12.98% 	-3.2299 	1.34e-02 	* p < 0.05 	-2.0427 	large 	improves
+21 	300 	150:150 	Premium Avg Latency 	19.3932 	20.0279 	-3.17% 	-0.8038 	4.48e-01 	ns 	-0.5084 	medium 	improves
+22 	300 	225:75 	Premium Avg Latency 	20.5337 	20.0279 	+2.53% 	0.6032 	5.61e-01 	ns 	0.3188 	small 	degrades
+23 	350 	175:175 	Premium Avg Latency 	20.2869 	20.7840 	-2.39% 	-0.4276 	6.80e-01 	ns 	-0.2704 	small 	improves
+24 	350 	275:75 	Premium Avg Latency 	22.6885 	20.7840 	+9.16% 	2.0449 	8.19e-02 	. p < 0.1 	1.2933 	large 	degrades
+25 	350 	75:275 	Premium Avg Latency 	16.1073 	20.7840 	-22.50% 	-4.1699 	3.12e-03 	** p < 0.01 	-2.6373 	large 	improves
+26 	400 	120:280 	Premium Avg Latency 	19.6674 	22.7863 	-13.69% 	-2.2664 	5.98e-02 	. p < 0.1 	-1.4334 	large 	improves
+27 	400 	200:200 	Premium Avg Latency 	21.9752 	22.7863 	-3.56% 	-0.8469 	4.22e-01 	ns 	-0.5357 	medium 	improves
+28 	400 	280:120 	Premium Avg Latency 	22.9902 	22.7863 	+0.89% 	0.2347 	8.21e-01 	ns 	0.1485 	negligible 	degrades
+29 	450 	100:350 	Premium Avg Latency 	17.4938 	24.4952 	-28.58% 	-11.4621 	1.44e-05 	*** p < 0.001 	-7.2492 	large 	improves
+30 	450 	225:225 	Premium Avg Latency 	23.1377 	24.4952 	-5.54% 	-2.1847 	6.85e-02 	. p < 0.1 	-1.3818 	large 	improves
+31 	450 	350:100 	Premium Avg Latency 	24.6118 	24.4952 	+0.48% 	0.1709 	8.70e-01 	ns 	0.1081 	negligible 	degrades
+32 	500 	100:400 	Premium Avg Latency 	19.3626 	27.2726 	-29.00% 	-10.2835 	2.04e-05 	*** p < 0.001 	-6.5039 	large 	improves
+33 	500 	250:250 	Premium Avg Latency 	23.7698 	27.2726 	-12.84% 	-4.2723 	3.09e-03 	** p < 0.01 	-2.7020 	large 	improves
+34 	500 	400:100 	Premium Avg Latency 	27.1499 	27.2726 	-0.45% 	-0.1074 	9.17e-01 	ns 	-0.0679 	negligible 	improves
+35 	550 	125:425 	Premium Avg Latency 	20.4004 	28.0141 	-27.18% 	-11.3677 	1.25e-05 	*** p < 0.001 	-7.1895 	large 	improves
+36 	550 	275:275 	Premium Avg Latency 	24.9465 	28.0141 	-10.95% 	-4.4272 	2.90e-03 	** p < 0.01 	-2.8000 	large 	improves
+37 	550 	425:125 	Premium Avg Latency 	28.1310 	28.0141 	+0.42% 	0.1047 	9.20e-01 	ns 	0.0662 	negligible 	degrades
+38 	600 	150:450 	Premium Avg Latency 	22.1546 	29.1629 	-24.03% 	-6.0802 	3.06e-03 	** p < 0.01 	-3.8454 	large 	improves
+39 	600 	180:420 	Premium Avg Latency 	24.8145 	29.1629 	-14.91% 	-5.2296 	4.68e-03 	** p < 0.01 	-3.3075 	large 	improves
+40 	600 	450:150 	Premium Avg Latency 	28.7678 	29.1629 	-1.35% 	-0.6191 	5.64e-01 	ns 	-0.3916 	small 	improves
+41 	700 	200:500 	Premium Avg Latency 	25.9753 	30.5840 	-15.07% 	-3.7858 	6.46e-03 	** p < 0.01 	-2.3944 	large 	improves
+42 	700 	350:350 	Premium Avg Latency 	27.5327 	30.5840 	-9.98% 	-3.4710 	9.53e-03 	** p < 0.01 	-2.1953 	large 	improves
+43 	700 	500:200 	Premium Avg Latency 	30.1123 	30.5840 	-1.54% 	-0.6165 	5.63e-01 	ns 	-0.3899 	small 	improves
+44 	800 	200:600 	Premium Avg Latency 	25.6990 	32.7040 	-21.42% 	-7.8494 	7.32e-05 	*** p < 0.001 	-4.9644 	large 	improves
+45 	800 	400:400 	Premium Avg Latency 	30.5442 	32.7040 	-6.60% 	-1.9707 	9.38e-02 	. p < 0.1 	-1.2464 	large 	improves
+46 	800 	600:200 	Premium Avg Latency 	31.7005 	32.7040 	-3.07% 	-1.1896 	2.69e-01 	ns 	-0.7524 	medium 	improves
+47 	1000 	200:800 	Premium Avg Latency 	25.3376 	37.0109 	-31.54% 	-18.6411 	3.46e-07 	*** p < 0.001 	-11.7897 	large 	improves
+48 	1000 	500:500 	Premium Avg Latency 	34.8781 	37.0109 	-5.76% 	-2.2013 	7.75e-02 	. p < 0.1 	-1.3922 	large 	improves
+49 	1000 	800:200 	Premium Avg Latency 	35.8618 	37.0109 	-3.10% 	-1.2040 	2.81e-01 	ns 	-0.7615 	medium 	improves
+50 	1500 	400:1100 	Premium Avg Latency 	29.1374 	35.8027 	-18.62% 	-6.4215 	1.51e-03 	** p < 0.01 	-4.0613 	large 	improves
+51 	1500 	750:750 	Premium Avg Latency 	30.3662 	35.8027 	-15.18% 	-2.5881 	2.25e-01 	ns 	-3.7116 	large 	improves
+
+
+# Re-import needed packages due to kernel reset
+import pandas as pd
+import numpy as np
+from scipy.stats import ttest_ind
+
+pd.set_option('display.max_rows', 200)
+def collect_welch_tests_by_strategy(df_all, metrics, baseline_strategy="5RR"):
+    results = []
+
+    strategies = df_all["Strategy"].unique()
+    strategies = [s for s in strategies if s != baseline_strategy]
+
+    for strategy in strategies:
+        df_base = df_all[df_all["Strategy"] == baseline_strategy]
+        df_compare = df_all[df_all["Strategy"] == strategy]
+
+        for metric in metrics:
+            try:
+                x = df_compare[metric].dropna()
+                y = df_base[metric].dropna()
+
+                # Welch's t-test
+                t_stat, p_val = ttest_ind(x, y, equal_var=False)
+
+                # Cohen's d
+                nx, ny = len(x), len(y)
+                dof = nx + ny - 2
+                pooled_std = np.sqrt(((nx - 1) * np.var(x, ddof=1) + (ny - 1) * np.var(y, ddof=1)) / dof)
+                d = (np.mean(x) - np.mean(y)) / pooled_std
+
+                # Descriptive stats
+                mean_x = np.mean(x)
+                mean_y = np.mean(y)
+                is_latency = "Latency" in metric
+                is_better = (mean_x < mean_y) if is_latency else (mean_x > mean_y)
+                percent_diff = ((mean_x - mean_y) / mean_y) * 100
+
+                # Interpretations
+                if p_val < 0.001:
+                    p_comment = "Very significant (*** p < 0.001)"
+                elif p_val < 0.01:
+                    p_comment = "Significant (** p < 0.01)"
+                elif p_val < 0.05:
+                    p_comment = "Significant (* p < 0.05)"
+                elif p_val < 0.1:
+                    p_comment = "Weak evidence (p < 0.1)"
+                else:
+                    p_comment = "Not significant (p ≥ 0.1)"
+
+                if abs(d) < 0.2:
+                    magnitude = "negligible effect"
+                elif abs(d) < 0.5:
+                    magnitude = "small effect"
+                elif abs(d) < 0.8:
+                    magnitude = "medium effect"
+                else:
+                    magnitude = "large effect"
+                direction = "PLB improves" if (d < 0 if is_latency else d > 0) else "PLB degrades"
+                effect_comment = f"{direction} ({magnitude})"
+
+                results.append({
+                    "Compared Strategy": strategy,
+                    "Metric": metric,
+                    "t-stat": round(t_stat, 4),
+                    f"{strategy} mean": round(mean_x, 4),
+                    f"{baseline_strategy} mean": round(mean_y, 4),
+                    "p-value": "{:.4e}".format(p_val),
+                    "p-value comment": p_comment,
+                    "PLB < RR": mean_x < mean_y,
+                    "PLB better?": is_better,
+                    "Cohen's d": round(d, 4),
+                    "Effect comment": effect_comment,
+                    "Percent change": f"{percent_diff:+.2f}%"
+                })
+
+            except Exception as e:
+                results.append({
+                    "Compared Strategy": strategy,
+                    "Metric": metric,
+                    "t-stat": "ERROR",
+                    f"{strategy} mean": None,
+                    f"{baseline_strategy} mean": None,
+                    "p-value": str(e),
+                    "p-value comment": "N/A",
+                    "PLB < RR": None,
+                    "PLB better?": None,
+                    "Cohen's d": None,
+                    "Effect comment": "N/A",
+                    "Percent change": "N/A"
+                })
+
+    return pd.DataFrame(results)
+
+def collect_welch_tests_by_strategy_and_terminals(df_all, metrics, baseline_strategy="5RR"):
+    results = []
+
+    strategies = df_all["Strategy"].unique()
+    strategies = [s for s in strategies if s != baseline_strategy]
+    terminal_counts = sorted(df_all["Terminals"].unique())
+
+    for terminals in terminal_counts:
+        for strategy in strategies:
+            df_base = df_all[(df_all["Strategy"] == baseline_strategy) & (df_all["Terminals"] == terminals)]
+            df_compare = df_all[(df_all["Strategy"] == strategy) & (df_all["Terminals"] == terminals)]
+
+            for metric in metrics:
+                try:
+                    x = df_compare[metric].dropna()
+                    y = df_base[metric].dropna()
+
+                    if len(x) < 2 or len(y) < 2:
+                        raise ValueError("Not enough data points for t-test")
+
+                    # Welch's t-test
+                    t_stat, p_val = ttest_ind(x, y, equal_var=False)
+
+                    # Cohen's d
+                    nx, ny = len(x), len(y)
+                    dof = nx + ny - 2
+                    pooled_std = np.sqrt(((nx - 1) * np.var(x, ddof=1) + (ny - 1) * np.var(y, ddof=1)) / dof)
+                    d = (np.mean(x) - np.mean(y)) / pooled_std
+
+                    mean_x = np.mean(x)
+                    mean_y = np.mean(y)
+                    is_latency = "Latency" in metric
+                    is_better = (mean_x < mean_y) if is_latency else (mean_x > mean_y)
+                    percent_diff = ((mean_x - mean_y) / mean_y) * 100
+
+                    # Interpretations
+                    if p_val < 0.001:
+                        p_comment = "Very significant (*** p < 0.001)"
+                    elif p_val < 0.01:
+                        p_comment = "Significant (** p < 0.01)"
+                    elif p_val < 0.05:
+                        p_comment = "Significant (* p < 0.05)"
+                    elif p_val < 0.1:
+                        p_comment = "Weak evidence (p < 0.1)"
+                    else:
+                        p_comment = "Not significant (p ≥ 0.1)"
+
+                    if abs(d) < 0.2:
+                        magnitude = "negligible effect"
+                    elif abs(d) < 0.5:
+                        magnitude = "small effect"
+                    elif abs(d) < 0.8:
+                        magnitude = "medium effect"
+                    else:
+                        magnitude = "large effect"
+
+                    direction = "Improves" if (d < 0 if is_latency else d > 0) else "Degrades"
+                    effect_comment = f"{direction} ({magnitude})"
+
+                    results.append({
+                        "Terminals": terminals,
+                        "Compared Strategy": strategy,
+                        "Metric": metric,
+                        "t-stat": round(t_stat, 4),
+                        f"{strategy} mean": round(mean_x, 4),
+                        f"{baseline_strategy} mean": round(mean_y, 4),
+                        "p-value": "{:.4e}".format(p_val),
+                        "p-value comment": p_comment,
+                        "Strategy < RR": mean_x < mean_y,
+                        "Strategy better?": is_better,
+                        "Cohen's d": round(d, 4),
+                        "Effect comment": effect_comment,
+                        "Percent change": f"{percent_diff:+.2f}%"
+                    })
+
+                except Exception as e:
+                    results.append({
+                        "Terminals": terminals,
+                        "Compared Strategy": strategy,
+                        "Metric": metric,
+                        "t-stat": "ERROR",
+                        f"{strategy} mean": None,
+                        f"{baseline_strategy} mean": None,
+                        "p-value": str(e),
+                        "p-value comment": "N/A",
+                        "Strategy < RR": None,
+                        "Strategy better?": None,
+                        "Cohen's d": None,
+                        "Effect comment": "N/A",
+                        "Percent change": "N/A"
+                    })
+
+    return pd.DataFrame(results)
+
+premium_metrics = [
+    "Premium Avg Throughput", "Premium Stddev Throughput", "Premium 95th Throughput",
+    "Premium Avg Goodput", "Premium Stddev Goodput", "Premium 95th Goodput",
+    "Premium Avg Latency", "Premium Stddev Latency", "Premium 95th Latency"
+]
+freemium_metrics = [
+    "Freemium Avg Throughput", "Freemium Stddev Throughput", "Freemium 95th Throughput",
+    "Freemium Avg Goodput", "Freemium Stddev Goodput", "Freemium 95th Goodput",
+    "Freemium Avg Latency", "Freemium Stddev Latency", "Freemium 95th Latency"
+]
+overall_metrics = [
+    "Overall Avg Throughput", "Overall Stddev Throughput", "Overall 95th Throughput",
+    "Overall Avg Goodput",   "Overall Stddev Goodput",   "Overall 95th Goodput",
+    "Overall Avg Latency",   "Overall Stddev Latency",   "Overall 95th Latency"
+]
+
+premium_metrics = [
+    #"Premium Avg Throughput",
+   # "Premium Avg Goodput",
+    "Premium Avg Latency"
+]
+
+freemium_metrics = [
+    #"Freemium Avg Throughput",
+    #"Freemium Avg Goodput",
+    "Freemium Avg Latency"
+]
+
+overall_metrics = [
+    #"Overall Avg Throughput",
+    #"Overall Avg Goodput",
+    "Overall Avg Latency"
+]
+Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	PLB < RR 	PLB better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	5PLB 	Overall Avg Latency 	-1.1969 	22.3151 	23.5654 	2.3315e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.1523 	PLB improves (negligible effect) 	-5.31% 	NaN
+1 	6PLB 	Overall Avg Latency 	-2.1217 	NaN 	23.5654 	3.5585e-02 	Significant (* p < 0.05) 	True 	True 	-0.2799 	PLB improves (small effect) 	-9.19% 	21.4004
+Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	PLB < RR 	PLB better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	5PLB 	Premium Avg Latency 	-3.5094 	20.1223 	23.7224 	5.9448e-04 	Very significant (*** p < 0.001) 	True 	True 	-0.4593 	PLB improves (small effect) 	-15.18% 	NaN
+1 	6PLB 	Premium Avg Latency 	-3.7599 	NaN 	23.7224 	2.4716e-04 	Very significant (*** p < 0.001) 	True 	True 	-0.4978 	PLB improves (small effect) 	-16.07% 	19.9094
+Compared Strategy 	Metric 	t-stat 	5PLB mean 	5RR mean 	p-value 	p-value comment 	PLB < RR 	PLB better? 	Cohen's d 	Effect comment 	Percent change 	6PLB mean
+0 	5PLB 	Freemium Avg Latency 	0.7209 	24.2515 	23.4695 	4.7193e-01 	Not significant (p ≥ 0.1) 	False 	False 	0.0868 	PLB degrades (negligible effect) 	+3.33% 	NaN
+1 	6PLB 	Freemium Avg Latency 	-0.6902 	NaN 	23.4695 	4.9111e-01 	Not significant (p ≥ 0.1) 	True 	True 	-0.0882 	PLB improves (negligible effect) 	-3.07%

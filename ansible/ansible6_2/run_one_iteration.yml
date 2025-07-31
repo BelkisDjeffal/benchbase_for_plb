@@ -38,7 +38,7 @@
   hosts: postgres_servers
   become: yes
   vars_files:
-    - group_vars/all4.yml
+    - group_vars/all.yml
   tasks:
     - name: Fetch pidstat logs
       fetch:
