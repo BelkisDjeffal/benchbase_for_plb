@@ -267,9 +267,9 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     // wait for start
     // workloadState.blockForStart();
 
-    long minTime = 60 * 1000L; // 60 seconds
+    long minTime = 10 * 1000L; // 10 seconds
     // long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
-    long maxTime = 2 * 60 * 1000L; // 3 minutes'
+    long maxTime = 3 * 10 * 1000L; // 30 sec'
     long executionTime =
         minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
 
@@ -456,8 +456,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       tearDown();
     }
     this.actualEndTimeMs = System.currentTimeMillis();
-    System.out.println(actualEndTimeMs - actualStartTimeMs);
-    System.out.println(executionTime);
+    // System.out.println(actualEndTimeMs - actualStartTimeMs);
+    // System.out.println(executionTime);
   }
 
   private TransactionType getTransactionType(

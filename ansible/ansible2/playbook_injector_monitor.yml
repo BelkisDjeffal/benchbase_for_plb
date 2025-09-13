@@ -6,7 +6,8 @@
     benchbase_runs:
       - { terminals: 30, weights: "15,15" }
       - { terminals: 40, weights: "20,20" }
-      - { terminals: 50, weights: "25,25" }    
+      - { terminals: 50, weights: "25,25" }
+      - { terminals: 70, weights: "35,35" }   
       - { terminals: 100, weights: "50,50" }
 
       - { terminals: 150, weights: "75,75" }
@@ -32,7 +33,7 @@
       - { terminals: 1000, weights: "500,500" }
       - { terminals: 1500, weights: "750,750" }
       - { terminals: 2000, weights: "1000,1000" }
-      - { terminals: 25000, weights: "1250,1250" }
+      - { terminals: 2500, weights: "1250,1250" }
       
   tasks:
     - name: Ensure summary extractor is executable

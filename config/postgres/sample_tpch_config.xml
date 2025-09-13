@@ -4,29 +4,29 @@
     <!-- Connection details -->
     <type>POSTGRES</type>
     <!-- <driver>org.postgresql.Driver</driver>
-    <url>jdbc:postgresql://localhost:5432/benchbase?sslmode=disable&amp;ApplicationName=tpch&amp;reWriteBatchedInserts=true</url> 
-     -->
+    <url>jdbc:postgresql://localhost:5433/benchbase?sslmode=disable&amp;ApplicationName=tpch&amp;reWriteBatchedInserts=true</url>  -->
+    
     <driver>com.prioritylb.driver.PLBDriver</driver> 
     <url>jdbc:prioritylb://localhost:9997/benchbase</url>
 
-    <username>admin</username>
+    <username></username>
     <password>password</password>
     <reconnectOnConnectionFailure>true</reconnectOnConnectionFailure>
     <isolation>TRANSACTION_READ_COMMITTED</isolation>
     <batchsize>1024</batchsize>
 
     <!-- Control scale factor to generate different amount of data -->
-    <scalefactor>1</scalefactor>
+    <scalefactor>0.1</scalefactor>
 
     <!-- The workload -->
-    <terminals>200</terminals>
+    <terminals>35</terminals>
     <terminalClasses>"premium","freemium"</terminalClasses>
-    <terminalClassesWeights>100,100</terminalClassesWeights>
+    <terminalClassesWeights>30,5</terminalClassesWeights>
     <works>
         <work>  
             <serial>false</serial>
-            <rate>unlimited</rate>
-            <time>180</time> 
+            <rate>10</rate>
+            <time>60</time> 
             <weights>1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1</weights>
         </work>
         <!-- <work>  

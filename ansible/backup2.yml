@@ -3,6 +3,7 @@
       - { terminals: 40, weights: "20,20" }
 
       - { terminals: 50, weights: "25,25" }
+      - { terminals: 70, weights: "35,35" }
 
       - { terminals: 100, weights: "50,50" }
 
@@ -26,7 +27,7 @@
 
       - { terminals: 600, weights: "180,420" }
 
-      - { terminals: 70, weights: "35,35" }
+      
 
       - { terminals: 125, weights: "62,63" }
 

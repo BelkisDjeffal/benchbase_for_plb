@@ -17,6 +17,10 @@
       - { terminals: 50, weights: "40,10" }
       - { terminals: 50, weights: "25,25" }
 
+      - { terminals: 70, weights: "10,60" }
+      - { terminals: 70, weights: "35,35" }
+      - { terminals: 70, weights: "60,10" }
+
       - { terminals: 100, weights: "30,70" }
       - { terminals: 100, weights: "50,50" }
       - { terminals: 100, weights: "70,30" }
@@ -72,6 +76,14 @@
       - { terminals: 1000, weights: "200,800" }
       - { terminals: 1000, weights: "500,500" }
       - { terminals: 1000, weights: "800,200" }
+
+      - { terminals: 1200, weights: "300,900" }
+      - { terminals: 1200, weights: "600,600" }
+      - { terminals: 1200, weights: "900,300" }
+
+      - { terminals: 1400, weights: "400,1000" }
+      - { terminals: 1400, weights: "700,700" }
+      - { terminals: 1400, weights: "1000,400" }
 
       - { terminals: 1500, weights: "400,1100" }
       - { terminals: 1500, weights: "750,750" }

@@ -25,7 +25,6 @@ import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.MonitorInfo;
 import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -417,7 +416,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       for (int i = 0; i < samples.size(); ++i) {
         latencies[i] = samples.get(i).getLatencyMicrosecond();
       }
-      System.out.println(Arrays.toString(latencies));
+      // System.out.println(Arrays.toString(latencies));
       DistributionStatistics stats = DistributionStatistics.computeStatistics(latencies);
 
       Map<String, Long> workerExecutionTimes = new HashMap<>();
@@ -451,13 +450,13 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       }
       Map<String, List<WorkerMetrics>> metricsByPriority =
           ExecutionDistributionStatistics.computeMetrics(workerRecords);
-      System.out.println("Computed WorkerMetrics:");
-      for (var entry : metricsByPriority.entrySet()) {
-        for (WorkerMetrics wm : entry.getValue()) {
-          System.out.printf(
-              "  %s: throughput=%.3f, goodput=%.3f%n", wm.workerId, wm.throughput, wm.goodput);
-        }
-      }
+      // System.out.println("Computed WorkerMetrics:");
+      // for (var entry : metricsByPriority.entrySet()) {
+      //   for (WorkerMetrics wm : entry.getValue()) {
+      //     System.out.printf(
+      //         "  %s: throughput=%.3f, goodput=%.3f%n", wm.workerId, wm.throughput, wm.goodput);
+      //   }
+      // }
 
       DistributionStatistics overallThroughput =
           ExecutionDistributionStatistics.computeOverallThroughputStats(workerRecords);
@@ -468,9 +467,9 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       Map<String, DistributionStatistics> goodputStats =
           ExecutionDistributionStatistics.computeGoodputStats(metricsByPriority);
 
-      System.out.println("Execution Times: " + workerExecutionTimes);
+      // System.out.println("Execution Times: " + workerExecutionTimes);
       Map<String, Integer> terminalCounts = getTerminalCounts(workConfs.get(0));
-      System.out.println("Terminal Counts Map: " + terminalCounts);
+      // System.out.println("Terminal Counts Map: " + terminalCounts);
 
       Results results =
           new Results(
@@ -538,7 +537,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       terminalCounts.put(cleanedPriority, priorityWeights.get(i));
     }
 
-    System.out.println("Cleaned Terminal Counts: " + terminalCounts);
+    // System.out.println("Cleaned Terminal Counts: " + terminalCounts);
     return terminalCounts;
   }
 
