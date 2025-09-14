@@ -77,6 +77,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private final Histogram<TransactionType> txtRetryDifferent = new Histogram<>();
   private final Map<String, Integer> localSuccessByPriority = new HashMap<>();
   private final Map<String, Integer> attemptedRequestsByPriority = new ConcurrentHashMap<>();
+  private long hardDeadlineMs;
 
   private boolean seenDone = false;
 
@@ -274,6 +275,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
 
     long startTime = System.currentTimeMillis();
+
+    this.hardDeadlineMs = startTime + executionTime;
 
     LOG.info("Worker {} will run for {} ms", id, executionTime);
 
@@ -504,28 +507,31 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       int retryCount = 0;
       int maxRetryCount = configuration.getMaxRetries();
 
-      while (retryCount < maxRetryCount && this.workloadState.getGlobalState() != State.DONE) {
+      while (retryCount < maxRetryCount && System.currentTimeMillis() < hardDeadlineMs) {
+
+        long remainingMs = hardDeadlineMs - System.currentTimeMillis();
+        if (remainingMs <= 0) break;
 
         TransactionStatus status = TransactionStatus.UNKNOWN;
 
         if (this.conn == null) {
           try {
-            if (!this.configuration.getNewConnectionPerTxn()) {
-              if (retryCount > 0) {
-                Duration delay = Duration.ofSeconds(Math.min(retryCount, 5));
-                LOG.info("Backing off {} seconds before reconnecting.", delay.toSeconds());
-                try {
-                  Thread.sleep(delay);
-                } catch (InterruptedException ex) {
-                  // pass
-                }
-              } else {
-                LOG.info(
-                    "Worker {}| Priority {}: (Re)connecting to database.",
-                    this.id,
-                    this.workerPriorityClass);
+            if (retryCount > 0) {
+              long remMs = hardDeadlineMs - System.currentTimeMillis();
+              if (remMs <= 0) {
+                break; // no time left: don't sleep or reconnect
+              }
+              long backoffMs =
+                  Math.min(Duration.ofSeconds(Math.min(retryCount, 5)).toMillis(), remainingMs);
+              try {
+                Thread.sleep(backoffMs);
+              } catch (InterruptedException ie) {
+                // Preserve interrupt status and stop this worker cleanly
+                Thread.currentThread().interrupt();
+                break;
               }
             }
+
             this.conn = this.benchmark.makeConnection(workerPriorityClass);
             this.conn.setAutoCommit(false);
             this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
@@ -542,6 +548,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
           if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("%s %s attempting...", this, transactionType));
+          }
+
+          try (Statement timeoutStmt = conn.createStatement()) {
+            long clamp = Math.max(1, remainingMs);
+            timeoutStmt.execute("SET LOCAL statement_timeout = " + clamp); // ms
           }
 
           status = this.executeWork(conn, transactionType);
@@ -576,6 +587,19 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           break;
 
         } catch (SQLException ex) {
+
+          if ("57014".equals(ex.getSQLState())) { // query_canceled
+            try {
+              if (conn != null && !conn.getAutoCommit()) {
+                conn.rollback();
+              }
+            } catch (SQLException ignore) {
+
+            }
+            LOG.info("Worker {} hit statement_timeout, stopping early", this.id);
+            status = TransactionStatus.USER_ABORTED;
+            break; // stop retries; worker's life budget is exhausted
+          }
           // check if we should attempt to ignore connection errors and reconnect
           boolean isConnectionErrorException = SQLUtil.isConnectionErrorException(ex);
 
