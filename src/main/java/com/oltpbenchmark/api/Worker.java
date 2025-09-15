@@ -519,14 +519,13 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             if (retryCount > 0) {
               long remMs = hardDeadlineMs - System.currentTimeMillis();
               if (remMs <= 0) {
-                break; // no time left: don't sleep or reconnect
+                break;
               }
               long backoffMs =
-                  Math.min(Duration.ofSeconds(Math.min(retryCount, 5)).toMillis(), remainingMs);
+                  Math.min(Duration.ofSeconds(Math.min(retryCount, 5)).toMillis(), remMs);
               try {
                 Thread.sleep(backoffMs);
               } catch (InterruptedException ie) {
-                // Preserve interrupt status and stop this worker cleanly
                 Thread.currentThread().interrupt();
                 break;
               }
@@ -535,6 +534,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             this.conn = this.benchmark.makeConnection(workerPriorityClass);
             this.conn.setAutoCommit(false);
             this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+
+            long remainingAfterReconnect = hardDeadlineMs - System.currentTimeMillis();
+            if (remainingAfterReconnect <= 0) {
+              break; // don't proceed to start a txn if time already expired
+            }
           } catch (SQLException ex) {
             if (LOG.isDebugEnabled()) {
               LOG.debug(String.format("%s failed to open a connection...", this));
@@ -550,9 +554,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             LOG.debug(String.format("%s %s attempting...", this, transactionType));
           }
 
+          long remainingNow = hardDeadlineMs - System.currentTimeMillis();
+          if (remainingNow <= 0) {
+            break; // don't start a txn we can't finish
+          }
+
           try (Statement timeoutStmt = conn.createStatement()) {
-            long clamp = Math.max(1, remainingMs);
-            timeoutStmt.execute("SET LOCAL statement_timeout = " + clamp); // ms
+            long clamp = Math.max(1, remainingNow);
+            timeoutStmt.execute("SET LOCAL statement_timeout = " + clamp);
           }
 
           status = this.executeWork(conn, transactionType);
@@ -738,6 +747,20 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
             break;
           }
+        } catch (RuntimeException ex) {
+          Throwable c = ex.getCause();
+          if (c instanceof SQLException && "57014".equals(((SQLException) c).getSQLState())) {
+            try {
+              if (conn != null && !conn.getAutoCommit()) conn.rollback();
+            } catch (SQLException ignore) {
+              /* best effort */
+            }
+            LOG.info(
+                "Worker {}: statement_timeout (wrapped). Stopping this worker's loop.", this.id);
+            status = TransactionStatus.USER_ABORTED;
+            break;
+          }
+          throw ex;
         } finally {
           if (this.configuration.getNewConnectionPerTxn() && this.conn != null) {
             try {
