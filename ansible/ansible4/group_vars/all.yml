@@ -9,7 +9,7 @@ reserved_nodes:
 postgres_servers:
 - gros-12.nancy.grid5000.fr
 - gros-13.nancy.grid5000.fr
-- gros-14.nancy.grid5000.fr
+- gros-10.nancy.grid5000.fr
 
 
 injector_node:
