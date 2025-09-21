@@ -356,7 +356,7 @@
           host    all    all    0.0.0.0/0    md5
 
     - name: Restart PostgreSQL
-      tags: config_data_directory
+      tags: restart_postgres
       systemd:
         name: postgresql
         state: restarted

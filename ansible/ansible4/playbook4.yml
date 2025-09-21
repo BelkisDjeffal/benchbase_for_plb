@@ -10,7 +10,7 @@
   tasks:
     - name: Reserve 6 nodes from Grid5000
       tags: reserve_nodes
-      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=4,walltime={{ grid_time }} -r '09:01' -t deploy"
+      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=4,walltime={{ grid_time }} -r 'now' -t deploy"
       register: job_output
 
     - name: Extract job ID
@@ -480,6 +480,7 @@
         msg: "Java & additional tools installed on {{ inventory_hostname }}"
 
     - name: Synchronize plb directory to injector node
+      tags: copy_benchbase
       delegate_to: localhost
       become: false
       ansible.builtin.synchronize:
@@ -488,6 +489,7 @@
         mode: push    
 
     - name: Build and install plb
+      tags: copy_benchbase
       ansible.builtin.shell: |
         mvn clean && mvn install
       args:
@@ -506,7 +508,7 @@
       ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
       
     - name: Build Benchbase
-      tags: build_benchbase
+      tags: copy_benchbase
       ansible.builtin.shell: |
         ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
       args:

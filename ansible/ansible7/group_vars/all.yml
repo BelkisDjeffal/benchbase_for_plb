@@ -35,12 +35,12 @@ freemium_nodes:
 
 
 replica_roles:
-gros-26.nancy.grid5000.fr: premium_replica1
-gros-27.nancy.grid5000.fr: premium_replica2
-gros-28.nancy.grid5000.fr: freemium_replica1
-gros-29.nancy.grid5000.fr: freemium_replica2
-gros-30.nancy.grid5000.fr: freemium_replica3
-gros-31.nancy.grid5000.fr: freemium_replica4
+  gros-26.nancy.grid5000.fr: premium_replica1
+  gros-27.nancy.grid5000.fr: premium_replica2
+  gros-28.nancy.grid5000.fr: freemium_replica1
+  gros-29.nancy.grid5000.fr: freemium_replica2
+  gros-30.nancy.grid5000.fr: freemium_replica3
+  gros-31.nancy.grid5000.fr: freemium_replica4
 
 
 source_host: gros-26.nancy.grid5000.fr
