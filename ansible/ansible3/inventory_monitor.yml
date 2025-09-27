@@ -2,9 +2,9 @@ all:
   children:
     postgres_servers:
       hosts:
-        gros-63.nancy.grid5000.fr:
-          ansible_host: gros-63.nancy.grid5000.fr
+        gros-25.nancy.grid5000.fr:
+          ansible_host: gros-25.nancy.grid5000.fr
           ansible_user: root
-        gros-64.nancy.grid5000.fr:
-          ansible_host: gros-64.nancy.grid5000.fr
+        gros-26.nancy.grid5000.fr:
+          ansible_host: gros-26.nancy.grid5000.fr
           ansible_user: root

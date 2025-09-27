@@ -31,8 +31,8 @@
 
 - name: Run one BenchBase iteration via sub-playbook
   shell: >
-    ansible-playbook -i /home/benchbase/ansible/ansible6/inventory_monitor.yml
-    /home/benchbase/ansible/ansible6/run_one_iteration.yml
+    ansible-playbook -i /home/benchbase/ansible/ansible6_4/inventory_monitor.yml
+    /home/benchbase/ansible/ansible6_4/run_one_iteration.yml
     --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
   loop: "{{ range(1, 6) | list }}"
   register: subplaybook_results
