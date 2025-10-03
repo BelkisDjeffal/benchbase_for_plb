@@ -91,6 +91,7 @@
           - "Replica Roles: {{ replica_roles }}"
 
     - name: Render group_vars/all.yml safely
+      tags: render_group_vars
       template:
         src: "./all.yml.j2"
         dest: group_vars/all.yml
@@ -273,7 +274,7 @@
         msg: "Required Python packages for PostgreSQL installed."
 
     - name: Stop PostgreSQL before data directory migration
-      tags: config_data_directory
+      tags: stop_postgres
       systemd:
         name: postgresql
         state: stopped

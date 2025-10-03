@@ -1,15 +1,15 @@
 all:
   vars:
     grid_site: nancy
-    grid_time: '60:00:00'
+    grid_time: '24:00:00'
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
     grid_hosts:
-          - gros-46
-          - gros-47
-          - gros-48
-          - gros-49
-          - gros-50
-          - gros-51
+          - gros-10
+          - gros-11
+          - gros-12
+          - gros-13
+          - gros-14
+          - gros-15
 
   hosts:
     grid5000:

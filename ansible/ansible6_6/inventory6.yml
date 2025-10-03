@@ -4,12 +4,12 @@ all:
     grid_time: '60:00:00'
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
     grid_hosts:
-          - gros-14
-          - gros-13
-          - gros-15
-          - gros-16
-          - gros-17
-          - gros-18
+          - gros-21
+          - gros-22
+          - gros-23
+          - gros-24
+          - gros-25
+          - gros-26
 
   hosts:
     grid5000:
