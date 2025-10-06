@@ -45,3 +45,10 @@
         src: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log"
         dest: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}/{{ replica_roles[inventory_hostname] }}_{{ inventory_hostname }}.log"
         flat: yes
+        
+- name: Inter-run pause
+  hosts: localhost
+  tasks:
+    - name: Pause before next run
+      pause:
+        seconds: 10
