@@ -23,9 +23,7 @@
       - { terminals: 400, weights: "200,200" }
 
       - { terminals: 450, weights: "225,225" }
-
       - { terminals: 500, weights: "250,250" }
-
       - { terminals: 550, weights: "275,275" }
       - { terminals: 600, weights: "180,420" }
       - { terminals: 700, weights: "350,350" }

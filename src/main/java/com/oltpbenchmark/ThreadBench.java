@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -50,6 +51,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private final List<WorkloadConfiguration> workConfs;
   private final ArrayList<LatencyRecord.Sample> samples = new ArrayList<>();
   private final MonitorInfo monitorInfo;
+  private final Random spawnerRng;
 
   private Monitor monitor = null;
 
@@ -62,6 +64,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     this.workerThreads = new ArrayList<>(workers.size());
     this.monitorInfo = monitorInfo;
     this.testState = new BenchmarkState(workers.size() + 1);
+    long seed = workConfs.get(0).getRandomSeed();
+    this.spawnerRng = (seed == -1) ? new Random() : new Random(seed);
   }
 
   public static Results runRateLimitedBenchmark(
@@ -73,7 +77,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   }
 
   private long getPoissonInterval(double lambda) {
-    return (long) ((-Math.log(1 - Math.random()) / lambda) * 1000L);
+    double u = spawnerRng.nextDouble();
+    return (long) ((-Math.log(1.0 - u) / lambda) * 1000L);
   }
 
   private void interruptWorkers() {
@@ -544,7 +549,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private long getInterval(double lowestRate, Phase.Arrival arrival) {
     // TODO Auto-generated method stub
     if (arrival == Phase.Arrival.POISSON) {
-      return (long) ((-Math.log(1 - Math.random()) / lowestRate) * 1000000000.);
+      double u = spawnerRng.nextDouble();
+      return (long) ((-Math.log(1 - u) / lowestRate) * 1000000000.);
     } else {
       return (long) (1000000000. / lowestRate + 0.5);
     }

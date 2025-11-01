@@ -78,6 +78,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private final Map<String, Integer> localSuccessByPriority = new HashMap<>();
   private final Map<String, Integer> attemptedRequestsByPriority = new ConcurrentHashMap<>();
   private long hardDeadlineMs;
+  private final Random workerRng;
 
   private boolean seenDone = false;
 
@@ -109,6 +110,13 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       this.name_procedures.put(e.getKey().getName(), proc);
       this.class_procedures.put(proc.getClass(), proc);
     }
+    long baseSeed = this.configuration.getRandomSeed();
+    if (baseSeed == -1) {
+      this.workerRng = new Random();
+    } else {
+      long derived = baseSeed ^ (0x9E3779B97F4A7C15L * (id + 1));
+      this.workerRng = new Random(derived);
+    }
   }
 
   public Worker(T benchmark, int id) {
@@ -135,6 +143,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       Procedure proc = e.getValue();
       this.name_procedures.put(e.getKey().getName(), proc);
       this.class_procedures.put(proc.getClass(), proc);
+    }
+
+    long baseSeed = this.configuration.getRandomSeed();
+    if (baseSeed == -1) {
+      this.workerRng = new Random();
+    } else {
+      long derived = baseSeed ^ (0x9E3779B97F4A7C15L * (id + 1));
+      this.workerRng = new Random(derived);
     }
   }
 
@@ -271,8 +287,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     long minTime = 10 * 1000L; // 10 seconds
     // long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
     long maxTime = 3 * 10 * 1000L; // 30 sec'
-    long executionTime =
-        minTime + (long) ((maxTime - minTime) * Math.random()); // Uniform distribution
+    double u = workerRng.nextDouble();
+    long executionTime = minTime + (long) ((maxTime - minTime) * u); // Uniform distribution
 
     long startTime = System.currentTimeMillis();
 

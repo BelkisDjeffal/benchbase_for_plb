@@ -34,7 +34,7 @@ public class WorkloadConfiguration {
   private String driverClass;
   private int batchSize;
   private int maxRetries;
-  private int randomSeed = -1;
+  private int randomSeed = 123456;
   private double scaleFactor = 1.0;
   private double selectivity = -1.0;
   private int terminals;

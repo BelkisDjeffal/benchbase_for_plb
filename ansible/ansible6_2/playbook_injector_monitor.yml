@@ -6,13 +6,6 @@
     benchbase_runs:
 
       # 50:50, 20:80, 80:20, 30:70, 70:30, 40:60, 60:40
-      - { terminals: 30,  weights: "15,15" }
-      - { terminals: 30,  weights: "6,24" }
-      - { terminals: 30,  weights: "24,6" }
-      - { terminals: 30,  weights: "9,21" }
-      - { terminals: 30,  weights: "21,9" }
-      - { terminals: 30,  weights: "12,18" }
-      - { terminals: 30,  weights: "18,12" }
 
       - { terminals: 40,  weights: "20,20" }
       - { terminals: 40,  weights: "8,32" }

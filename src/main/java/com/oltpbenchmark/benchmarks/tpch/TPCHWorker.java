@@ -32,8 +32,15 @@ public final class TPCHWorker extends Worker<TPCHBenchmark> {
 
   public TPCHWorker(TPCHBenchmark benchmarkModule, int id, String workerPriorityClass) {
     super(benchmarkModule, id, workerPriorityClass);
-    this.rng().setSeed(15721);
 
+    // Derive a stable per-worker seed from the benchmark’s base seed + worker id
+    long base = benchmarkModule.getWorkloadConfiguration().getRandomSeed();
+    long seed = (base == -1) ? System.nanoTime() : (base ^ (0x9E3779B97F4A7C15L * (id + 1L)));
+
+    // Initialize this thread's RNG deterministically
+    this.rng().setSeed(seed);
+
+    // And seed the TPCH RandomGenerator deterministically too
     rand = new RandomGenerator(this.rng().nextInt());
   }
 

@@ -74,7 +74,10 @@ public final class TPCHBenchmark extends BenchmarkModule {
       }
     }
 
-    Collections.shuffle(workers, new Random(System.currentTimeMillis()));
+    long s = workConf.getRandomSeed();
+    Random shuffler = (s == -1) ? new Random() : new Random(s);
+    Collections.shuffle(workers, shuffler);
+
     return workers;
   }
 

@@ -69,7 +69,7 @@
       - { terminals: 550, weights: "425,125" }
 
       - { terminals: 600, weights: "150,450" }
-      - { terminals: 600, weights: "180,420" }
+      - { terminals: 600, weights: "300,300" }
       - { terminals: 600, weights: "450,150" }
 
       - { terminals: 70, weights: "10,60" }
