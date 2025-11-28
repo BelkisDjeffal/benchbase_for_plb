@@ -116,7 +116,7 @@
       tags: always
 
     - name: Deploy OS on all reserved nodes (Start asynchronously)
-      tags: deploy
+      tags: ssh_stuff
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
       async: 600  
@@ -124,7 +124,8 @@
       register: os_deployment_jobs
 
     - name: Wait for all OS deployments to complete
-      tags: deploy
+      tags: ssh_stuff
+      
       async_status:
         jid: "{{ item.ansible_job_id }}"
       register: os_deployment_results
@@ -514,7 +515,7 @@
       ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
       
     - name: Build Benchbase
-      tags: build_benchbase
+      tags: copy_benchbase
       ansible.builtin.shell: |
         ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
       args:

@@ -1,48 +1,48 @@
 
 reserved_nodes:
-- gros-100.nancy.grid5000.fr
-- gros-102.nancy.grid5000.fr
-- gros-103.nancy.grid5000.fr
-- gros-105.nancy.grid5000.fr
-- gros-106.nancy.grid5000.fr
-- gros-112.nancy.grid5000.fr
-- gros-115.nancy.grid5000.fr
+- gros-37.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
+- gros-39.nancy.grid5000.fr
+- gros-4.nancy.grid5000.fr
+- gros-40.nancy.grid5000.fr
+- gros-41.nancy.grid5000.fr
+- gros-45.nancy.grid5000.fr
 
 
 postgres_servers:
-- gros-100.nancy.grid5000.fr
-- gros-102.nancy.grid5000.fr
-- gros-103.nancy.grid5000.fr
-- gros-105.nancy.grid5000.fr
-- gros-106.nancy.grid5000.fr
-- gros-112.nancy.grid5000.fr
+- gros-37.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
+- gros-39.nancy.grid5000.fr
+- gros-4.nancy.grid5000.fr
+- gros-40.nancy.grid5000.fr
+- gros-41.nancy.grid5000.fr
 
 
 injector_node:
-- gros-115.nancy.grid5000.fr
+- gros-45.nancy.grid5000.fr
 
 
 premium_nodes:
-- gros-100.nancy.grid5000.fr
-- gros-102.nancy.grid5000.fr
+- gros-37.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
 
 
 freemium_nodes:
-- gros-103.nancy.grid5000.fr
-- gros-105.nancy.grid5000.fr
-- gros-106.nancy.grid5000.fr
-- gros-112.nancy.grid5000.fr
+- gros-39.nancy.grid5000.fr
+- gros-4.nancy.grid5000.fr
+- gros-40.nancy.grid5000.fr
+- gros-41.nancy.grid5000.fr
 
 
 replica_roles:
-  gros-100.nancy.grid5000.fr: premium_replica1
-  gros-102.nancy.grid5000.fr: premium_replica2
-  gros-103.nancy.grid5000.fr: freemium_replica1
-  gros-105.nancy.grid5000.fr: freemium_replica2
-  gros-106.nancy.grid5000.fr: freemium_replica3
-  gros-112.nancy.grid5000.fr: freemium_replica4
+  gros-37.nancy.grid5000.fr: premium_replica1
+  gros-38.nancy.grid5000.fr: premium_replica2
+  gros-39.nancy.grid5000.fr: freemium_replica1
+  gros-4.nancy.grid5000.fr: freemium_replica2
+  gros-40.nancy.grid5000.fr: freemium_replica3
+  gros-41.nancy.grid5000.fr: freemium_replica4
 
 
-source_host: gros-100.nancy.grid5000.fr
+source_host: gros-37.nancy.grid5000.fr
 source_data_dir: "/var/lib/postgresql/14/main"
 replica_data_dir: "/var/lib/postgresql/14/main"

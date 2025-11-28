@@ -10,7 +10,7 @@
   tasks:
     - name: Reserve 6 nodes from Grid5000
       tags: reserve_nodes
-      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=4,walltime={{ grid_time }} -r '09:01' -t deploy"
+      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=4,walltime={{ grid_time }} -r 'now' -t deploy"
       register: job_output
 
     - name: Extract job ID
@@ -115,6 +115,7 @@
       tags: always
 
     - name: Deploy OS on all reserved nodes (Start asynchronously)
+      #tags: ssh_stuff
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
       async: 600  
@@ -122,6 +123,7 @@
       register: os_deployment_jobs
 
     - name: Wait for all OS deployments to complete
+      #tags: ssh_stuff
       async_status:
         jid: "{{ item.ansible_job_id }}"
       register: os_deployment_results
@@ -131,7 +133,7 @@
       loop: "{{ os_deployment_jobs.results }}"
 
     - name: Backup authorized_keys before editing
-      tags: Backup authorized_keys before editing
+      tags: ssh_stuff
       delegate_to: "{{ injector_node[0] }}"
       remote_user: root
       copy:
@@ -141,6 +143,7 @@
       ignore_errors: yes
 
     - name: Add frontend public key to injector authorized_keys
+      tags: ssh_stuff
       delegate_to: "{{ injector_node[0] }}"
       remote_user: root
       ansible.builtin.lineinfile:
@@ -150,6 +153,7 @@
       tags: add_frontend_key_to_injector
 
     - name: Generate SSH key on injector node
+      tags: ssh_stuff
       delegate_to: "{{ injector_node[0] }}"
       remote_user: root
       shell: ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
@@ -157,6 +161,7 @@
         creates: /root/.ssh/id_rsa
 
     - name: Fetch public key from injector
+      tags: ssh_stuff
       delegate_to: "{{ injector_node[0] }}"
       remote_user: root
       slurp:
@@ -165,11 +170,13 @@
       run_once: true
 
     - name: Set injector public key
+      tags: ssh_stuff
       set_fact:
         injector_pubkey_decoded: "{{ injector_pubkey['content'] | b64decode }}"
       run_once: true
 
     - name: Add injector’s SSH public key to replica nodes
+      tags: ssh_stuff
       ansible.builtin.lineinfile:
         path: /root/.ssh/authorized_keys
         create: yes
