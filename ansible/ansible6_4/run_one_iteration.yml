@@ -51,4 +51,4 @@
   tasks:
     - name: Pause before next run
       pause:
-        seconds: 10
+        seconds: 5  

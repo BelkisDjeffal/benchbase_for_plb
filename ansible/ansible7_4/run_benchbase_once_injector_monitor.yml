@@ -1,0 +1,51 @@
+#run_benchbase_once_injector_monitor
+- name: Get timestamp as a fact
+  vars:
+    ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  set_fact:
+    run_label: "runs_outputs_{{ ts }}"
+    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/roundrobin/runs_outputs_{{ ts }}"  
+
+- name: Persist benchbase_output_dir as a global fact
+  set_fact:
+    global_benchbase_output_dir: "{{ benchbase_output_dir }}"
+  vars:
+    ansible_facts:
+      cacheable: true
+
+- name: Save output path to file
+  copy:
+    dest: /tmp/last_benchbase_output_dir.txt
+    content: "{{ benchbase_output_dir }}"
+
+- name: Create output folder
+  file:
+    path: "{{ benchbase_output_dir }}"
+    state: directory
+
+- name: Generate customized XML config
+  template:
+    src: /home/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Run one BenchBase iteration via sub-playbook
+  shell: >
+    ansible-playbook -i /home/benchbase/ansible/ansible7_4/inventory_monitor.yml
+    /home/benchbase/ansible/ansible7_4/run_one_iteration.yml
+    --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
+  loop: "{{ range(1, 7) | list }}"
+  register: subplaybook_results
+  ignore_errors: yes
+
+- name: Show output of each iteration
+  debug:
+    msg: "{{ item.stdout_lines | default([]) }}"
+  loop: "{{ subplaybook_results.results | default([]) }}"
+  when: item.rc is defined and item.rc == 0
+
+- name: Show error output if any iteration failed
+  debug:
+    msg: "{{ item.stderr_lines | default([]) }}"
+  loop: "{{ subplaybook_results.results | default([]) }}"
+  when: item.rc is defined and item.rc != 0

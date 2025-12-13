@@ -1,0 +1,50 @@
+font.size          : 6
+axes.labelsize     : 6
+axes.titlesize     : 6
+xtick.labelsize    : 5
+ytick.labelsize    : 5
+legend.fontsize    : 5
+figure.dpi         : 300
+savefig.dpi        : 300
+
+# Use the modern sans-serif font
+font.family        : sans-serif
+font.sans-serif    : DejaVu Sans
+
+# ---- Lines ----
+lines.linewidth    : 1.4
+lines.markersize   : 2
+
+# ---- Axes ----
+axes.grid          : True
+axes.grid.which    : both
+grid.color         : 0.85
+grid.linewidth     : 0.5
+grid.linestyle     : -
+axes.edgecolor     : 0.3
+axes.linewidth     : 0.8
+
+# ---- Legend ----
+legend.frameon     : False
+legend.handlelength: 2.0
+legend.handleheight: 0.5
+
+# ---- Colors (your modern color-blind-safe palette) ----
+axes.prop_cycle : cycler(
+                    color=['#1696A3',  # PLB (main teal)
+                           '#C44E52',  # 3RR+2RR (rust)
+                           '#D8A031',  # 4RR+1RR (gold)
+                           '#73C6CF',  # PLB bucket light
+                           '#3BAFB9',  # PLB bucket mid
+                           '#0F6F77',  # PLB bucket dark
+                           '#D68A8B',  # rust-light helper
+                           '#E8C16C']  # gold-light helper
+                 )
+
+# ---- Figure ----
+figure.figsize     : 3.2, 1.8
+figure.autolayout  : True
+
+# ---- Savefig ----
+savefig.bbox       : tight
+savefig.transparent: True

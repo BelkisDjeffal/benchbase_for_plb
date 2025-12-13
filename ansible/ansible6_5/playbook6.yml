@@ -10,7 +10,7 @@
   tasks:
     - name: Reserve 6 nodes from Grid5000
       tags: reserve_nodes
-      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=6,walltime={{ grid_time }} -r '19:00' -t deploy"
+      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=6,walltime={{ grid_time }} -r 'now' -t deploy"
       register: job_output
 
     - name: Extract job ID
@@ -115,6 +115,7 @@
       tags: always
 
     - name: Deploy OS on all reserved nodes (Start asynchronously)
+      tags: ssh_stuff
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
       async: 600  
@@ -122,6 +123,7 @@
       register: os_deployment_jobs
 
     - name: Wait for all OS deployments to complete
+      tags: ssh_stuff
       async_status:
         jid: "{{ item.ansible_job_id }}"
       register: os_deployment_results

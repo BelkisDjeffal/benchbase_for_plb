@@ -7,25 +7,32 @@
 
       # 50:50, 20:80, 80:20, 30:70, 70:30, 40:60, 60:40
 
-      # - { terminals: 600, weights: "300,300" }
-      # - { terminals: 600, weights: "120,480" }
-      # - { terminals: 600, weights: "480,120" }
-      # - { terminals: 600, weights: "180,420" }
-      # - { terminals: 600, weights: "420,180" }
-      # - { terminals: 600, weights: "240,360" }
-      # - { terminals: 600, weights: "360,240" }
-      # - { terminals: 600, weights: "60,540" }
-      # - { terminals: 600, weights: "540,60" }
+    - { terminals: 100, weights: "40,60" }
 
-      - { terminals: 1000, weights: "500,500" }
-      - { terminals: 1000, weights: "100,900" }
-      - { terminals: 1000, weights: "900,100" }
-      - { terminals: 1000, weights: "200,800" }
-      - { terminals: 1000, weights: "800,200" }
-      - { terminals: 1000, weights: "300,700" }
-      - { terminals: 1000, weights: "700,300" }
-      - { terminals: 1000, weights: "400,600" }
-      - { terminals: 1000, weights: "600,400" }
+    - { terminals: 200, weights: "80,120" }
+
+    - { terminals: 300, weights: "120,180" }
+
+    - { terminals: 400, weights: "160,240" }
+
+    - { terminals: 500, weights: "200,300" }
+
+    - { terminals: 600, weights: "240,360" }
+
+    - { terminals: 700, weights: "280,420" }
+
+    - { terminals: 800, weights: "320,480" }
+
+    - { terminals: 1000, weights: "400,600" }
+
+    - { terminals: 1200, weights: "480,720" }
+
+    - { terminals: 1500, weights: "600,900" }
+
+    - { terminals: 1800, weights: "720,1080" }
+
+    - { terminals: 2000, weights: "800,1200" }
+
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh

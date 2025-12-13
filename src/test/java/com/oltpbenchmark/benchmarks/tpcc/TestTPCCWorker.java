@@ -1,9 +1,8 @@
 package com.oltpbenchmark.benchmarks.tpcc;
 
-import java.util.List;
-
 import com.oltpbenchmark.api.AbstractTestWorker;
 import com.oltpbenchmark.api.Procedure;
+import java.util.List;
 
 public class TestTPCCWorker extends AbstractTestWorker<TPCCBenchmark> {
 

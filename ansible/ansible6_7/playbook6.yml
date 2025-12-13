@@ -9,36 +9,37 @@
     replica_data_dir: /var/lib/postgresql/14/main
   tasks:
     - name: Reserve 6 nodes from Grid5000
-      tags: reserve_nodes
+      #tags: reserve_nodes
       command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=6,walltime={{ grid_time }} -r 'now' -t deploy"
       register: job_output
 
     - name: Extract job ID
-      tags: reserve_nodes
+      #tags: reserve_nodes
       set_fact:
         job_id: "{{ job_output.stdout | regex_search('OAR_JOB_ID=(\\d+)', '\\1') | first }}"
 
     - name: Log job ID
-      tags: reserve_nodes
+      #tags: reserve_nodes
       debug:
         msg: "Job ID: {{ job_id }}"
 
     - name: Wait for reservation validation
-      tags: reserve_nodes
       pause:
         minutes: 7
 
     - name: Get job details
-      tags: reserve_nodes
+     # tags: reserve_nodes
       command: "oarstat -f -j {{ job_id }}"
       register: job_details
 
     - name: Extract assigned hostnames from job output (normal case)
+      tags: reserve_nodes
       when: assigned_hostnames is not defined and job_details is defined
       set_fact:
         reserved_nodes: "{{ (job_details.stdout | regex_search('assigned_hostnames = (.+)', '\\1')) | first | split('+') }}"
 
     - name: Convert assigned_hostnames to reserved_nodes (manual fallback)
+      tags: reserve_nodes
       when: assigned_hostnames is defined
       set_fact:
         reserved_nodes: >-
@@ -49,6 +50,7 @@
         msg: "Reserved nodes: {{ reserved_nodes }}"
 
     - name: Assign nodes to groups
+      tags: reserve_nodes
       set_fact:
         postgres_servers: "{{ reserved_nodes[:5] }}"  
         injector_node: "{{ reserved_nodes[5:] }}" 
@@ -56,6 +58,7 @@
         freemium_nodes: "{{ reserved_nodes[2:5] }}"
 
     - name: Generate inventory_monitor.yml from template
+      tags: reserve_nodes
       template:
         src: /home/spirals/phd/experiments/janvier/benchbase/templates/inventory_monitor.yml.j2
         dest: "{{ playbook_dir }}/inventory_monitor.yml"
@@ -98,6 +101,7 @@
       run_once: true
       
     - name: Add reserved nodes to inventory
+      tags: reserve_nodes
       add_host:
         name: "{{ item }}"
         ansible_host: "{{ item }}"
@@ -106,6 +110,7 @@
       tags: always
 
     - name: Add the separate node for Java/Other
+      tags: reserve_nodes
       add_host:
         name: "{{ reserved_nodes[5] }}"
         ansible_host: "{{ reserved_nodes[5] }}"
