@@ -11,6 +11,7 @@ results
 tpch.sql
 HELP.md
 PRIVATE.md
+pom.xml
 target/
 measurements/data/runs_outputs/
 measurements/data/runs_outputs/*
