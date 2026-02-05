@@ -80,6 +80,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
   private boolean seenDone = false;
 
+  private volatile boolean abandonedByPolicy = false;
+  private volatile boolean stopDueToPolicy = false;
+  private volatile boolean lastDoWorkAbandonedByPolicy = false;
+
+  private int policyRejects = 0;
+  private final int maxPolicyRejects =
+      Integer.parseInt(System.getProperty("plb.freemium.maxRejects", "3"));
+
   public Worker(T benchmark, int id, String workerPriorityClass) {
     // System.out.printf(
     //     "Worker: Printing worker's id = %d and priority = %s!%n", id, workerPriorityClass);
@@ -118,15 +126,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     this.currStatement = null;
     this.transactionTypes = this.configuration.getTransTypes();
 
-    if (!this.configuration.getNewConnectionPerTxn()) {
-      try {
-        this.conn = this.benchmark.makeConnection(workerPriorityClass);
-        this.conn.setAutoCommit(false);
-        this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-      } catch (SQLException ex) {
-        throw new RuntimeException("Failed to connect to database", ex);
-      }
-    }
+    // if (!this.configuration.getNewConnectionPerTxn()) {
+    //   try {
+    //     this.conn = this.benchmark.makeConnection(workerPriorityClass);
+    //     this.conn.setAutoCommit(false);
+    //     this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+    //   } catch (SQLException ex) {
+    //     throw new RuntimeException("Failed to connect to database", ex);
+    //   }
+    // }
 
     // Generate all the Procedures that we're going to need
     this.procedures.putAll(this.benchmark.getProcedures());
@@ -240,15 +248,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   @Override
   public final void run() {
 
-    if (!this.configuration.getNewConnectionPerTxn()) {
-      try {
-        this.conn = this.benchmark.makeConnection(workerPriorityClass);
-        this.conn.setAutoCommit(false);
-        this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-      } catch (SQLException ex) {
-        throw new RuntimeException("Failed to connect to database", ex);
-      }
-    }
+    // if (!this.configuration.getNewConnectionPerTxn()) {
+    //   try {
+    //     this.conn = this.benchmark.makeConnection(workerPriorityClass);
+    //     this.conn.setAutoCommit(false);
+    //     this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+    //   } catch (SQLException ex) {
+    //     throw new RuntimeException("Failed to connect to database", ex);
+    //   }
+    // }
     this.actualStartTimeMs = System.currentTimeMillis();
 
     Thread t = Thread.currentThread();
@@ -347,6 +355,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         TransactionType transactionType =
             getTransactionType(pieceOfWork, prePhase, preState, workloadState);
 
+        if (abandonedByPolicy && "freemium".equalsIgnoreCase(workerPriorityClass)) {
+          // Drop load: don't execute, don't count attempts/latency
+          transactionType = TransactionType.INVALID;
+        }
+
         if (!transactionType.equals(TransactionType.INVALID)) {
           // TODO: Measuring latency when not rate limited is ... a little
           // weird because if you add more simultaneous clients, you will
@@ -382,53 +395,46 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           long end = System.nanoTime();
 
           // PART 4: Record results
+          if (lastDoWorkAbandonedByPolicy) {
+            // We did not execute a real transaction (we abandoned during connect retries)
+            // => do NOT count success, do NOT record latency
+            LOG.warn(
+                "Worker {} abandoned by policy during connect; skipping result recording for {}.",
+                id,
+                transactionType.getName());
+          } else {
+            State postState = workloadState.getGlobalState();
+            switch (postState) {
+              case MEASURE, DONE, EXIT:
+                Phase postPhase = workloadState.getCurrentPhase();
+                if (postPhase == null) break;
 
-          State postState = workloadState.getGlobalState();
-          switch (postState) {
-            case MEASURE, DONE, EXIT:
-              // Non-serial measurement. Only measure if the state both
-              // before and after was MEASURE, and the phase hasn't
-              // changed, otherwise we're recording results for a query
-              // that either started during the warmup phase or ended
-              // after the timer went off.
-              Phase postPhase = workloadState.getCurrentPhase();
-
-              if (postPhase == null) {
-                // Need a null check on postPhase since current phase being null is used in
-                // WorkloadState
-                // and ThreadBench as the indication that the benchmark is over. However, there's a
-                // race
-                // condition with postState not being changed from MEASURE to DONE yet, so we
-                // entered
-                // the
-                // switch. In this scenario, just break from the switch.
+                if (preState == MEASURE && postPhase.getId() == prePhase.getId()) {
+                  this.txnSuccess.put(transactionType);
+                  localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
+                  latencies.addLatency(
+                      transactionType.getId(),
+                      start,
+                      end,
+                      this.id,
+                      prePhase.getId(),
+                      workerPriorityClass);
+                  intervalRequests.incrementAndGet();
+                }
+                if (prePhase.isLatencyRun()) {
+                  workloadState.startColdQuery();
+                }
                 break;
-              }
-              if (preState == MEASURE && postPhase.getId() == prePhase.getId()) {
-                this.txnSuccess.put(transactionType);
-                localSuccessByPriority.merge(workerPriorityClass, 1, Integer::sum);
-                latencies.addLatency(
-                    transactionType.getId(),
-                    start,
-                    end,
-                    this.id,
-                    prePhase.getId(),
-                    workerPriorityClass);
-                intervalRequests.incrementAndGet();
-              }
-              if (prePhase.isLatencyRun()) {
-                workloadState.startColdQuery();
-              }
-              break;
-            case COLD_QUERY:
-              // No recording for cold runs, but next time we will since
-              // it'll be a hot run.
-              if (preState == State.COLD_QUERY) {
-                workloadState.startHotQuery();
-              }
-              break;
-            default:
-              // Do nothing
+
+              case COLD_QUERY:
+                if (preState == State.COLD_QUERY) {
+                  workloadState.startHotQuery();
+                }
+                break;
+
+              default:
+                // Do nothing
+            }
           }
 
           // wait after transaction if specified
@@ -449,6 +455,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         }
 
         workloadState.finishedWork();
+        if (stopDueToPolicy) {
+          LOG.warn("Worker {} exiting thread due to policy abandonment.", id);
+          break;
+        }
       }
     } finally {
       LOG.debug("worker calling teardown");
@@ -503,6 +513,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     try {
       int retryCount = 0;
       int maxRetryCount = configuration.getMaxRetries();
+      lastDoWorkAbandonedByPolicy = false;
 
       while (retryCount < maxRetryCount && this.workloadState.getGlobalState() != State.DONE) {
 
@@ -530,6 +541,38 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             this.conn.setAutoCommit(false);
             this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
           } catch (SQLException ex) {
+            // Policy reject handling (Freemium admission control)
+            if ("freemium".equalsIgnoreCase(workerPriorityClass) && isPlbFreemiumReject(ex)) {
+              policyRejects++;
+              LOG.warn(
+                  "Worker {} priority {} rejected by PLB ({}/{}). sqlState={} msg={}",
+                  this.id,
+                  this.workerPriorityClass,
+                  policyRejects,
+                  maxPolicyRejects,
+                  ex.getSQLState(),
+                  ex.getMessage());
+
+              if (policyRejects >= maxPolicyRejects) {
+                abandonedByPolicy = true;
+                stopDueToPolicy = true;
+                lastDoWorkAbandonedByPolicy = true;
+
+                try {
+                  if (this.conn != null) this.conn.close();
+                } catch (SQLException ignore) {
+                }
+                this.conn = null;
+
+                LOG.warn(
+                    "Worker {} priority {} abandoning (policy reject).",
+                    this.id,
+                    this.workerPriorityClass);
+
+                break; // IMPORTANT: break out of the retry loop, don't "return"
+              }
+            }
+
             if (LOG.isDebugEnabled()) {
               LOG.debug(String.format("%s failed to open a connection...", this));
             }
@@ -886,5 +929,12 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
   public Map<String, Integer> getAttemptedRequestsByPriority() {
     return attemptedRequestsByPriority;
+  }
+
+  private boolean isPlbFreemiumReject(SQLException ex) {
+    if (ex == null) return false;
+    if ("08004".equals(ex.getSQLState())) return true;
+    String m = ex.getMessage();
+    return m != null && m.startsWith("PLB_REJECT_FREEMIUM");
   }
 }
