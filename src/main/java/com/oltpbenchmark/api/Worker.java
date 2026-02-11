@@ -90,6 +90,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private final int maxPolicyRejects =
       Integer.parseInt(System.getProperty("plb.freemium.maxRejects", "3"));
 
+  private static final Object TS_DUMP_LOCK = new Object();
+  private static final AtomicInteger ACTIVE_WORKERS = new AtomicInteger(0);
+  private static final ConcurrentHashMap<String, ConcurrentHashMap<Integer, AtomicInteger>> TS =
+      new ConcurrentHashMap<>();
+
   public Worker(T benchmark, int id, String workerPriorityClass) {
     // System.out.printf(
     //     "Worker: Printing worker's id = %d and priority = %s!%n", id, workerPriorityClass);
@@ -111,7 +116,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     //   }
     // }
 
-    // Generate all the Procedures that we're going to need
     this.procedures.putAll(this.benchmark.getProcedures());
     for (Entry<TransactionType, Procedure> e : this.procedures.entrySet()) {
       Procedure proc = e.getValue();
@@ -279,6 +283,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     Thread t = Thread.currentThread();
     t.setName(this.toString());
 
+    ACTIVE_WORKERS.incrementAndGet();
+
     // In case of reuse reset the measurements
     latencies = new LatencyRecord(workloadState.getTestStartNs());
 
@@ -405,6 +411,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           if (preState == MEASURE) {
             attemptedRequests.incrementAndGet();
             attemptedRequestsByPriority.merge(workerPriorityClass, 1, Integer::sum);
+            incTs("query_attempt");
           }
 
           long start = System.nanoTime();
@@ -439,6 +446,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                       prePhase.getId(),
                       workerPriorityClass);
                   intervalRequests.incrementAndGet();
+                  incTs("query_success");
                 }
                 if (prePhase.isLatencyRun()) {
                   workloadState.startColdQuery();
@@ -474,7 +482,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         }
 
         workloadState.finishedWork();
-        if (stopDueToPolicy) {
+        if (stopDueToPolicy && "freemium".equalsIgnoreCase(workerPriorityClass)) {
+          incTs("freemium_abandon");
           LOG.warn("Worker {} exiting thread due to policy abandonment.", id);
           break;
         }
@@ -483,10 +492,18 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       LOG.debug("worker calling teardown");
       workloadState.signalDone();
       tearDown();
+
+      int left = ACTIVE_WORKERS.decrementAndGet();
+      // if (left == 0) {
+      //   synchronized (TS_DUMP_LOCK) {
+      //     // double-check in case of races
+      //     if (ACTIVE_WORKERS.get() == 0) {
+      //       dumpTimeSeriesToLog(LOG);
+      //     }
+      //   }
+      // }
     }
     this.actualEndTimeMs = System.currentTimeMillis();
-    // System.out.println(actualEndTimeMs - actualStartTimeMs);
-    // System.out.println(executionTime);
   }
 
   private TransactionType getTransactionType(
@@ -557,6 +574,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                 break;
               }
             }
+<<<<<<< HEAD
 
             this.conn = this.benchmark.makeConnection(workerPriorityClass);
             this.conn.setAutoCommit(false);
@@ -566,9 +584,17 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             if (remainingAfterReconnect <= 0) {
               break; // don't proceed to start a txn if time already expired
             }
+=======
+            incTs("connect_attempt");
+            this.conn = this.benchmark.makeConnection(workerPriorityClass);
+            this.conn.setAutoCommit(false);
+            this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
+            incTs("connect_success");
+>>>>>>> d168bf6 (add per-second tier time-series (connect/query/reject/abandon) and dump to CSV)
           } catch (SQLException ex) {
-            // Policy reject handling (Freemium admission control)
+            // Policy reject handling
             if ("freemium".equalsIgnoreCase(workerPriorityClass) && isPlbFreemiumReject(ex)) {
+              incTs("connect_reject");
               policyRejects++;
               LOG.warn(
                   "Worker {} priority {} rejected by PLB ({}/{}). sqlState={} msg={}",
@@ -595,8 +621,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                     this.id,
                     this.workerPriorityClass);
 
-                break; // IMPORTANT: break out of the retry loop, don't "return"
+                break;
               }
+            } else {
+              incTs("connect_fail");
             }
 
             if (LOG.isDebugEnabled()) {
@@ -655,6 +683,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           break;
 
         } catch (SQLException ex) {
+<<<<<<< HEAD
 
           if ("57014".equals(ex.getSQLState())) { // query_canceled
             try {
@@ -668,6 +697,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             status = TransactionStatus.USER_ABORTED;
             break; // stop retries; worker's life budget is exhausted
           }
+=======
+          incTs("query_fail");
+          if (isTimeout(ex)) incTs("query_timeout");
+
+>>>>>>> d168bf6 (add per-second tier time-series (connect/query/reject/abandon) and dump to CSV)
           // check if we should attempt to ignore connection errors and reconnect
           boolean isConnectionErrorException = SQLUtil.isConnectionErrorException(ex);
 
@@ -943,6 +977,21 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     return errorCode == 0 && sqlState.equals("40001");
   }
 
+  private boolean isTimeout(SQLException ex) {
+    if (ex == null) return false;
+    String s = ex.getSQLState();
+    if (s == null) return false;
+
+    // SQLServer query timeout
+    if ("HY008".equals(s)) return true;
+
+    // PostgreSQL: query_canceled
+    if ("57014".equals(s)) return true;
+
+    String msg = ex.getMessage();
+    return msg != null && msg.toLowerCase().contains("timeout");
+  }
+
   /**
    * Optional callback that can be used to initialize the Worker right before the benchmark
    * execution begins
@@ -999,5 +1048,182 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     if ("08004".equals(ex.getSQLState())) return true;
     String m = ex.getMessage();
     return m != null && m.startsWith("PLB_REJECT_FREEMIUM");
+  }
+
+  private int nowSec() {
+    long base = workloadState.getTestStartNs();
+    long now = System.nanoTime();
+    long diff = now - base;
+    if (diff < 0) diff = 0;
+    long sec = diff / 1_000_000_000L;
+    if (sec > Integer.MAX_VALUE) sec = Integer.MAX_VALUE;
+    return (int) sec;
+  }
+
+  private void incTs(String metric) {
+    String tier = (workerPriorityClass == null) ? "unknown" : workerPriorityClass.toLowerCase();
+    String key = metric + "|" + tier;
+    int s = nowSec();
+    TS.computeIfAbsent(key, k -> new ConcurrentHashMap<>())
+        .computeIfAbsent(s, k -> new AtomicInteger(0))
+        .incrementAndGet();
+  }
+
+  private static int getTs(String metric, String tier, int sec) {
+    String key = metric + "|" + tier.toLowerCase();
+    ConcurrentHashMap<Integer, AtomicInteger> m = TS.get(key);
+    if (m == null) return 0;
+    AtomicInteger v = m.get(sec);
+    return (v == null) ? 0 : v.get();
+  }
+
+  private static String normalizeTier(String t) {
+    if (t == null) return "unknown";
+    t = t.trim().toLowerCase();
+    if (t.length() >= 2) {
+      if ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'"))) {
+        t = t.substring(1, t.length() - 1);
+      }
+    }
+    return t;
+  }
+
+  private static int getTsRaw(String metric, String rawTier, int sec) {
+    String key = metric + "|" + rawTier;
+    ConcurrentHashMap<Integer, AtomicInteger> m = TS.get(key);
+    if (m == null) return 0;
+    AtomicInteger v = m.get(sec);
+    return (v == null) ? 0 : v.get();
+  }
+
+  private static void dumpTimeSeriesToLog(Logger log) {
+    java.util.Set<String> tiersSet = new java.util.HashSet<>();
+    for (String key : TS.keySet()) {
+      int idx = key.lastIndexOf('|');
+      if (idx >= 0 && idx + 1 < key.length()) {
+        tiersSet.add(key.substring(idx + 1));
+      }
+    }
+    java.util.List<String> tiers = new java.util.ArrayList<>(tiersSet);
+    java.util.Collections.sort(tiers);
+
+    java.util.Set<Integer> secs = new java.util.HashSet<>();
+    for (var e : TS.entrySet()) secs.addAll(e.getValue().keySet());
+
+    java.util.List<Integer> sorted = new java.util.ArrayList<>(secs);
+    java.util.Collections.sort(sorted);
+
+    for (String tier : tiers) {
+      for (int sec : sorted) {
+        int ca = getTs("connect_attempt", tier, sec);
+        int cs = getTs("connect_success", tier, sec);
+        int cf = getTs("connect_fail", tier, sec);
+        int cr = getTs("connect_reject", tier, sec);
+
+        int qa = getTs("query_attempt", tier, sec);
+        int qs = getTs("query_success", tier, sec);
+        int qf = getTs("query_fail", tier, sec);
+        int qt = getTs("query_timeout", tier, sec);
+
+        int ab = getTs("freemium_abandon", tier, sec);
+
+        if ((ca | cs | cf | cr | qa | qs | qf | qt | ab) == 0) continue;
+
+        log.info(
+            "BB_TS sec={} tier={} connect(a={},s={},f={},r={}) query(a={},s={},f={},t={}) abandon={}",
+            sec,
+            tier,
+            ca,
+            cs,
+            cf,
+            cr,
+            qa,
+            qs,
+            qf,
+            qt,
+            ab);
+      }
+    }
+  }
+
+  public static void dumpTimeSeriesToCsv(java.io.PrintStream ps) {
+    if (ps == null) return;
+
+    java.util.Map<String, java.util.List<String>> aliases = new java.util.HashMap<>();
+    for (String key : TS.keySet()) {
+      int idx = key.lastIndexOf('|');
+      if (idx < 0 || idx + 1 >= key.length()) continue;
+      String rawTier = key.substring(idx + 1);
+      String norm = normalizeTier(rawTier);
+      aliases.computeIfAbsent(norm, k -> new java.util.ArrayList<>()).add(rawTier);
+    }
+
+    java.util.Set<Integer> secs = new java.util.HashSet<>();
+    for (var e : TS.entrySet()) secs.addAll(e.getValue().keySet());
+    java.util.List<Integer> sorted = new java.util.ArrayList<>(secs);
+    java.util.Collections.sort(sorted);
+    int maxSec = sorted.isEmpty() ? 0 : sorted.get(sorted.size() - 1);
+
+    java.util.function.BiFunction<String, Integer, Integer> P =
+        (metric, sec) -> {
+          int sum = 0;
+          for (String raw : aliases.getOrDefault("premium", java.util.List.of("premium"))) {
+            sum += getTsRaw(metric, raw, sec);
+          }
+          return sum;
+        };
+    java.util.function.BiFunction<String, Integer, Integer> F =
+        (metric, sec) -> {
+          int sum = 0;
+          for (String raw : aliases.getOrDefault("freemium", java.util.List.of("freemium"))) {
+            sum += getTsRaw(metric, raw, sec);
+          }
+          return sum;
+        };
+
+    ps.println(
+        "sec,"
+            + "premium_connect_attempt,premium_connect_success,premium_connect_fail,premium_connect_reject,"
+            + "premium_query_attempt,premium_query_success,premium_query_fail,premium_query_timeout,premium_freemium_abandon,"
+            + "freemium_connect_attempt,freemium_connect_success,freemium_connect_fail,freemium_connect_reject,"
+            + "freemium_query_attempt,freemium_query_success,freemium_query_fail,freemium_query_timeout,freemium_freemium_abandon");
+
+    for (int sec = 0; sec <= maxSec; sec++) {
+      int p_ca = P.apply("connect_attempt", sec);
+      int p_cs = P.apply("connect_success", sec);
+      int p_cf = P.apply("connect_fail", sec);
+      int p_cr = P.apply("connect_reject", sec);
+
+      int p_qa = P.apply("query_attempt", sec);
+      int p_qs = P.apply("query_success", sec);
+      int p_qf = P.apply("query_fail", sec);
+      int p_qt = P.apply("query_timeout", sec);
+
+      int p_ab = P.apply("freemium_abandon", sec);
+
+      int f_ca = F.apply("connect_attempt", sec);
+      int f_cs = F.apply("connect_success", sec);
+      int f_cf = F.apply("connect_fail", sec);
+      int f_cr = F.apply("connect_reject", sec);
+
+      int f_qa = F.apply("query_attempt", sec);
+      int f_qs = F.apply("query_success", sec);
+      int f_qf = F.apply("query_fail", sec);
+      int f_qt = F.apply("query_timeout", sec);
+
+      int f_ab = F.apply("freemium_abandon", sec);
+
+      // if
+      // ((p_ca|p_cs|p_cf|p_cr|p_qa|p_qs|p_qf|p_qt|p_ab|f_ca|f_cs|f_cf|f_cr|f_qa|f_qs|f_qf|f_qt|f_ab) == 0) {
+      //   continue;
+      // }
+
+      ps.printf(
+          "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+          sec, p_ca, p_cs, p_cf, p_cr, p_qa, p_qs, p_qf, p_qt, p_ab, f_ca, f_cs, f_cf, f_cr, f_qa,
+          f_qs, f_qf, f_qt, f_ab);
+    }
+
+    ps.flush();
   }
 }

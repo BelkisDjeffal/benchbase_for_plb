@@ -10,19 +10,19 @@ public class ExecutionDistributionStatistics {
   public static Map<String, List<WorkerMetrics>> computeMetrics(List<WorkerRecord> records) {
     Map<String, List<WorkerMetrics>> result = new HashMap<>();
     for (WorkerRecord r : records) {
-      System.out.println(
-          "WorkerRecord: id="
-              + r.workerId
-              + ", priority="
-              + r.priority
-              + ", attempted="
-              + r.attempted
-              + ", succeeded="
-              + r.succeeded
-              + ", startTimeMs="
-              + r.startTimeMs
-              + ", endTimeMs="
-              + r.endTimeMs);
+      // System.out.println(
+      //     "WorkerRecord: id="
+      //         + r.workerId
+      //         + ", priority="
+      //         + r.priority
+      //         + ", attempted="
+      //         + r.attempted
+      //         + ", succeeded="
+      //         + r.succeeded
+      //         + ", startTimeMs="
+      //         + r.startTimeMs
+      //         + ", endTimeMs="
+      //         + r.endTimeMs);
 
       long durationMs = r.endTimeMs - r.startTimeMs;
       if (durationMs <= 0) continue;
