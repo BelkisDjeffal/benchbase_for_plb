@@ -23,15 +23,34 @@ import com.oltpbenchmark.api.TransactionTypes;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.types.DatabaseType;
 import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.*;
+import com.oltpbenchmark.util.ClassUtil;
+import com.oltpbenchmark.util.FileUtil;
+import com.oltpbenchmark.util.ImmutableMonitorInfo;
+import com.oltpbenchmark.util.JSONSerializable;
+import com.oltpbenchmark.util.JSONUtil;
+import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.ResultWriter;
+import com.oltpbenchmark.util.StringUtil;
+import com.oltpbenchmark.util.TimeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
@@ -761,6 +780,12 @@ public class DBWorkload {
     try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, summaryFileName))) {
       LOG.info("Output summary data into file: {}", summaryFileName);
       rw.writeSummary(ps);
+    }
+
+    String bbTsFileName = baseFileName + ".bb_ts.csv";
+    try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, bbTsFileName))) {
+      LOG.info("Output BenchBase time-series into file: {}", bbTsFileName);
+      Worker.dumpTimeSeriesToCsv(ps);
     }
 
     String paramsFileName = baseFileName + ".params.json";

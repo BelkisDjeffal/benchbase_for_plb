@@ -21,11 +21,11 @@
     <!-- The workload -->
     <terminals>35</terminals>
     <terminalClasses>"premium","freemium"</terminalClasses>
-    <terminalClassesWeights>30,5</terminalClassesWeights>
+    <terminalClassesWeights>15,20</terminalClassesWeights>
     <works>
         <work>  
             <serial>false</serial>
-            <rate>10</rate>
+            <rate>unlimited</rate>
             <time>60</time> 
             <weights>1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1</weights>
         </work>
