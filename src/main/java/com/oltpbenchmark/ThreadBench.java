@@ -15,15 +15,6 @@
 
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.BenchmarkModule;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.api.collectors.monitoring.Monitor;
-import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.MonitorInfo;
-import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,12 +23,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
+import java.util.SplittableRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.BenchmarkModule;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.api.collectors.monitoring.Monitor;
+import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.SeedUtil;
+import com.oltpbenchmark.util.StringUtil;
 
 public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ThreadBench.class);
@@ -51,7 +54,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private final List<WorkloadConfiguration> workConfs;
   private final ArrayList<LatencyRecord.Sample> samples = new ArrayList<>();
   private final MonitorInfo monitorInfo;
-  private final Random spawnerRng;
+
+  private final SplittableRandom arrivalsRng;
 
   private Monitor monitor = null;
 
@@ -64,8 +68,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     this.workerThreads = new ArrayList<>(workers.size());
     this.monitorInfo = monitorInfo;
     this.testState = new BenchmarkState(workers.size() + 1);
-    long seed = workConfs.get(0).getRandomSeed();
-    this.spawnerRng = (seed == -1) ? new Random() : new Random(seed);
+
+    this.arrivalsRng = new SplittableRandom(SeedUtil.derive("arrivals.poisson"));
   }
 
   public static Results runRateLimitedBenchmark(
@@ -77,8 +81,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   }
 
   private long getPoissonInterval(double lambda) {
-    double u = spawnerRng.nextDouble();
-    return (long) ((-Math.log(1.0 - u) / lambda) * 1000L);
+    double u = arrivalsRng.nextDouble();
+    return (long) ((-Math.log(1 - u) / lambda) * 1000L);
   }
 
   private void interruptWorkers() {
@@ -547,9 +551,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   }
 
   private long getInterval(double lowestRate, Phase.Arrival arrival) {
-    // TODO Auto-generated method stub
     if (arrival == Phase.Arrival.POISSON) {
-      double u = spawnerRng.nextDouble();
+      double u = arrivalsRng.nextDouble();
       return (long) ((-Math.log(1 - u) / lowestRate) * 1000000000.);
     } else {
       return (long) (1000000000. / lowestRate + 0.5);

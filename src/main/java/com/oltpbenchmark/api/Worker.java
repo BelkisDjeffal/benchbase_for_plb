@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,6 +45,7 @@ import static com.oltpbenchmark.types.State.MEASURE;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.Histogram;
 import com.oltpbenchmark.util.SQLUtil;
+import com.oltpbenchmark.util.SeedUtil;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -96,6 +98,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final ConcurrentHashMap<String, ConcurrentHashMap<Integer, AtomicInteger>> TS =
       new ConcurrentHashMap<>();
 
+  private final SplittableRandom lifetimeRng;
+
   public Worker(T benchmark, int id, String workerPriorityClass) {
     // System.out.printf(
     //     "Worker: Printing worker's id = %d and priority = %s!%n", id, workerPriorityClass);
@@ -106,6 +110,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     this.workloadState = this.configuration.getWorkloadState();
     this.currStatement = null;
     this.transactionTypes = this.configuration.getTransTypes();
+    this.lifetimeRng = new SplittableRandom(SeedUtil.derive("worker.lifetime", id));
 
     // if (!this.configuration.getNewConnectionPerTxn()) {
     //   try {
@@ -139,6 +144,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     this.workloadState = this.configuration.getWorkloadState();
     this.currStatement = null;
     this.transactionTypes = this.configuration.getTransTypes();
+    this.lifetimeRng = new SplittableRandom(SeedUtil.derive("worker.lifetime", id));
 
     // if (!this.configuration.getNewConnectionPerTxn()) {
     //   try {
@@ -302,8 +308,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     long minTime = 10 * 1000L; // 10 seconds
     // long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
     long maxTime = 3 * 10 * 1000L; // 30 sec'
-    double u = workerRng.nextDouble();
-    long executionTime = minTime + (long) ((maxTime - minTime) * u); // Uniform distribution
+
+    long executionTime = minTime + (long) ((maxTime - minTime) * lifetimeRng.nextDouble());
 
     long startTime = System.currentTimeMillis();
 
