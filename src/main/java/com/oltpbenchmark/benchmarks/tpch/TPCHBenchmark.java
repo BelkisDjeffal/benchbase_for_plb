@@ -30,6 +30,7 @@ import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpch.procedures.Q1;
+import com.oltpbenchmark.util.SeedUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class TPCHBenchmark extends BenchmarkModule {
       }
     }
 
-    Collections.shuffle(workers, new Random(System.currentTimeMillis()));
+    Collections.shuffle(workers, new Random(SeedUtil.derive("tpch.shuffle")));
     return workers;
   }
 

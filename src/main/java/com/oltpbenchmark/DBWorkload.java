@@ -169,7 +169,14 @@ public class DBWorkload {
       wrkld.setUrl(xmlConfig.getString("url"));
       wrkld.setUsername(xmlConfig.getString("username"));
       wrkld.setPassword(xmlConfig.getString("password"));
-      wrkld.setRandomSeed(xmlConfig.getInt("randomSeed", -1));
+      int randomSeed = xmlConfig.getInt("randomSeed", -1);
+
+      wrkld.setRandomSeed(randomSeed);
+      // Export randomSeed globally so other parts can reuse it.
+      if (randomSeed >= 0 && System.getProperty("benchbase.seed") == null) {
+        System.setProperty("benchbase.seed", Integer.toString(randomSeed));
+      }
+
       wrkld.setBatchSize(xmlConfig.getInt("batchsize", 128));
       wrkld.setMaxRetries(xmlConfig.getInt("retries", 1));
       wrkld.setNewConnectionPerTxn(xmlConfig.getBoolean("newConnectionPerTxn", false));

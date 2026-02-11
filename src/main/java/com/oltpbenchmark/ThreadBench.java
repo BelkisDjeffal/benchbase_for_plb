@@ -23,6 +23,7 @@ import com.oltpbenchmark.api.collectors.monitoring.Monitor;
 import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.SeedUtil;
 import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SplittableRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
@@ -50,6 +52,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private final List<WorkloadConfiguration> workConfs;
   private final ArrayList<LatencyRecord.Sample> samples = new ArrayList<>();
   private final MonitorInfo monitorInfo;
+  private final SplittableRandom arrivalsRng;
 
   private Monitor monitor = null;
 
@@ -62,6 +65,7 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
     this.workerThreads = new ArrayList<>(workers.size());
     this.monitorInfo = monitorInfo;
     this.testState = new BenchmarkState(workers.size() + 1);
+    this.arrivalsRng = new SplittableRandom(SeedUtil.derive("arrivals.poisson"));
   }
 
   public static Results runRateLimitedBenchmark(
@@ -73,7 +77,8 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
   }
 
   private long getPoissonInterval(double lambda) {
-    return (long) ((-Math.log(1 - Math.random()) / lambda) * 1000L);
+    double u = arrivalsRng.nextDouble();
+    return (long) ((-Math.log(1 - u) / lambda) * 1000L);
   }
 
   private void interruptWorkers() {
