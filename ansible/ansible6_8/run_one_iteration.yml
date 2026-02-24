@@ -1,0 +1,54 @@
+# File: run_one_iteration.yml
+- name: Start monitoring
+  hosts: postgres_servers
+  become: yes
+  tasks:
+    - name: Create monitoring folder
+      file:
+        path: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}"
+        state: directory
+
+    - name: Start pidstat
+      shell: |
+        nohup pidstat -h -r -u -d 1 > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1 &
+        echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid        
+      args:
+        executable: /bin/bash
+
+- name: Run BenchBase workload
+  hosts: localhost
+  tasks:
+    - name: Run BenchBase workload (run {{ run_id }})
+      shell: >
+        java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+        --create=false --load=false --execute=true
+        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
+      args:
+        chdir: /home/benchbase/target/benchbase-postgres
+
+- name: Stop monitoring
+  hosts: postgres_servers
+  become: yes
+  tasks:
+    - name: Stop pidstat
+      shell: "kill -TERM $(cat /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid)"
+      ignore_errors: yes
+
+- name: Fetch monitoring logs
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Fetch pidstat logs
+      fetch:
+        src: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log"
+        dest: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}/{{ replica_roles[inventory_hostname] }}_{{ inventory_hostname }}.log"
+        flat: yes
+
+- name: Inter-run pause
+  hosts: localhost
+  tasks:
+    - name: Pause before next run
+      pause:
+        seconds: 5

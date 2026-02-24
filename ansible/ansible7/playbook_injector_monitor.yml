@@ -5,98 +5,81 @@
   vars:
     benchbase_runs:
     
-      - { terminals: 30, weights: "10,20" }
-      - { terminals: 30, weights: "15,15" }
-      - { terminals: 30, weights: "20,10" }
+    - { terminals: 50,  weights: "25,25" }
+    - { terminals: 50,  weights: "15,35" }
+    - { terminals: 50,  weights: "35,15" }
 
-      - { terminals: 40, weights: "10,30" }
-      - { terminals: 40, weights: "20,20" }
-      - { terminals: 40, weights: "30,10" }
+    - { terminals: 100, weights: "50,50" }
+    - { terminals: 100, weights: "30,70" }
+    - { terminals: 100, weights: "70,30" }
 
-      - { terminals: 50, weights: "10,40" }
-      - { terminals: 50, weights: "40,10" }
-      - { terminals: 50, weights: "25,25" }
+    - { terminals: 150, weights: "75,75" }
+    - { terminals: 150, weights: "45,105" }
+    - { terminals: 150, weights: "105,45" }
 
-      - { terminals: 70, weights: "10,60" }
-      - { terminals: 70, weights: "35,35" }
-      - { terminals: 70, weights: "60,10" }
+    - { terminals: 200, weights: "100,100" }
+    - { terminals: 200, weights: "60,140" }
+    - { terminals: 200, weights: "140,60" }
 
-      - { terminals: 100, weights: "30,70" }
-      - { terminals: 100, weights: "50,50" }
-      - { terminals: 100, weights: "70,30" }
+    - { terminals: 250, weights: "125,125" }
+    - { terminals: 250, weights: "75,175" }
+    - { terminals: 250, weights: "175,75" }
 
-      - { terminals: 150, weights: "75,75" }
-      - { terminals: 150, weights: "100,50" }
-      - { terminals: 150, weights: "50,100" }
+    - { terminals: 300, weights: "150,150" }
+    - { terminals: 300, weights: "90,210" }
+    - { terminals: 300, weights: "210,90" }
 
-      - { terminals: 200, weights: "100,100" }
-      - { terminals: 200, weights: "150,50" }
-      - { terminals: 200, weights: "50,150" }
+    - { terminals: 350, weights: "175,175" }
+    - { terminals: 350, weights: "105,245" }
+    - { terminals: 350, weights: "245,105" }
 
-      - { terminals: 250, weights: "125,125" }
-      - { terminals: 250, weights: "75,175" }
-      - { terminals: 250, weights: "175,75" }
+    - { terminals: 400, weights: "200,200" }
+    - { terminals: 400, weights: "120,280" }
+    - { terminals: 400, weights: "280,120" }
 
-      - { terminals: 300, weights: "225,75" }
-      - { terminals: 300, weights: "150,150" }
-      - { terminals: 300, weights: "225,75" }
+    - { terminals: 450, weights: "225,225" }
+    - { terminals: 450, weights: "135,315" }
+    - { terminals: 450, weights: "315,135" }
 
-      - { terminals: 350, weights: "275,75" }
-      - { terminals: 350, weights: "175,175" }
-      - { terminals: 350, weights: "75,275" }
+    - { terminals: 500, weights: "250,250" }
+    - { terminals: 500, weights: "150,350" }
+    - { terminals: 500, weights: "350,150" }
 
-      - { terminals: 400, weights: "120,280" }
-      - { terminals: 400, weights: "200,200" }
-      - { terminals: 400, weights: "280,120" }
+    - { terminals: 550, weights: "275,275" }
+    - { terminals: 550, weights: "165,385" }
+    - { terminals: 550, weights: "385,165" }
 
-      - { terminals: 450, weights: "100,350" }
-      - { terminals: 450, weights: "225,225" }
-      - { terminals: 450, weights: "350,100" }
+    - { terminals: 600, weights: "300,300" }
+    - { terminals: 600, weights: "180,420" }
+    - { terminals: 600, weights: "420,180" }
 
-      - { terminals: 500, weights: "100,400" }
-      - { terminals: 500, weights: "250,250" }
-      - { terminals: 500, weights: "400,100" }
+    - { terminals: 700, weights: "350,350" }
+    - { terminals: 700, weights: "210,490" }
+    - { terminals: 700, weights: "490,210" }
 
-      - { terminals: 550, weights: "125,425" }
-      - { terminals: 550, weights: "275,275" }
-      - { terminals: 550, weights: "425,125" }
+    - { terminals: 800, weights: "400,400" }
+    - { terminals: 800, weights: "240,560" }
+    - { terminals: 800, weights: "560,240" }
 
-      - { terminals: 600, weights: "150,450" }
-      - { terminals: 600, weights: "180,420" }
-      - { terminals: 600, weights: "450,150" }
+    - { terminals: 1000, weights: "500,500" }
+    - { terminals: 1000, weights: "300,700" }
+    - { terminals: 1000, weights: "700,300" }
 
-      - { terminals: 700, weights: "200,500" }
-      - { terminals: 700, weights: "350,350" }
-      - { terminals: 700, weights: "500,200" }
+    - { terminals: 1200, weights: "600,600" }
+    - { terminals: 1200, weights: "360,840" }
+    - { terminals: 1200, weights: "840,360" }
 
-      - { terminals: 800, weights: "200,600" }
-      - { terminals: 800, weights: "400,400" }
-      - { terminals: 800, weights: "600,200" }
+    - { terminals: 1500, weights: "750,750" }
+    - { terminals: 1500, weights: "450,1050" }
+    - { terminals: 1500, weights: "1050,450" }
 
-      - { terminals: 1000, weights: "200,800" }
-      - { terminals: 1000, weights: "500,500" }
-      - { terminals: 1000, weights: "800,200" }
+    - { terminals: 1800, weights: "900,900" }
+    - { terminals: 1800, weights: "540,1260" }
+    - { terminals: 1800, weights: "1260,540" }
 
-      - { terminals: 1200, weights: "300,900" }
-      - { terminals: 1200, weights: "600,600" }
-      - { terminals: 1200, weights: "900,300" }
-
-      - { terminals: 1400, weights: "400,1000" }
-      - { terminals: 1400, weights: "700,700" }
-      - { terminals: 1400, weights: "1000,400" }
-
-      - { terminals: 1500, weights: "400,1100" }
-      - { terminals: 1500, weights: "750,750" }
-      - { terminals: 1500, weights: "1100,400" }
-
-      - { terminals: 2000, weights: "500,1500" }
-      - { terminals: 2000, weights: "1000,1000" }
-      - { terminals: 2000, weights: "1500,500" }
-
-      - { terminals: 2500, weights: "600,1900" }
-      - { terminals: 2500, weights: "1250,1250" }
-      - { terminals: 2500, weights: "1900,600" }
-
+    - { terminals: 2000, weights: "1000,1000" }
+    - { terminals: 2000, weights: "600,1400" }
+    - { terminals: 2000, weights: "1400,600" }
   
   tasks:
     - name: Ensure summary extractor is executable
