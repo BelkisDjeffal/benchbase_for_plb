@@ -17,19 +17,6 @@
 
 package com.oltpbenchmark.api;
 
-import static com.oltpbenchmark.types.State.MEASURE;
-
-import com.oltpbenchmark.LatencyRecord;
-import com.oltpbenchmark.Phase;
-import com.oltpbenchmark.SubmittedProcedure;
-import com.oltpbenchmark.WorkloadConfiguration;
-import com.oltpbenchmark.WorkloadState;
-import com.oltpbenchmark.api.Procedure.UserAbortException;
-import com.oltpbenchmark.types.DatabaseType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.Histogram;
-import com.oltpbenchmark.util.SQLUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
@@ -41,8 +28,22 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord;
+import com.oltpbenchmark.Phase;
+import com.oltpbenchmark.SubmittedProcedure;
+import com.oltpbenchmark.WorkloadConfiguration;
+import com.oltpbenchmark.WorkloadState;
+import com.oltpbenchmark.api.Procedure.UserAbortException;
+import com.oltpbenchmark.types.DatabaseType;
+import com.oltpbenchmark.types.State;
+import static com.oltpbenchmark.types.State.MEASURE;
+import com.oltpbenchmark.types.TransactionStatus;
+import com.oltpbenchmark.util.Histogram;
+import com.oltpbenchmark.util.SQLUtil;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -574,23 +575,18 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                 break;
               }
             }
-<<<<<<< HEAD
 
-            this.conn = this.benchmark.makeConnection(workerPriorityClass);
-            this.conn.setAutoCommit(false);
-            this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
-
-            long remainingAfterReconnect = hardDeadlineMs - System.currentTimeMillis();
-            if (remainingAfterReconnect <= 0) {
-              break; // don't proceed to start a txn if time already expired
-            }
-=======
             incTs("connect_attempt");
             this.conn = this.benchmark.makeConnection(workerPriorityClass);
             this.conn.setAutoCommit(false);
             this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
             incTs("connect_success");
->>>>>>> d168bf6 (add per-second tier time-series (connect/query/reject/abandon) and dump to CSV)
+
+            long remainingAfterReconnect = hardDeadlineMs - System.currentTimeMillis();
+            if (remainingAfterReconnect <= 0) {
+              break; // don't proceed to start a txn if time already expired
+            }
+         
           } catch (SQLException ex) {
             // Policy reject handling
             if ("freemium".equalsIgnoreCase(workerPriorityClass) && isPlbFreemiumReject(ex)) {
@@ -683,7 +679,6 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           break;
 
         } catch (SQLException ex) {
-<<<<<<< HEAD
 
           if ("57014".equals(ex.getSQLState())) { // query_canceled
             try {
@@ -697,11 +692,10 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             status = TransactionStatus.USER_ABORTED;
             break; // stop retries; worker's life budget is exhausted
           }
-=======
+// hada zyada jdid avant timeout 
           incTs("query_fail");
           if (isTimeout(ex)) incTs("query_timeout");
 
->>>>>>> d168bf6 (add per-second tier time-series (connect/query/reject/abandon) and dump to CSV)
           // check if we should attempt to ignore connection errors and reconnect
           boolean isConnectionErrorException = SQLUtil.isConnectionErrorException(ex);
 

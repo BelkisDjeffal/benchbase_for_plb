@@ -1,7 +1,81 @@
 # File: run_one_iteration.yml
-- name: Start monitoring
+
+- name: Restart postgres and wait ready
   hosts: postgres_servers
   become: yes
+  tasks:
+    - name: Restart PostgreSQL
+      systemd:
+        name: postgresql
+        state: restarted
+
+    - name: Wait until PostgreSQL is ready
+      shell: pg_isready -p 5432
+      register: pg_ready
+      retries: 30
+      delay: 2
+      until: pg_ready.rc == 0
+
+
+- name: Warmup run 
+  hosts: localhost
+  vars:
+    results_dir: "/home/benchbase/target/benchbase-postgres/results"
+  tasks:
+    - name: Clear old summary files before warmup
+      shell: rm -f {{ results_dir }}/*.summary.json
+      ignore_errors: yes
+
+    - name: Create warmup summaries folder
+      file:
+        path: "{{ results_dir }}/warmup_summaries/run_{{ run_id }}"
+        state: directory
+
+    - name: List summary files before warmup
+      find:
+        paths: "{{ results_dir }}"
+        patterns: "*.summary.json"
+        file_type: file
+      register: summaries_before
+
+    - name: Run warmup BenchBase
+      shell: >
+        java -jar benchbase.jar -b tpch
+        -c config/postgres/sample_tpch_config_warmup.xml
+        --create=false --load=false --execute=true
+        > {{ benchbase_output_dir }}/warmup_output_{{ run_id }}.txt 2>&1
+      args:
+        chdir: /home/benchbase/target/benchbase-postgres
+
+    - name: List summary files after warmup
+      find:
+        paths: "{{ results_dir }}"
+        patterns: "*.summary.json"
+        file_type: file
+      register: summaries_after
+
+    - name: Move new warmup summary files away
+      shell: >
+        mv "{{ item }}" "{{ results_dir }}/warmup_summaries/run_{{ run_id }}/"
+      loop: >-
+        {{
+          (summaries_after.files | map(attribute='path') | list)
+          | difference(summaries_before.files | map(attribute='path') | list)
+        }}
+      when: >-
+        (
+          (summaries_after.files | map(attribute='path') | list)
+          | difference(summaries_before.files | map(attribute='path') | list)
+        ) | length > 0
+
+
+- name: Start monitoring and schedule faults
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  vars:
+    fault_events: "{{ fault_events | default([]) }}"
   tasks:
     - name: Create monitoring folder
       file:
@@ -11,28 +85,108 @@
     - name: Start pidstat
       shell: |
         nohup pidstat -h -r -u -d 1 > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1 &
-        echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid        
+        echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid
       args:
         executable: /bin/bash
+
+    - name: Create fault folder
+      file:
+        path: "/tmp/fault/{{ run_label }}/run_{{ run_id }}"
+        state: directory
+
+    - name: Schedule fault events (sleep then stop/start postgres)
+      shell: |
+        nohup bash -c "sleep {{ item.at_s }}; systemctl {{ item.action }} postgresql" \
+          > /tmp/fault/{{ run_label }}/run_{{ run_id }}/fault_{{ item.role }}_t{{ item.at_s }}.log 2>&1 &
+        echo $! > /tmp/fault/{{ run_label }}/run_{{ run_id }}/fault_{{ item.role }}_t{{ item.at_s }}.pid
+      args:
+        executable: /bin/bash
+      loop: "{{ fault_events }}"
+      when: replica_roles[inventory_hostname] == item.role
+
 
 - name: Run BenchBase workload
   hosts: localhost
   tasks:
     - name: Run BenchBase workload (run {{ run_id }})
       shell: >
-        java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+        java -Dincident.enabled=true -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
         --create=false --load=false --execute=true
-        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
+        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt 2>&1
       args:
         chdir: /home/benchbase/target/benchbase-postgres
 
-- name: Stop monitoring
+    - name: Record run start time (epoch seconds)
+      shell: date +%s
+      register: run_start_epoch
+      changed_when: false
+
+    - name: Run BenchBase workload (run {{ run_id }})
+      shell: >
+        java -Dincident.enabled=true -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+        --create=false --load=false --execute=true
+        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt 2>&1
+      args:
+        chdir: /home/benchbase/target/benchbase-postgres
+
+    - name: Find bb_ts files created during this run (results dir)
+      find:
+        paths: "/home/benchbase/target/benchbase-postgres/results"
+        patterns: "tpch_*.bb_ts.cs"
+        file_type: file
+      register: bbts_results
+
+    - name: Find bb_ts files created during this run (work dir)
+      find:
+        paths: "/home/benchbase/target/benchbase-postgres"
+        patterns: "tpch_*.bb_ts.cs"
+        file_type: file
+      register: bbts_workdir
+
+    - name: Pick newest bb_ts file created after run start
+      set_fact:
+        bbts_candidates: >-
+          {{
+            (bbts_results.files + bbts_workdir.files)
+            | selectattr('mtime', '>=', (run_start_epoch.stdout | int))
+            | list
+          }}
+        bbts_latest: >-
+          {{
+            (
+              (bbts_results.files + bbts_workdir.files)
+              | selectattr('mtime', '>=', (run_start_epoch.stdout | int))
+              | sort(attribute='mtime')
+              | list
+            ) | last | default({})
+          }}
+
+    - name: Move bb_ts file into run output folder (rename with run id)
+      shell: >
+        mv "{{ bbts_latest.path }}"
+        "{{ benchbase_output_dir }}/tpch_run_{{ run_id }}.bb_ts.cs"
+      when: bbts_latest.path is defined
+
+
+- name: Stop monitoring and cleanup faults
   hosts: postgres_servers
   become: yes
   tasks:
     - name: Stop pidstat
       shell: "kill -TERM $(cat /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid)"
       ignore_errors: yes
+
+    - name: Cancel remaining scheduled fault scripts
+      shell: |
+        if ls /tmp/fault/{{ run_label }}/run_{{ run_id }}/*.pid >/dev/null 2>&1; then
+          for p in /tmp/fault/{{ run_label }}/run_{{ run_id }}/*.pid; do
+            kill -TERM "$(cat "$p")" >/dev/null 2>&1 || true
+          done
+        fi
+      args:
+        executable: /bin/bash
+      ignore_errors: yes
+
 
 - name: Fetch monitoring logs
   hosts: postgres_servers
@@ -45,6 +199,7 @@
         src: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log"
         dest: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}/{{ replica_roles[inventory_hostname] }}_{{ inventory_hostname }}.log"
         flat: yes
+
 
 - name: Inter-run pause
   hosts: localhost

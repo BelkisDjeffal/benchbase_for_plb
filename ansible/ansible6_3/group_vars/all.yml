@@ -1,14 +1,19 @@
 
 reserved_nodes:
-- gros-87.nancy.grid5000.fr
-- gros-88.nancy.grid5000.fr
-- gros-89.nancy.grid5000.fr
-- gros-90.nancy.grid5000.fr
-- gros-92.nancy.grid5000.fr
-- gros-93.nancy.grid5000.fr
+- gros-102.nancy.grid5000.fr
+- gros-104.nancy.grid5000.fr
+- gros-34.nancy.grid5000.fr
+- gros-71.nancy.grid5000.fr
+- gros-73.nancy.grid5000.fr
+- gros-76.nancy.grid5000.fr
 
 
 postgres_servers:
+- gros-102.nancy.grid5000.fr
+- gros-104.nancy.grid5000.fr
+- gros-34.nancy.grid5000.fr
+- gros-71.nancy.grid5000.fr
+- gros-73.nancy.grid5000.fr
 - gros-87.nancy.grid5000.fr
 - gros-88.nancy.grid5000.fr
 - gros-89.nancy.grid5000.fr
@@ -17,15 +22,20 @@ postgres_servers:
 
 
 injector_node:
-- gros-93.nancy.grid5000.fr
+- gros-76.nancy.grid5000.fr
 
 
 premium_nodes:
+- gros-102.nancy.grid5000.fr
+- gros-104.nancy.grid5000.fr
 - gros-87.nancy.grid5000.fr
 - gros-88.nancy.grid5000.fr
 
 
 freemium_nodes:
+- gros-34.nancy.grid5000.fr
+- gros-71.nancy.grid5000.fr
+- gros-73.nancy.grid5000.fr
 - gros-89.nancy.grid5000.fr
 - gros-90.nancy.grid5000.fr
 - gros-92.nancy.grid5000.fr

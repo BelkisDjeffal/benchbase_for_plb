@@ -1,0 +1,30 @@
+      - { terminals: 1000, weights: "500,500" }
+      - { terminals: 1000, weights: "100,900" }
+      - { terminals: 1000, weights: "900,100" }
+      - { terminals: 1000, weights: "200,800" }
+      - { terminals: 1000, weights: "800,200" }
+      - { terminals: 1000, weights: "300,700" }
+      - { terminals: 1000, weights: "700,300" }
+      - { terminals: 1000, weights: "400,600" }
+      - { terminals: 1000, weights: "600,400" }
+
+
+      # - { terminals: 300, weights: "100,200" }
+      # - { terminals: 120, weights: "60,60" }
+      # - { terminals: 480, weights: "80,400" }
+      # - { terminals: 180, weights: "80,100" }
+      # - { terminals: 420, weights: "200,220" }
+      # - { terminals: 240, weights: "40,200" }
+      # - { terminals: 360, weights: "300,60" }
+      # - { terminals: 60, weights: "20,40" }
+      # - { terminals: 540, weights: "200,340" }
+   
+      - { terminals: 500, weights: "200,300" }
+      - { terminals: 100, weights: "50,50" }
+      - { terminals: 200, weights: "100,100" }
+      - { terminals: 300, weights: "200,100" }
+      - { terminals: 400, weights: "200,200" }
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 700, weights: "400,300" }
+      - { terminals: 800, weights: "400,400" }
+      - { terminals: 900, weights: "500,400" }     
