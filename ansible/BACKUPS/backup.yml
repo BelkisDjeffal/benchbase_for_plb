@@ -1,0 +1,119 @@
+- name: Run BenchBase experiments
+  hosts: localhost
+  connection: local
+  vars:
+    benchbase_runs:
+
+      - { terminals: 20, weights: "4,16" }
+      - { terminals: 20, weights: "10,10" }
+      - { terminals: 20, weights: "16,4" }
+
+      - { terminals: 10, weights: "2,8" }
+      - { terminals: 10, weights: "5,5" }
+      - { terminals: 10, weights: "8,2" }
+
+      - { terminals: 30, weights: "10,20" }
+      - { terminals: 30, weights: "15,15" }
+      - { terminals: 30, weights: "20,10" }
+
+      - { terminals: 40, weights: "10,30" }
+      - { terminals: 40, weights: "20,20" }
+      - { terminals: 40, weights: "30,10" }
+
+      - { terminals: 50, weights: "10,40" }
+      - { terminals: 50, weights: "40,10" }
+      - { terminals: 50, weights: "25,25" }
+
+      - { terminals: 100, weights: "30,70" }
+      - { terminals: 100, weights: "50,50" }
+      - { terminals: 100, weights: "70,30" }
+
+      - { terminals: 150, weights: "75,75" }
+      - { terminals: 150, weights: "100,50" }
+      - { terminals: 150, weights: "50,100" }
+
+      - { terminals: 170, weights: "85,85" }
+      - { terminals: 170, weights: "120,50" }
+      - { terminals: 170, weights: "50,120" }
+
+      - { terminals: 200, weights: "100,100" }
+      - { terminals: 200, weights: "150,50" }
+      - { terminals: 200, weights: "50,150" }
+
+      - { terminals: 250, weights: "125,125" }
+      - { terminals: 250, weights: "75,175" }
+      - { terminals: 250, weights: "175,75" }
+
+      - { terminals: 300, weights: "225,75" }
+      - { terminals: 300, weights: "275,25" }
+      - { terminals: 300, weights: "225,75" }
+
+      - { terminals: 350, weights: "275,75" }
+      - { terminals: 350, weights: "175,175" }
+      - { terminals: 350, weights: "75,275" }
+
+      - { terminals: 400, weights: "120,280" }
+      - { terminals: 400, weights: "200,200" }
+      - { terminals: 400, weights: "280,120" }
+
+      - { terminals: 450, weights: "100,350" }
+      - { terminals: 450, weights: "225,225" }
+      - { terminals: 450, weights: "350,100" }
+
+      - { terminals: 500, weights: "100,400" }
+      - { terminals: 500, weights: "250,250" }
+      - { terminals: 500, weights: "400,100" }
+
+      - { terminals: 550, weights: "125,425" }
+      - { terminals: 550, weights: "275,275" }
+      - { terminals: 550, weights: "425,125" }
+
+      - { terminals: 600, weights: "150,450" }
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 600, weights: "450,150" }
+
+      - { terminals: 70, weights: "10,60" }
+      - { terminals: 70, weights: "35,35" }
+      - { terminals: 70, weights: "60,10" }
+
+      - { terminals: 125, weights: "25,100" }
+      - { terminals: 125, weights: "62,63" }
+      - { terminals: 125, weights: "25,100" }
+
+      - { terminals: 225, weights: "200,25" }
+      - { terminals: 225, weights: "112,113" }
+      - { terminals: 225, weights: "25,200" }
+      
+
+      
+  tasks:
+    - name: Ensure run_benchbase.sh is executable
+      shell: chmod +x run_benchbase.sh
+      args:
+        chdir: /home/benchbase
+
+    - name: Ensure summary extractor is executable
+      shell: chmod +x extract_summary_priorities.sh
+      args:
+        chdir: /home/benchbase/measurements/data
+
+    - name: Run each BenchBase configuration
+      loop: "{{ benchbase_runs }}"
+      loop_control:
+        loop_var: run
+      include_tasks: run_benchbase_once.yml
+      vars:
+        terminals: "{{ run.terminals }}"
+        weights: "{{ run.weights }}"
+
+    - name: Get latest runs_outputs folder name
+      shell: basename $(ls -td /home/benchbase/measurements/data/runs_outputs/*/ | head -1)
+      register: latest_folder_name
+
+    - name: Extract summary priorities into runs_outputs folder
+      shell: |
+        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ latest_folder_name.stdout }}
+      args:
+        chdir: /home/benchbase
+
+    # Optional: Sync back to your home later from your laptop manually

@@ -1,5 +1,6 @@
 
 reserved_nodes:
+<<<<<<< HEAD
 - gros-107.nancy.grid5000.fr
 - gros-108.nancy.grid5000.fr
 - gros-95.nancy.grid5000.fr
@@ -40,5 +41,47 @@ replica_roles:
 
 
 source_host: gros-107.nancy.grid5000.fr
+=======
+- gros-48.nancy.grid5000.fr
+- gros-49.nancy.grid5000.fr
+- gros-5.nancy.grid5000.fr
+- gros-50.nancy.grid5000.fr
+- gros-51.nancy.grid5000.fr
+- gros-58.nancy.grid5000.fr
+
+
+postgres_servers:
+- gros-48.nancy.grid5000.fr
+- gros-49.nancy.grid5000.fr
+- gros-5.nancy.grid5000.fr
+- gros-50.nancy.grid5000.fr
+- gros-51.nancy.grid5000.fr
+
+
+injector_node:
+- gros-58.nancy.grid5000.fr
+
+
+premium_nodes:
+- gros-48.nancy.grid5000.fr
+- gros-49.nancy.grid5000.fr
+
+
+freemium_nodes:
+- gros-5.nancy.grid5000.fr
+- gros-50.nancy.grid5000.fr
+- gros-51.nancy.grid5000.fr
+
+
+replica_roles:
+  gros-48.nancy.grid5000.fr: premium_replica1
+  gros-49.nancy.grid5000.fr: premium_replica2
+  gros-5.nancy.grid5000.fr: freemium_replica1
+  gros-50.nancy.grid5000.fr: freemium_replica2
+  gros-51.nancy.grid5000.fr: freemium_replica3
+
+
+source_host: gros-48.nancy.grid5000.fr
+>>>>>>> c5d6cd3 (updated ansibleplaybooks to conduct failure experiments)
 source_data_dir: "/var/lib/postgresql/14/main"
 replica_data_dir: "/var/lib/postgresql/14/main"

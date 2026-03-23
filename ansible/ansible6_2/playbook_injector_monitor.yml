@@ -1,10 +1,16 @@
-#playbook_injector_monitor.yml
+# File: playbook_injector_monitor.yml
+
 - name: Run BenchBase experiments
   hosts: localhost
   connection: local
   vars:
     benchbase_runs:
+      - { terminals: 300, weights: "150,150" }
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 1000, weights: "500,500" }
+      - { terminals: 1500, weights: "750,750" }
 
+<<<<<<< HEAD
     - { terminals: 300,  weights: "150,150" }
 
     - { terminals: 400,  weights: "200,200" }
@@ -47,6 +53,36 @@
 
     - { terminals: 1500, weights: "450,1050" }  # P30/F70
     - { terminals: 1500, weights: "1050,450" }  # P70/F30
+=======
+    repetitions: 5
+
+    fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
+
+      - name: "killP_60"
+        fault_events:
+          - { at_s: 60, role: "premium_replica1", action: "stop" }
+
+      - name: "killF_60"
+        fault_events:
+          - { at_s: 60, role: "freemium_replica1", action: "stop" }
+
+      # - name: "killP_60_killP_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "premium_replica2", action: "stop" }
+
+      # - name: "killF_60_killF_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "freemium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "freemium_replica2", action: "stop" }
+
+      # - name: "killP_60_killF_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "freemium_replica1", action: "stop" }
+>>>>>>> c5d6cd3 (updated ansibleplaybooks to conduct failure experiments)
 
   tasks:
     - name: Ensure summary extractor is executable
@@ -62,13 +98,14 @@
       vars:
         terminals: "{{ run.terminals }}"
         weights: "{{ run.weights }}"
-  
-    - name: Read last run path
-      shell: cat /tmp/last_benchbase_output_dir.txt
-      register: last_output
+        # repetitions: "{{ repetitions }}"
 
-    - name: Extract summary priorities into correct folder
-      shell: |
-        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
-      args:
-        chdir: /home/benchbase
+    # - name: Read last run path
+    #   shell: cat /tmp/last_benchbase_output_dir.txt
+    #   register: last_output
+
+    # - name: Extract summary priorities into correct folder
+    #   shell: |
+    #     ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+    #   args:
+    #     chdir: /home/benchbase

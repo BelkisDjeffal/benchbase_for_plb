@@ -1,0 +1,10 @@
+- name: Generate customized XML config
+  template:
+    src: /home/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Run BenchBase workload
+  shell: ./run_benchbase.sh 5
+  args:
+    chdir: /home/benchbase
