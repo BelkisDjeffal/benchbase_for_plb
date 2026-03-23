@@ -1,0 +1,527 @@
+- name: Initialize grid 5000
+  tags: reservation_task  
+  hosts: grid5000
+  remote_user: bdjeffal
+  vars:
+    OS_image: ubuntu2204-x64-min
+    source_data_dir: /var/lib/postgresql/14/main
+    replica_data_dir: /var/lib/postgresql/14/main
+  tasks:
+    - name: Reserve 6 nodes from Grid5000
+      tags: reserve_nodes
+      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=21,walltime={{ grid_time }} -r '19:00' -t deploy"
+      register: job_output
+
+    - name: Extract job ID
+      tags: reserve_nodes
+      set_fact:
+        job_id: "{{ job_output.stdout | regex_search('OAR_JOB_ID=(\\d+)', '\\1') | first }}"
+
+    - name: Log job ID
+      tags: reserve_nodes
+      debug:
+        msg: "Job ID: {{ job_id }}"
+
+    - name: Wait for reservation validation
+      tags: reserve_nodes
+      pause:
+        minutes: 7
+
+    - name: Get job details
+      tags: reserve_nodes
+      command: "oarstat -f -j {{ job_id }}"
+      register: job_details
+
+    - name: Extract assigned hostnames from job output (normal case)
+      when: assigned_hostnames is not defined and job_details is defined
+      set_fact:
+        reserved_nodes: "{{ (job_details.stdout | regex_search('assigned_hostnames = (.+)', '\\1')) | first | split('+') }}"
+
+    - name: Convert assigned_hostnames to reserved_nodes (manual fallback)
+      when: assigned_hostnames is defined
+      set_fact:
+        reserved_nodes: >-
+          {{ assigned_hostnames.split('+') | list }}
+
+    - name: Log reserved nodes
+      debug:
+        msg: "Reserved nodes: {{ reserved_nodes }}"
+
+    - name: Assign nodes to groups
+      set_fact:
+        postgres_servers: "{{ reserved_nodes[:1] }}"  
+        injector_node: "{{ reserved_nodes[1:] }}" 
+        premium_nodes: "{{ reserved_nodes[:1] }}"
+        freemium_nodes: []
+
+    - name: Generate inventory_monitor.yml from template
+      template:
+        src: /home/spirals/phd/experiments/janvier/benchbase/templates/inventory_monitor.yml.j2
+        dest: "{{ playbook_dir }}/inventory_monitor.yml"
+      delegate_to: localhost
+      run_once: true
+
+
+    - name: Create replica role mapping
+      set_fact:
+        replica_roles: >-
+          {{
+            dict(
+              premium_nodes
+              | map('regex_replace', '\\.nancy\\.grid5000\\.fr$', '')
+              | zip(range(1, (premium_nodes | length) + 1)
+                    | map('string')
+                    | map('regex_replace', '^', 'premium_replica'))
+              + freemium_nodes
+              | map('regex_replace', '\\.nancy\\.grid5000\\.fr$', '')
+              | zip(range(1, (freemium_nodes | length) + 1)
+                    | map('string')
+                    | map('regex_replace', '^', 'freemium_replica'))
+            )
+          }}
+
+    - name: Debug Assigned Groups
+      debug:
+        msg:
+          - "Postgres Servers: {{ postgres_servers }}"
+          - "Injector Node: {{ injector_node }}"
+          - "Premium Nodes: {{ premium_nodes }}"
+          - "Freemium Nodes: {{ freemium_nodes }}"
+          - "Replica Roles: {{ replica_roles }}"
+
+    - name: Render group_vars/all.yml safely
+      tags: render_all_yml
+      template:
+        src: "./all.yml.j2"
+        dest: group_vars/all.yml
+      delegate_to: localhost
+      run_once: true
+
+    - name: Add reserved nodes to inventory
+      tags: add_inventory
+      add_host:
+        name: "{{ item }}"
+        ansible_host: "{{ item }}"
+        groups: postgres_servers
+      loop: "{{ reserved_nodes[:1] }}"  
+      tags: always
+
+    - name: Add the separate node for Java/Other
+      tags: add_injector
+      add_host:
+        name: "{{ reserved_nodes[1] }}"
+        ansible_host: "{{ reserved_nodes[1] }}"
+        groups: injector_node
+      when: reserved_nodes | length > 0
+      tags: always
+
+    - name: Deploy OS on all reserved nodes (Start asynchronously)
+      tags: ssh_stuff
+      command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
+      loop: "{{ reserved_nodes }}"
+      async: 600  
+      poll: 0
+      register: os_deployment_jobs
+
+    - name: Wait for all OS deployments to complete
+      tags: ssh_stuff
+      
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: os_deployment_results
+      until: os_deployment_results.finished
+      retries: 60  
+      delay: 10
+      loop: "{{ os_deployment_jobs.results }}"
+
+    - name: Backup authorized_keys before editing
+      tags: ssh_stuff
+      delegate_to: "{{ injector_node[0] }}"
+      remote_user: root
+      copy:
+        src: /root/.ssh/authorized_keys
+        dest: /root/.ssh/authorized_keys.bak
+        remote_src: yes
+      ignore_errors: yes
+
+    - name: Add frontend public key to injector authorized_keys
+      tags: ssh_stuff
+      delegate_to: "{{ injector_node[0] }}"
+      remote_user: root
+      ansible.builtin.lineinfile:
+        path: /root/.ssh/authorized_keys
+        create: yes
+        line: "{{ lookup('file', '/home/spirals/.ssh/id_rsa.pub') }}"
+      tags: add_frontend_key_to_injector
+
+    - name: Generate SSH key on injector node
+      tags: ssh_stuff
+      delegate_to: "{{ injector_node[0] }}"
+      remote_user: root
+      shell: ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
+      args:
+        creates: /root/.ssh/id_rsa
+
+    - name: Fetch public key from injector
+      tags: ssh_stuff
+      delegate_to: "{{ injector_node[0] }}"
+      remote_user: root
+      slurp:
+        src: /root/.ssh/id_rsa.pub
+      register: injector_pubkey
+      run_once: true
+
+    - name: Set injector public key
+      tags: ssh_stuff
+      set_fact:
+        injector_pubkey_decoded: "{{ injector_pubkey['content'] | b64decode }}"
+      run_once: true
+
+    - name: Add injector’s SSH public key to replica nodes
+      tags: ssh_stuff
+      ansible.builtin.lineinfile:
+        path: /root/.ssh/authorized_keys
+        create: yes
+        line: "{{ injector_pubkey_decoded }}"
+      delegate_to: "{{ item }}"
+      remote_user: root
+      with_items: "{{ postgres_servers }}"
+
+- name: Generate updated JDBC configuration
+  hosts: localhost
+  tags: jdbc_config
+  tasks:
+    - name: Reload group variables
+      include_vars:
+        file: group_vars/all.yml
+
+    - name: Debug global variables
+      debug:
+        msg:
+          - "Premium Nodes: {{ premium_nodes }}"
+          - "Freemium Nodes: {{ freemium_nodes }}"
+
+    - name: Generate new database properties file
+      template:
+        src: /home/spirals/phd/experiments/decembre/plb/src/main/resources/replicas-grid5000.properties.j2
+        dest: /home/spirals/phd/experiments/decembre/plb/src/main/resources/replicas-grid5000.properties
+        backup: yes
+
+# ---- Postgres Setup ------------------------------------------------------------------------
+- name: Install and configure PostgreSQL
+  hosts: postgres_servers
+  remote_user: root
+  tags: postgres
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - sysstat
+          - wget
+          - ca-certificates
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: yes
+
+    - name: Start and enable PostgreSQL service
+      systemd:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Ensure PostgreSQL is accessible
+      command: "pg_isready"
+      register: postgres_status
+      changed_when: false
+
+    - name: Log PostgreSQL readiness
+      debug:
+        msg: "PostgreSQL is running on {{ inventory_hostname }}"
+
+    - name: Create PostgreSQL admin user if not exists
+      shell: |
+        sudo -i -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='admin'" | grep -q 1 || \
+        sudo -i -u postgres psql -c "CREATE USER admin WITH PASSWORD 'password';"
+      register: create_user_out
+      failed_when: false
+
+    - name: Grant CREATEDB to admin user
+      shell: sudo -i -u postgres psql -c "ALTER USER admin CREATEDB;"
+      register: alter_user_out
+      failed_when: false
+
+    - name: Create benchbase database if not exists
+      shell: |
+        sudo -i -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='benchbase'" | grep -q 1 || \
+        sudo -i -u postgres psql -c "CREATE DATABASE benchbase OWNER admin;"
+      register: create_db_out
+      failed_when: false
+
+    - name: Log PostgreSQL admin user creation
+      debug:
+        msg: "PostgreSQL admin user created and database benchbase assigned to admin."
+
+    - name: Log database creation
+      debug:
+        msg: "Database creation status: {{ create_db_out.stdout_lines }}"
+
+    - name: Install required Python packages for PostgreSQL
+      ansible.builtin.package:
+        name: python3-psycopg2
+        state: present
+
+    - name: Log Python package installation
+      debug:
+        msg: "Required Python packages for PostgreSQL installed."
+
+    - name: Stop PostgreSQL before data directory migration
+      tags: stop_and_start_postgres
+      #tags: config_data_directory
+      systemd:
+        name: postgresql
+        state: stopped
+
+    - name: Create new PostgreSQL data directory
+      tags: config_data_directory
+      file:
+        path: /tmp/postgresql/14/main
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0700'
+        recurse: yes
+
+    - name: Copy PostgreSQL data to /tmp
+      tags: config_data_directory
+      synchronize:
+        src: /var/lib/postgresql/14/main/
+        dest: /tmp/postgresql/14/main/
+        archive: yes
+        delete: no
+      delegate_to: "{{ inventory_hostname }}"
+      become: true
+
+    - name: Ensure ownership of copied PostgreSQL data
+      tags: config_data_directory
+      file:
+        path: /tmp/postgresql/14/main
+        owner: postgres
+        group: postgres
+        recurse: yes
+
+    - name: Update data_directory in postgresql.conf
+      tags: config_data_directory
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: '^#?data_directory'
+        line: "data_directory = '/tmp/postgresql/14/main'"
+
+    - name: Configure PostgreSQL - listen_addresses
+      tags: config_data_directory
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: '^#?listen_addresses'
+        line: "listen_addresses = '*'"
+
+    - name: Apply PostgreSQL tuning parameters
+      tags: config_data_directory
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: "^#?{{ item.key }}\\s*=.*"
+        line: "{{ item.key }} = {{ item.value }}"
+        insertafter: EOF
+      loop:
+        - { key: 'max_connections', value: '5000' }
+        - { key: 'shared_buffers', value: '72GB' }
+        - { key: 'effective_cache_size', value: '72192MB' }
+        - { key: 'maintenance_work_mem', value: '2GB' }
+        - { key: 'checkpoint_completion_target', value: '0.9' }
+        - { key: 'wal_buffers', value: '16MB' }
+        - { key: 'default_statistics_target', value: '100' }
+        - { key: 'random_page_cost', value: '1.1' }
+        - { key: 'effective_io_concurrency', value: '200' }
+        - { key: 'work_mem', value: '417652kB' }
+        - { key: 'huge_pages', value: 'try' }
+        - { key: 'min_wal_size', value: '1GB' }
+        - { key: 'max_wal_size', value: '4GB' }
+        - { key: 'max_worker_processes', value: '36' }
+        - { key: 'max_parallel_workers_per_gather', value: '4' }
+        - { key: 'max_parallel_workers', value: '36' }
+        - { key: 'max_parallel_maintenance_workers', value: '4' }
+
+    - name: Configure PostgreSQL - pg_hba.conf
+      tags: config_data_directory
+      tags: postgres_config
+      blockinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        block: |
+          host    all    all    0.0.0.0/0    md5
+
+    - name: Restart PostgreSQL
+      tags: stop_and_start_postgres
+      #tags: config_data_directory
+      systemd:
+        name: postgresql
+        state: restarted
+      register: pg_restart
+
+    - name: Allow PostgreSQL through firewall
+      tags: postgres_config
+      ufw:
+        rule: allow
+        port: 5432
+        proto: tcp
+      register: ufw_config
+
+    - name: Copy directory dump to each PostgreSQL server
+      tags: copy_benchbase_dump
+      delegate_to: localhost
+      become: false
+      synchronize:
+        src: /home/spirals/phd/experiments/benchbase_dump/
+        dest: /tmp/benchbase_dump/
+        mode: push
+      loop: "{{ postgres_servers }}"
+      loop_control:
+        loop_var: replica
+      vars:
+        ansible_host: "{{ replica }}"
+
+    - name: Restore pre-data and data sections (no indexes)
+      tags: restore_pgdata
+      become: true
+      shell: |
+        sudo -i -u postgres pg_restore \
+          --section=pre-data --section=data \
+          -j 16 \
+          -d benchbase \
+          /tmp/benchbase_dump/
+      environment:
+        PGPASSWORD: password
+      register: restore_phase1
+      changed_when: "'ERROR' not in restore_phase1.stderr"
+
+    - name: Log Phase 1 status
+      tags: restore_pgdata
+      debug:
+        msg: "Phase 1 (schema + data) complete on {{ inventory_hostname }}"
+
+    - name: Restore post-data section (indexes & constraints)
+      tags: restore_pgdata
+      become: true
+      shell: |
+        sudo -i -u postgres pg_restore \
+          --section=post-data \
+          -j 1 \
+          -d benchbase \
+          /tmp/benchbase_dump/
+      environment:
+        PGPASSWORD: password
+      register: restore_phase2
+      changed_when: "'ERROR' not in restore_phase2.stderr"
+
+    - name: Log Phase 2 status
+      tags: restore_pgdata
+      debug:
+        msg: "Phase 2 (indexes & constraints) complete on {{ inventory_hostname }}"
+
+- name: Ensure reserved nodes are added to inventory
+  hosts: localhost
+  tags: Ensure reserved nodes are added to inventory
+  tasks:
+    - name: Reload group variables 2
+      include_vars:
+        file: group_vars/all.yml
+
+    - name: Ensure postgres_servers are added to inventory
+      add_host:
+        name: "{{ item }}"
+        ansible_host: "{{ item }}"
+        groups: postgres_servers
+      loop: "{{ postgres_servers }}"
+      when: postgres_servers is defined and postgres_servers | length > 0
+
+    - name: Ensure injector_node is added to inventory
+      add_host:
+        name: "{{ item }}"
+        ansible_host: "{{ item }}"
+        groups: injector_node
+      loop: "{{ injector_node }}"
+      when: injector_node is defined and injector_node | length > 0
+
+# --- Injector setup ----------------------------------------------------------------------
+- name: Install Java & Other Tools
+  hosts: injector_node
+  remote_user: root
+  tags: java
+  tasks:
+    - name: Install expect (for automated ssh-copy-id)
+      apt:
+        name: expect
+        state: present
+        update_cache: yes
+
+    - name: Install Java
+      apt:
+        name: openjdk-21-jdk
+        state: present
+        update_cache: yes
+      
+    - name: Install additional software 
+      apt:
+        name: maven
+        state: present
+
+    - name: Install jq 
+      apt:
+        name: jq
+        state: present
+
+    - name: Install Ansible 
+      tags: ansible
+      apt:
+        name: ansible
+        state: present
+
+    - name: Log Java Installation
+      debug:
+        msg: "Java & additional tools installed on {{ inventory_hostname }}"
+
+    - name: Synchronize plb directory to injector node
+      delegate_to: localhost
+      become: false
+      ansible.builtin.synchronize:
+        src: /home/spirals/phd/experiments/decembre/plb/
+        dest: /home/plb/
+        mode: push    
+
+    - name: Build and install plb
+      ansible.builtin.shell: |
+        mvn clean && mvn install
+      args:
+        chdir: /home/plb
+      register: plb_build_output
+
+    - name: Synchronize benchbase directory to injector node
+      tags: copy_benchbase
+      delegate_to: localhost
+      become: false
+      ansible.builtin.synchronize:
+        src: /home/spirals/phd/experiments/janvier/benchbase/
+        dest: /home/benchbase
+        mode: push
+    - name: Allow Git safe directory for Benchbase
+      ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
+      
+    - name: Build Benchbase
+      tags: copy_benchbase
+      ansible.builtin.shell: |
+        ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
+      args:
+        chdir: /home/benchbase
+      register: benchbase_build_output
+
+
+
+

@@ -1,28 +1,43 @@
-#playbook_injector_monitor.yml
+# File: playbook_injector_monitor.yml
+
 - name: Run BenchBase experiments
   hosts: localhost
   connection: local
   vars:
     benchbase_runs:
+      - { terminals: 300, weights: "150,150" }
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 1000, weights: "500,500" }
+      - { terminals: 1500, weights: "750,750" }
 
-    - { terminals: 100, weights: "30,70" }
-    - { terminals: 100, weights: "70,30" }
-    - { terminals: 100,  weights: "50,50" }
-    - { terminals: 300, weights: "90,210" }
-    - { terminals: 300, weights: "210,90" }
-    - { terminals: 300, weights: "150,150" }
-    - { terminals: 600,  weights: "300,300" }
-    - { terminals: 600, weights: "180,420" }
-    - { terminals: 600, weights: "420,180" }
-    - { terminals: 1000, weights: "300,700" }
-    - { terminals: 1000, weights: "700,300" }
-    - { terminals: 1000, weights: "500,500" }
-    - { terminals: 1500, weights: "450,1050" }
-    - { terminals: 1500, weights: "1050,450" }
-    - { terminals: 1500, weights: "750,750" }
-    - { terminals: 1800, weights: "540,1260" }
-    - { terminals: 1800, weights: "1260,540" }
-    - { terminals: 1800, weights: "900,900" }
+    repetitions: 5
+
+    fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
+
+      - name: "killP_60"
+        fault_events:
+          - { at_s: 60, role: "premium_replica1", action: "stop" }
+
+      - name: "killF_60"
+        fault_events:
+          - { at_s: 60, role: "freemium_replica1", action: "stop" }
+
+      # - name: "killP_60_killP_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "premium_replica2", action: "stop" }
+
+      # - name: "killF_60_killF_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "freemium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "freemium_replica2", action: "stop" }
+
+      # - name: "killP_60_killF_90"
+      #   fault_events:
+      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
+      #     - { at_s: 90, role: "freemium_replica1", action: "stop" }
 
   tasks:
     - name: Ensure summary extractor is executable
@@ -38,13 +53,14 @@
       vars:
         terminals: "{{ run.terminals }}"
         weights: "{{ run.weights }}"
-  
-    - name: Read last run path
-      shell: cat /tmp/last_benchbase_output_dir.txt
-      register: last_output
+        # repetitions: "{{ repetitions }}"
 
-    - name: Extract summary priorities into correct folder
-      shell: |
-        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
-      args:
-        chdir: /home/benchbase
+    # - name: Read last run path
+    #   shell: cat /tmp/last_benchbase_output_dir.txt
+    #   register: last_output
+
+    # - name: Extract summary priorities into correct folder
+    #   shell: |
+    #     ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+    #   args:
+    #     chdir: /home/benchbase

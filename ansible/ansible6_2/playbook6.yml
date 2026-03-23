@@ -204,7 +204,6 @@
         dest: /home/spirals/phd/experiments/decembre/plb/src/main/resources/replicas-grid5000.properties
         backup: yes
 
-
 # ---- Postgres Setup ------------------------------------------------------------------------
 - name: Install and configure PostgreSQL
   hosts: postgres_servers
@@ -322,7 +321,7 @@
         line: "listen_addresses = '*'"
 
     - name: Apply PostgreSQL tuning parameters
-      tags: config_data_directory
+      tags: config
       lineinfile:
         path: /etc/postgresql/14/main/postgresql.conf
         regexp: "^#?{{ item.key }}\\s*=.*"
@@ -356,7 +355,7 @@
           host    all    all    0.0.0.0/0    md5
 
     - name: Restart PostgreSQL
-      tags: config_data_directory
+      tags: restart_postgres
       systemd:
         name: postgresql
         state: restarted
@@ -479,7 +478,7 @@
       register: plb_build_output
 
     - name: Synchronize benchbase directory to injector node
-      tags: copy_benchbase
+      #tags: copy_benchbase
       delegate_to: localhost
       become: false
       ansible.builtin.synchronize:
@@ -488,7 +487,7 @@
         mode: push
 
     - name: Allow Git safe directory for Benchbase
-      tags: copy_benchbase
+      #tags: copy_benchbase
       ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
       
     - name: Build Benchbase

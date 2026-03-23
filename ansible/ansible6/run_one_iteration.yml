@@ -22,9 +22,9 @@
   vars:
     results_dir: "/home/benchbase/target/benchbase-postgres/results"
   tasks:
-    - name: Clear old summary files before warmup
-      shell: rm -f {{ results_dir }}/*.summary.json
-      ignore_errors: yes
+    # - name: Clear old summary files before warmup
+    #   shell: rm -f {{ results_dir }}/*.summary.json
+    #   ignore_errors: yes
 
     - name: Create warmup summaries folder
       file:
@@ -108,13 +108,6 @@
 - name: Run BenchBase workload
   hosts: localhost
   tasks:
-    - name: Run BenchBase workload (run {{ run_id }})
-      shell: >
-        java -Dincident.enabled=true -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
-        --create=false --load=false --execute=true
-        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt 2>&1
-      args:
-        chdir: /home/benchbase/target/benchbase-postgres
 
     - name: Record run start time (epoch seconds)
       shell: date +%s
@@ -132,14 +125,14 @@
     - name: Find bb_ts files created during this run (results dir)
       find:
         paths: "/home/benchbase/target/benchbase-postgres/results"
-        patterns: "tpch_*.bb_ts.cs"
+        patterns: "tpch_*.bb_ts.csv"
         file_type: file
       register: bbts_results
 
     - name: Find bb_ts files created during this run (work dir)
       find:
         paths: "/home/benchbase/target/benchbase-postgres"
-        patterns: "tpch_*.bb_ts.cs"
+        patterns: "tpch_*.bb_ts.csv"
         file_type: file
       register: bbts_workdir
 
@@ -164,7 +157,7 @@
     - name: Move bb_ts file into run output folder (rename with run id)
       shell: >
         mv "{{ bbts_latest.path }}"
-        "{{ benchbase_output_dir }}/tpch_run_{{ run_id }}.bb_ts.cs"
+        "{{ benchbase_output_dir }}/tpch_run_{{ run_id }}.bb_ts.csv"
       when: bbts_latest.path is defined
 
 
