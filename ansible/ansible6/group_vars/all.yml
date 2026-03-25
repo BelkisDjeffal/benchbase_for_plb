@@ -1,44 +1,44 @@
 
 reserved_nodes:
-- gros-107.nancy.grid5000.fr
-- gros-108.nancy.grid5000.fr
-- gros-79.nancy.grid5000.fr
-- gros-80.nancy.grid5000.fr
-- gros-81.nancy.grid5000.fr
-- gros-82.nancy.grid5000.fr
+- gros-111.nancy.grid5000.fr
+- gros-114.nancy.grid5000.fr
+- gros-122.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
+- gros-55.nancy.grid5000.fr
+- gros-69.nancy.grid5000.fr
 
 
 postgres_servers:
-- gros-107.nancy.grid5000.fr
-- gros-108.nancy.grid5000.fr
-- gros-79.nancy.grid5000.fr
-- gros-80.nancy.grid5000.fr
-- gros-81.nancy.grid5000.fr
+- gros-111.nancy.grid5000.fr
+- gros-114.nancy.grid5000.fr
+- gros-122.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
+- gros-55.nancy.grid5000.fr
 
 
 injector_node:
-- gros-82.nancy.grid5000.fr
+- gros-69.nancy.grid5000.fr
 
 
 premium_nodes:
-- gros-107.nancy.grid5000.fr
-- gros-108.nancy.grid5000.fr
+- gros-111.nancy.grid5000.fr
+- gros-114.nancy.grid5000.fr
 
 
 freemium_nodes:
-- gros-79.nancy.grid5000.fr
-- gros-80.nancy.grid5000.fr
-- gros-81.nancy.grid5000.fr
+- gros-122.nancy.grid5000.fr
+- gros-38.nancy.grid5000.fr
+- gros-55.nancy.grid5000.fr
 
 
 replica_roles:
-  gros-107.nancy.grid5000.fr: premium_replica1
-  gros-108.nancy.grid5000.fr: premium_replica2
-  gros-79.nancy.grid5000.fr: freemium_replica1
-  gros-80.nancy.grid5000.fr: freemium_replica2
-  gros-81.nancy.grid5000.fr: freemium_replica3
+  gros-111.nancy.grid5000.fr: premium_replica1
+  gros-114.nancy.grid5000.fr: premium_replica2
+  gros-122.nancy.grid5000.fr: freemium_replica1
+  gros-38.nancy.grid5000.fr: freemium_replica2
+  gros-55.nancy.grid5000.fr: freemium_replica3
 
 
-source_host: gros-107.nancy.grid5000.fr
+source_host: gros-111.nancy.grid5000.fr
 source_data_dir: "/var/lib/postgresql/14/main"
 replica_data_dir: "/var/lib/postgresql/14/main"
