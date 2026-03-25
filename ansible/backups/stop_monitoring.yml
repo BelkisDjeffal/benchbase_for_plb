@@ -1,5 +1,0 @@
-- name: Stop pidstat
-  shell: "kill -TERM $(cat /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid)"
-  ignore_errors: yes
-  delegate_to: "{{ item }}"
-  with_items: "{{ groups['postgres_servers'] }}"

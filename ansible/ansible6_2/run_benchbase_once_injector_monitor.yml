@@ -12,28 +12,6 @@
     dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
     backup: yes
 
-<<<<<<< HEAD
-- name: Run one BenchBase iteration via sub-playbook
-  shell: >
-    ansible-playbook -i /home/benchbase/ansible/ansible6_2/inventory_monitor.yml
-    /home/benchbase/ansible/ansible6_2/run_one_iteration.yml
-    --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
-  loop: "{{ range(1, 7) | list }}"
-  register: subplaybook_results
-  ignore_errors: yes
-
-- name: Show output of each iteration
-  debug:
-    msg: "{{ item.stdout_lines | default([]) }}"
-  loop: "{{ subplaybook_results.results | default([]) }}"
-  when: item.rc is defined and item.rc == 0
-
-- name: Show error output if any iteration failed
-  debug:
-    msg: "{{ item.stderr_lines | default([]) }}"
-  loop: "{{ subplaybook_results.results | default([]) }}"
-  when: item.rc is defined and item.rc != 0
-=======
 - name: Generate warmup XML config (for this terminals/weights)
   template:
     src: /home/benchbase/templates/sample_tpch_config_warmup.xml.j2
@@ -45,4 +23,3 @@
   loop: "{{ fault_scenarios }}"
   loop_control:
     loop_var: fs
->>>>>>> c5d6cd3 (updated ansibleplaybooks to conduct failure experiments)

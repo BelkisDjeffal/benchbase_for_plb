@@ -2,22 +2,6 @@ all:
   children:
     postgres_servers:
       hosts:
-<<<<<<< HEAD
-        gros-1.nancy.grid5000.fr:
-          ansible_host: gros-1.nancy.grid5000.fr
-          ansible_user: root
-        gros-110.nancy.grid5000.fr:
-          ansible_host: gros-110.nancy.grid5000.fr
-          ansible_user: root
-        gros-19.nancy.grid5000.fr:
-          ansible_host: gros-19.nancy.grid5000.fr
-          ansible_user: root
-        gros-28.nancy.grid5000.fr:
-          ansible_host: gros-28.nancy.grid5000.fr
-          ansible_user: root
-        gros-29.nancy.grid5000.fr:
-          ansible_host: gros-29.nancy.grid5000.fr
-=======
         gros-48.nancy.grid5000.fr:
           ansible_host: gros-48.nancy.grid5000.fr
           ansible_user: root
@@ -32,5 +16,4 @@ all:
           ansible_user: root
         gros-51.nancy.grid5000.fr:
           ansible_host: gros-51.nancy.grid5000.fr
->>>>>>> c5d6cd3 (updated ansibleplaybooks to conduct failure experiments)
           ansible_user: root
