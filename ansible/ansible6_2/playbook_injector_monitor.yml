@@ -5,6 +5,9 @@
   vars:
     benchbase_runs:
 
+
+    - { terminals: 200,  weights: "100,100" } 
+
     - { terminals: 300,  weights: "150,150" }
 
     - { terminals: 400,  weights: "200,200" }
@@ -20,33 +23,6 @@
     - { terminals: 1200, weights: "600,600" }
 
     - { terminals: 1500, weights: "750,750" }
-
-    - { terminals: 200,  weights: "60,140" }    # P30/F70
-    - { terminals: 200,  weights: "140,60" }    # P70/F30
-
-    - { terminals: 300,  weights: "90,210" }    # P30/F70
-    - { terminals: 300,  weights: "210,90" }    # P70/F30
-
-    - { terminals: 400,  weights: "120,280" }   # P30/F70
-    - { terminals: 400,  weights: "280,120" }   # P70/F30
-
-    - { terminals: 500,  weights: "150,350" }   # P30/F70
-    - { terminals: 500,  weights: "350,150" }   # P70/F30
-
-    - { terminals: 600,  weights: "180,420" }   # P30/F70
-    - { terminals: 600,  weights: "420,180" }   # P70/F30
-
-    - { terminals: 800,  weights: "240,560" }   # P30/F70
-    - { terminals: 800,  weights: "560,240" }   # P70/F30
-
-    - { terminals: 1000, weights: "300,700" }   # P30/F70
-    - { terminals: 1000, weights: "700,300" }   # P70/F30
-
-    - { terminals: 1200, weights: "360,840" }   # P30/F70
-    - { terminals: 1200, weights: "840,360" }   # P70/F30
-
-    - { terminals: 1500, weights: "450,1050" }  # P30/F70
-    - { terminals: 1500, weights: "1050,450" }  # P70/F30
 
   tasks:
     - name: Ensure summary extractor is executable

@@ -10,7 +10,7 @@
   tasks:
     - name: Reserve 6 nodes from Grid5000
       tags: reserve_nodes
-      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=6,walltime={{ grid_time }} -r '2026-03-25 19:25' -t deploy"
+      command: "oarsub -p \"host IN ({{ grid_hosts | join(',') }})\" -l host=6,walltime={{ grid_time }} -r 'now' -t deploy"
       register: job_output
 
     - name: Extract job ID
@@ -26,7 +26,7 @@
     - name: Wait for reservation validation
       tags: reserve_nodes
       pause:
-        minutes: 7
+        minutes: 6
 
     - name: Get job details
       tags: reserve_nodes
