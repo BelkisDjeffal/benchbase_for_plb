@@ -484,7 +484,7 @@
       become: false
       ansible.builtin.synchronize:
         src: /home/spirals/phd/experiments/decembre/plb/
-        dest: /home/plb/
+        dest: /root/plb/
         mode: push    
 
     - name: Build and install plb
@@ -492,7 +492,7 @@
       ansible.builtin.shell: |
         mvn clean && mvn install
       args:
-        chdir: /home/plb
+        chdir: /root/plb
       register: plb_build_output
 
     - name: Synchronize benchbase directory to injector node
@@ -501,19 +501,19 @@
       become: false
       ansible.builtin.synchronize:
         src: /home/spirals/phd/experiments/janvier/benchbase/
-        dest: /home/benchbase
+        dest: /root/benchbase
         mode: push
 
     - name: Allow Git safe directory for Benchbase
       tags: copy_benchbase
-      ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
-      
+      ansible.builtin.shell: git config --global --add safe.directory /root/benchbase
+
     - name: Build Benchbase
       tags: copy_benchbase
       ansible.builtin.shell: |
         ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
       args:
-        chdir: /home/benchbase
+        chdir: /root/benchbase
       register: benchbase_build_output
 
 

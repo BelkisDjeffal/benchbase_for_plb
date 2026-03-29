@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   vars:
+    workspace_root: "/root/benchbase"
+    persistent_results_root: "/home/bdjeffal/measurements/data/runs_outputs/monitoring/"
     benchbase_runs:
 
       # 50:50, 20:80, 80:20, 30:70, 70:30, 40:60, 60:40
@@ -47,35 +49,36 @@
       - { terminals: 200,  weights: "60,140" }    # P30/F70
       - { terminals: 200,  weights: "140,60" }    # P70/F30
 
-      - { terminals: 300,  weights: "90,210" }    # P30/F70
-      - { terminals: 300,  weights: "210,90" }    # P70/F30
+      # - { terminals: 300,  weights: "90,210" }    # P30/F70
+      # - { terminals: 300,  weights: "210,90" }    # P70/F30
 
-      - { terminals: 400,  weights: "120,280" }   # P30/F70
-      - { terminals: 400,  weights: "280,120" }   # P70/F30
+      # - { terminals: 400,  weights: "120,280" }   # P30/F70
+      # - { terminals: 400,  weights: "280,120" }   # P70/F30
 
-      - { terminals: 500,  weights: "150,350" }   # P30/F70
-      - { terminals: 500,  weights: "350,150" }   # P70/F30
+      # - { terminals: 500,  weights: "150,350" }   # P30/F70
+      # - { terminals: 500,  weights: "350,150" }   # P70/F30
 
-      - { terminals: 600,  weights: "180,420" }   # P30/F70
-      - { terminals: 600,  weights: "420,180" }   # P70/F30
+      # - { terminals: 600,  weights: "180,420" }   # P30/F70
+      # - { terminals: 600,  weights: "420,180" }   # P70/F30
 
-      - { terminals: 800,  weights: "240,560" }   # P30/F70
-      - { terminals: 800,  weights: "560,240" }   # P70/F30
+      # - { terminals: 800,  weights: "240,560" }   # P30/F70
+      # - { terminals: 800,  weights: "560,240" }   # P70/F30
 
-      - { terminals: 1000, weights: "300,700" }   # P30/F70
-      - { terminals: 1000, weights: "700,300" }   # P70/F30
+      # - { terminals: 1000, weights: "300,700" }   # P30/F70
+      # - { terminals: 1000, weights: "700,300" }   # P70/F30
 
-      - { terminals: 1200, weights: "360,840" }   # P30/F70
-      - { terminals: 1200, weights: "840,360" }   # P70/F30
+      # - { terminals: 1200, weights: "360,840" }   # P30/F70
+      # - { terminals: 1200, weights: "840,360" }   # P70/F30
 
-      - { terminals: 1500, weights: "450,1050" }  # P30/F70
-      - { terminals: 1500, weights: "1050,450" }  # P70/F30
+      # - { terminals: 1500, weights: "450,1050" }  # P30/F70
+      # - { terminals: 1500, weights: "1050,450" }  # P70/F30
+
 
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh
       args:
-        chdir: /home/benchbase/measurements/data
+        chdir: /root/benchbase/measurements/data
 
     - name: Run each BenchBase configuration
       loop: "{{ benchbase_runs }}"
@@ -90,8 +93,16 @@
       shell: cat /tmp/last_benchbase_output_dir.txt
       register: last_output
 
+    - name: Check whether summary file already exists
+      stat:
+        path: "{{ last_output.stdout }}/summary_results.csv"
+      register: summary_csv
+
     - name: Extract summary priorities into correct folder
       shell: |
-        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+        ./measurements/data/extract_summary_priorities.sh \
+        target/benchbase-postgres/results \
+        {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
       args:
-        chdir: /home/benchbase
+        chdir: /root/benchbase
+      when: not summary_csv.stat.exists

@@ -4,7 +4,8 @@
     ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
   set_fact:
     run_label: "runs_outputs_{{ ts }}"
-    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/roundrobin/runs_outputs_{{ ts }}"  
+    # benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/roundrobin/runs_outputs_{{ ts }}"  
+    benchbase_output_dir: "/home/benchbase/measurements/runs_outputs_{{ ts }}"  
 
 - name: Persist benchbase_output_dir as a global fact
   set_fact:

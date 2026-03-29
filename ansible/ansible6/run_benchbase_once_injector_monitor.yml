@@ -1,10 +1,17 @@
 #run_benchbase_once_injector_monitor
+# - name: Get timestamp as a fact
+#   vars:
+#     ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+#   set_fact:
+#     run_label: "runs_outputs_{{ ts }}"
+#     benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/runs_outputs_{{ ts }}"  
+    
 - name: Get timestamp as a fact
   vars:
     ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
   set_fact:
     run_label: "runs_outputs_{{ ts }}"
-    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/roundrobin/runs_outputs_{{ ts }}"  
+    benchbase_output_dir: "{{ persistent_results_root }}/runs_outputs_{{ ts }}"
 
 - name: Persist benchbase_output_dir as a global fact
   set_fact:
@@ -18,25 +25,40 @@
     dest: /tmp/last_benchbase_output_dir.txt
     content: "{{ benchbase_output_dir }}"
 
-- name: Create output folder
+# - name: Create output folder
+#   file:
+#     path: "{{ benchbase_output_dir }}"
+#     state: directory
+
+- name: Create output folder on NFS
+  become: true
+  become_user: bdjeffal
   file:
     path: "{{ benchbase_output_dir }}"
     state: directory
 
 - name: Generate customized XML config
   template:
-    src: /home/benchbase/templates/sample_tpch_config.xml.j2
-    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    src: /root/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
     backup: yes
 
 - name: Run one BenchBase iteration via sub-playbook
   shell: >
-    ansible-playbook -i /home/benchbase/ansible/ansible6/inventory_monitor.yml
-    /home/benchbase/ansible/ansible6/run_one_iteration.yml
-    --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
-  loop: "{{ range(1, 7) | list }}"
+    ansible-playbook -i /root/benchbase/ansible/ansible6/inventory_monitor.yml
+    /root/benchbase/ansible/ansible6/run_one_iteration.yml
+    --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }} workspace_root={{ workspace_root }}"
+  loop: "{{ range(1, 2) | list }}"
   register: subplaybook_results
   ignore_errors: yes
+
+- name: Extract summary priorities for this configuration
+  shell: |
+    ./measurements/data/extract_summary_priorities.sh \
+    {{ workspace_root }}/target/benchbase-postgres/results \
+    "{{ benchbase_output_dir | regex_replace('.*/monitoring/', '') }}"
+  args:
+    chdir: "{{ workspace_root }}"
 
 - name: Show output of each iteration
   debug:

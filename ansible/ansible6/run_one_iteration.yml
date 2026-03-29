@@ -15,6 +15,17 @@
       args:
         executable: /bin/bash
 
+# - name: Run BenchBase workload
+#   hosts: localhost
+#   tasks:
+#     - name: Run BenchBase workload (run {{ run_id }})
+#       shell: >
+#         java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml
+#         --create=false --load=false --execute=true
+#         > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
+#       args:
+#         chdir: /home/benchbase/target/benchbase-postgres
+
 - name: Run BenchBase workload
   hosts: localhost
   tasks:
@@ -24,7 +35,7 @@
         --create=false --load=false --execute=true
         > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
       args:
-        chdir: /home/benchbase/target/benchbase-postgres
+        chdir: "{{ workspace_root }}/target/benchbase-postgres"
 
 - name: Stop monitoring
   hosts: postgres_servers
@@ -34,6 +45,14 @@
       shell: "kill -TERM $(cat /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid)"
       ignore_errors: yes
 
+- name: Create local monitoring output folder
+  hosts: localhost
+  tasks:
+    - name: Ensure monitoring destination exists
+      file:
+        path: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}"
+        state: directory
+        
 - name: Fetch monitoring logs
   hosts: postgres_servers
   become: yes
