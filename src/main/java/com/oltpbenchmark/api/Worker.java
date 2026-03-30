@@ -88,6 +88,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private volatile boolean abandonedByPolicy = false;
   private volatile boolean stopDueToPolicy = false;
   private volatile boolean lastDoWorkAbandonedByPolicy = false;
+  private volatile boolean lastDoWorkSucceeded = false;
 
   private int policyRejects = 0;
   private final int maxPolicyRejects =
@@ -423,19 +424,21 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
           long start = System.nanoTime();
 
+          lastDoWorkSucceeded = false;
+          lastDoWorkAbandonedByPolicy = false;
+
           doWork(configuration.getDatabaseType(), transactionType);
 
           long end = System.nanoTime();
 
           // PART 4: Record results
           if (lastDoWorkAbandonedByPolicy) {
-            // We did not execute a real transaction (we abandoned during connect retries)
-            // => do NOT count success, do NOT record latency
+            // We did not execute a real transaction
             LOG.warn(
                 "Worker {} abandoned by policy during connect; skipping result recording for {}.",
                 id,
                 transactionType.getName());
-          } else {
+          } else if (lastDoWorkSucceeded) {
             State postState = workloadState.getGlobalState();
             switch (postState) {
               case MEASURE, DONE, EXIT:
@@ -469,6 +472,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
               default:
                 // Do nothing
             }
+          } else {
+            LOG.debug(
+                "Worker {} did not complete {} successfully; skipping success/latency recording.",
+                id,
+                transactionType.getName());
           }
 
           // wait after transaction if specified
@@ -557,6 +565,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       int retryCount = 0;
       int maxRetryCount = configuration.getMaxRetries();
       lastDoWorkAbandonedByPolicy = false;
+      lastDoWorkSucceeded = false;
 
       while (retryCount < maxRetryCount && System.currentTimeMillis() < hardDeadlineMs) {
 
@@ -611,6 +620,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                 abandonedByPolicy = true;
                 stopDueToPolicy = true;
                 lastDoWorkAbandonedByPolicy = true;
+                lastDoWorkSucceeded = false;
 
                 try {
                   if (this.conn != null) this.conn.close();
@@ -666,6 +676,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           }
 
           conn.commit();
+          lastDoWorkSucceeded = true;
 
           break;
 
@@ -685,22 +696,21 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           break;
 
         } catch (SQLException ex) {
-
-          if ("57014".equals(ex.getSQLState())) { // query_canceled
+          if ("57014".equals(ex.getSQLState()) || isTimeout(ex)) {
+            incTs("query_timeout");
             try {
               if (conn != null && !conn.getAutoCommit()) {
                 conn.rollback();
               }
             } catch (SQLException ignore) {
-
             }
             LOG.info("Worker {} hit statement_timeout, stopping early", this.id);
             status = TransactionStatus.USER_ABORTED;
-            break; // stop retries; worker's life budget is exhausted
+            lastDoWorkSucceeded = false;
+            break;
           }
-// hada zyada jdid avant timeout 
+
           incTs("query_fail");
-          if (isTimeout(ex)) incTs("query_timeout");
 
           // check if we should attempt to ignore connection errors and reconnect
           boolean isConnectionErrorException = SQLUtil.isConnectionErrorException(ex);
@@ -843,6 +853,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         } catch (RuntimeException ex) {
           Throwable c = ex.getCause();
           if (c instanceof SQLException && "57014".equals(((SQLException) c).getSQLState())) {
+            incTs("query_timeout");
+            lastDoWorkSucceeded = false;
             try {
               if (conn != null && !conn.getAutoCommit()) conn.rollback();
             } catch (SQLException ignore) {
