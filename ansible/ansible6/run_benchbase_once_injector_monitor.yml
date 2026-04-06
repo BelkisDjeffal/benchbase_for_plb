@@ -8,14 +8,14 @@
 
 - name: Generate customized XML config (for this terminals/weights)
   template:
-    src: /home/benchbase/templates/sample_tpch_config.xml.j2
-    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    src: /root/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
     backup: yes
 
 - name: Generate warmup XML config (for this terminals/weights)
   template:
-    src: /home/benchbase/templates/sample_tpch_config_warmup.xml.j2
-    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config_warmup.xml
+    src: /root/benchbase/templates/sample_tpch_config_warmup.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config_warmup.xml
     backup: yes
     
 - name: Run all fault scenarios for this (terminals, weights)
