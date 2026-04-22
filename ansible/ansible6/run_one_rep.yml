@@ -15,6 +15,8 @@
     ansible-playbook -i /root/benchbase/ansible/ansible6/inventory_monitor.yml
     /root/benchbase/ansible/ansible6/run_one_iteration.yml
     --extra-vars "@/tmp/run_vars.yml"
+  register: rep_result
+  failed_when: false
 
 - name: Show repetition output (only if success)
   debug:

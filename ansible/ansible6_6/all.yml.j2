@@ -16,7 +16,7 @@ freemium_nodes:
 {{ freemium_nodes | to_nice_yaml(indent=2) }}
 
 replica_roles:
-{{ replica_roles | to_nice_yaml(indent=2) }}
+{{ replica_roles | to_nice_yaml(indent=2) | indent(2, true) }}
 
 source_host: {{ premium_nodes[0] }}
 source_data_dir: "/var/lib/postgresql/14/main"

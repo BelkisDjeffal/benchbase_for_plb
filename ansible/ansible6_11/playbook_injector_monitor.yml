@@ -1,31 +1,16 @@
-#playbook_injector_monitor.yml
+# File: playbook_injector_monitor.yml
+
 - name: Run BenchBase experiments
   hosts: localhost
   connection: local
   vars:
+    persistent_results_root: "/home/bdjeffal/measurements/V1_multiratios_no_fault"
+    workspace_root: "/root/benchbase"
+   
     benchbase_runs:
-
-      # 50:50, 20:80, 80:20, 30:70, 70:30, 40:60, 60:40
-
-      - { terminals: 450, weights: "270,180" }
-
-      - { terminals: 500, weights: "250,250" }
-      - { terminals: 500, weights: "100,400" }
-      - { terminals: 500, weights: "400,100" }
-      - { terminals: 500, weights: "150,350" }
-      - { terminals: 500, weights: "350,150" }
-      - { terminals: 500, weights: "200,300" }
-      - { terminals: 500, weights: "300,200" }
-
-      - { terminals: 550, weights: "275,275" }
-      - { terminals: 550, weights: "110,440" }
-      - { terminals: 550, weights: "440,110" }
-      - { terminals: 550, weights: "165,385" }
-      - { terminals: 550, weights: "385,165" }
-      - { terminals: 550, weights: "220,330" }
-      - { terminals: 550, weights: "330,220" }
-
-      - { terminals: 600, weights: "300,300" }
+    #  - { terminals: 600, weights: "300,300" }
+     # - { terminals: 600, weights: "60,540" }
+      - { terminals: 600, weights: "540,60" }
       - { terminals: 600, weights: "120,480" }
       - { terminals: 600, weights: "480,120" }
       - { terminals: 600, weights: "180,420" }
@@ -33,75 +18,18 @@
       - { terminals: 600, weights: "240,360" }
       - { terminals: 600, weights: "360,240" }
 
-      - { terminals: 700, weights: "350,350" }
-      - { terminals: 700, weights: "140,560" }
-      - { terminals: 700, weights: "560,140" }
-      - { terminals: 700, weights: "210,490" }
-      - { terminals: 700, weights: "490,210" }
-      - { terminals: 700, weights: "280,420" }
-      - { terminals: 700, weights: "420,280" }
+    repetitions: 5
 
-      - { terminals: 800, weights: "400,400" }
-      - { terminals: 800, weights: "160,640" }
-      - { terminals: 800, weights: "640,160" }
-      - { terminals: 800, weights: "240,560" }
-      - { terminals: 800, weights: "560,240" }
-      - { terminals: 800, weights: "320,480" }
-      - { terminals: 800, weights: "480,320" }
+    fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
 
-      - { terminals: 1000, weights: "500,500" }
-      - { terminals: 1000, weights: "200,800" }
-      - { terminals: 1000, weights: "800,200" }
-      - { terminals: 1000, weights: "300,700" }
-      - { terminals: 1000, weights: "700,300" }
-      - { terminals: 1000, weights: "400,600" }
-      - { terminals: 1000, weights: "600,400" }
-
-      - { terminals: 1200, weights: "600,600" }
-      - { terminals: 1200, weights: "240,960" }
-      - { terminals: 1200, weights: "960,240" }
-      - { terminals: 1200, weights: "360,840" }
-      - { terminals: 1200, weights: "840,360" }
-      - { terminals: 1200, weights: "480,720" }
-      - { terminals: 1200, weights: "720,480" }
-
-      - { terminals: 1400, weights: "700,700" }
-      - { terminals: 1400, weights: "280,1120" }
-      - { terminals: 1400, weights: "1120,280" }
-      - { terminals: 1400, weights: "420,980" }
-      - { terminals: 1400, weights: "980,420" }
-      - { terminals: 1400, weights: "560,840" }
-      - { terminals: 1400, weights: "840,560" }
-
-      - { terminals: 1500, weights: "750,750" }
-      - { terminals: 1500, weights: "300,1200" }
-      - { terminals: 1500, weights: "1200,300" }
-      - { terminals: 1500, weights: "450,1050" }
-      - { terminals: 1500, weights: "1050,450" }
-      - { terminals: 1500, weights: "600,900" }
-      - { terminals: 1500, weights: "900,600" }
-
-      - { terminals: 2000, weights: "1000,1000" }
-      - { terminals: 2000, weights: "400,1600" }
-      - { terminals: 2000, weights: "1600,400" }
-      - { terminals: 2000, weights: "600,1400" }
-      - { terminals: 2000, weights: "1400,600" }
-      - { terminals: 2000, weights: "800,1200" }
-      - { terminals: 2000, weights: "1200,800" }
-
-      - { terminals: 2500, weights: "1250,1250" }
-      - { terminals: 2500, weights: "500,2000" }
-      - { terminals: 2500, weights: "2000,500" }
-      - { terminals: 2500, weights: "750,1750" }
-      - { terminals: 2500, weights: "1750,750" }
-      - { terminals: 2500, weights: "1000,1500" }
-      - { terminals: 2500, weights: "1500,1000" }
 
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh
       args:
-        chdir: /home/benchbase/measurements/data
+        chdir: /root/benchbase/measurements/data
 
     - name: Run each BenchBase configuration
       loop: "{{ benchbase_runs }}"
@@ -111,13 +39,16 @@
       vars:
         terminals: "{{ run.terminals }}"
         weights: "{{ run.weights }}"
-  
-    - name: Read last run path
-      shell: cat /tmp/last_benchbase_output_dir.txt
-      register: last_output
+        # repetitions: "{{ repetitions }}"
 
-    - name: Extract summary priorities into correct folder
-      shell: |
-        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
-      args:
-        chdir: /home/benchbase
+    # - name: Read last run path
+    #   shell: cat /tmp/last_benchbase_output_dir.txt
+    #   register: last_output
+
+    # - name: Extract summary priorities into correct folder
+    #   shell: |
+    #     ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+    #   args:
+    #     chdir: /home/benchbase
+
+

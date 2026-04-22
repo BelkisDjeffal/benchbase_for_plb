@@ -601,7 +601,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             if (remainingAfterReconnect <= 0) {
               break; // don't proceed to start a txn if time already expired
             }
-         
+
           } catch (SQLException ex) {
             // Policy reject handling
             if ("freemium".equalsIgnoreCase(workerPriorityClass) && isPlbFreemiumReject(ex)) {

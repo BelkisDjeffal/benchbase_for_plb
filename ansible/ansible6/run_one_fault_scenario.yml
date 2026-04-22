@@ -42,6 +42,6 @@
 
 - name: Extract summaries for this scenario into its folder
   shell: |
-    ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results "{{ run_label }}"
+    ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results "{{ benchbase_output_dir }}"
   args:
     chdir: /root/benchbase

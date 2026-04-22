@@ -26,7 +26,7 @@
     - name: Wait for reservation validation
       tags: reserve_nodes
       pause:
-        minutes: 7
+        minutes: 6
 
     - name: Get job details
       tags: reserve_nodes

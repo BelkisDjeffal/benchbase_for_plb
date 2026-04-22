@@ -4,43 +4,26 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/"
+    persistent_results_root: "/home/bdjeffal/measurements/V1_multiratios_no_fault"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-      - { terminals: 300, weights: "150,150" }
-      - { terminals: 600, weights: "300,300" }
-      - { terminals: 900, weights: "300,300" }
-      # - { terminals: 1500, weights: "750,750" }
+    #  - { terminals: 600, weights: "300,300" }
+     # - { terminals: 600, weights: "60,540" }
+      - { terminals: 600, weights: "540,60" }
+      - { terminals: 600, weights: "120,480" }
+      - { terminals: 600, weights: "480,120" }
+      - { terminals: 600, weights: "180,420" }
+      - { terminals: 600, weights: "420,180" }
+      - { terminals: 600, weights: "240,360" }
+      - { terminals: 600, weights: "360,240" }
 
-    repetitions: 1
+    repetitions: 5
 
     fault_scenarios:
       - name: "no_fault"
         fault_events: []
 
-      # - name: "killP_60"
-      #   fault_events:
-      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
-
-      # - name: "killF_60"
-      #   fault_events:
-      #     - { at_s: 60, role: "freemium_replica1", action: "stop" }
-
-      # - name: "killP_60_killP_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "premium_replica2", action: "stop" }
-
-      # - name: "killF_60_killF_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "freemium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "freemium_replica2", action: "stop" }
-
-      # - name: "killP_60_killF_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "freemium_replica1", action: "stop" }
 
   tasks:
     - name: Ensure summary extractor is executable
@@ -67,3 +50,5 @@
     #     ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
     #   args:
     #     chdir: /home/benchbase
+
+

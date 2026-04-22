@@ -75,7 +75,6 @@ public final class TPCHBenchmark extends BenchmarkModule {
       }
     }
 
-
     Collections.shuffle(workers, new Random(SeedUtil.derive("tpch.shuffle")));
     return workers;
   }

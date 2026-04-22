@@ -496,7 +496,7 @@
       register: plb_build_output
 
     - name: Synchronize benchbase directory to injector node
-      tags: copy_benchbase
+      #tags: copy_benchbase
       delegate_to: localhost
       become: false
       ansible.builtin.synchronize:

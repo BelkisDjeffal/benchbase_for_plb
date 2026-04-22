@@ -4,16 +4,18 @@
   hosts: localhost
   connection: local
   vars:
+    persistent_results_root: "/home/bdjeffal/measurements/V1_dedicated_3_2_no_fault"
+    workspace_root: "/root/benchbase"
+   
     benchbase_runs:
-      # - { terminals: 500, weights: "200,300" }
-      # - { terminals: 100, weights: "50,50" }
-      # - { terminals: 200, weights: "100,100" }
-      # - { terminals: 300, weights: "200,100" }
-      # - { terminals: 400, weights: "200,200" }
-      # - { terminals: 600, weights: "300,300" }
-        - { terminals: 700, weights: "400,300" }
-      # - { terminals: 800, weights: "400,400" }
-      # - { terminals: 900, weights: "500,400" }  
+      - { terminals: 60, weights: "30,30" }
+      - { terminals: 120, weights: "60,60" }
+      - { terminals: 180, weights: "90,90" }
+      - { terminals: 240, weights: "120,120" }
+      - { terminals: 360, weights: "180,180" }
+      - { terminals: 420, weights: "210,210" }
+      - { terminals: 480, weights: "240,240" }
+      - { terminals: 540, weights: "270,270" }
 
     repetitions: 5
 
@@ -21,34 +23,12 @@
       - name: "no_fault"
         fault_events: []
 
-      - name: "killP_60"
-        fault_events:
-          - { at_s: 60, role: "premium_replica1", action: "stop" }
-
-      - name: "killF_60"
-        fault_events:
-          - { at_s: 60, role: "freemium_replica1", action: "stop" }
-
-      # - name: "killP_60_killP_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "premium_replica2", action: "stop" }
-
-      # - name: "killF_60_killF_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "freemium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "freemium_replica2", action: "stop" }
-
-      # - name: "killP_60_killF_90"
-      #   fault_events:
-      #     - { at_s: 60, role: "premium_replica1", action: "stop" }
-      #     - { at_s: 90, role: "freemium_replica1", action: "stop" }
 
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh
       args:
-        chdir: /home/benchbase/measurements/data
+        chdir: /root/benchbase/measurements/data
 
     - name: Run each BenchBase configuration
       loop: "{{ benchbase_runs }}"

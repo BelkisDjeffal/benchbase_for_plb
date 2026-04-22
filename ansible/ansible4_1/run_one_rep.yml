@@ -1,21 +1,22 @@
 # File: run_one_rep.yml
 
-- name: Write vars file for this repetition (so fault_events passes safely)
+- name: Write vars file for this repetition
   copy:
     dest: /tmp/run_vars.yml
     content: |
       run_id: {{ rep }}
       run_label: "{{ run_label }}"
       benchbase_output_dir: "{{ benchbase_output_dir }}"
+      workspace_root: "{{ workspace_root }}"
       fault_events: {{ fs.fault_events | to_json }}
 
 - name: Run one repetition
   shell: >
-    ansible-playbook -i /home/benchbase/ansible/ansible4_1/inventory_monitor.yml
-    /home/benchbase/ansible/ansible4_1/run_one_iteration.yml
+    ansible-playbook -i /root/benchbase/ansible/ansible4_1/inventory_monitor.yml
+    /root/benchbase/ansible/ansible4_1/run_one_iteration.yml
     --extra-vars "@/tmp/run_vars.yml"
   register: rep_result
-  ignore_errors: yes
+  failed_when: false
 
 - name: Show repetition output (only if success)
   debug:

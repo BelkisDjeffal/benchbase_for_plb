@@ -17,6 +17,21 @@
 
 package com.oltpbenchmark;
 
+import com.oltpbenchmark.api.BenchmarkModule;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.api.TransactionTypes;
+import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.types.DatabaseType;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.ClassUtil;
+import com.oltpbenchmark.util.FileUtil;
+import com.oltpbenchmark.util.ImmutableMonitorInfo;
+import com.oltpbenchmark.util.JSONSerializable;
+import com.oltpbenchmark.util.JSONUtil;
+import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.ResultWriter;
+import com.oltpbenchmark.util.StringUtil;
+import com.oltpbenchmark.util.TimeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -30,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -49,22 +63,6 @@ import org.apache.commons.configuration2.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oltpbenchmark.api.BenchmarkModule;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.TransactionTypes;
-import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.types.DatabaseType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.ClassUtil;
-import com.oltpbenchmark.util.FileUtil;
-import com.oltpbenchmark.util.ImmutableMonitorInfo;
-import com.oltpbenchmark.util.JSONSerializable;
-import com.oltpbenchmark.util.JSONUtil;
-import com.oltpbenchmark.util.MonitorInfo;
-import com.oltpbenchmark.util.ResultWriter;
-import com.oltpbenchmark.util.StringUtil;
-import com.oltpbenchmark.util.TimeUtil;
 
 public class DBWorkload {
   private static final Logger LOG = LoggerFactory.getLogger(DBWorkload.class);
