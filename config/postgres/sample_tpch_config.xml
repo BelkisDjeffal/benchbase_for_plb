@@ -24,12 +24,6 @@
     <terminalClasses>"premium","freemium"</terminalClasses>
     <terminalClassesWeights>15,20</terminalClassesWeights>
     <works>
-        <warmup>  
-            <serial>false</serial>
-            <rate>unlimited</rate>
-            <time>30</time> 
-            <weights>1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1</weights>
-        </warmup>
         <work>  
             <serial>false</serial>
             <rate>unlimited</rate>

@@ -8,14 +8,7 @@
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-      - { terminals: 60, weights: "30,30" }
-      - { terminals: 120, weights: "60,60" }
-      - { terminals: 180, weights: "90,90" }
-      - { terminals: 240, weights: "120,120" }
-      - { terminals: 360, weights: "180,180" }
-      - { terminals: 420, weights: "210,210" }
-      - { terminals: 480, weights: "240,240" }
-      - { terminals: 540, weights: "270,270" }
+      - { terminals: 525, weights: "263,262" }
 
     repetitions: 5
 

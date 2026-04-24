@@ -4,25 +4,32 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_multiratios_no_fault"
+    persistent_results_root: "/home/bdjeffal/measurements/V1_killP_90_killP_150_rejoinP1_210_rejoinP2_270"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-    #  - { terminals: 600, weights: "300,300" }
-     # - { terminals: 600, weights: "60,540" }
-      - { terminals: 600, weights: "540,60" }
-      - { terminals: 600, weights: "120,480" }
-      - { terminals: 600, weights: "480,120" }
-      - { terminals: 600, weights: "180,420" }
-      - { terminals: 600, weights: "420,180" }
-      - { terminals: 600, weights: "240,360" }
-      - { terminals: 600, weights: "360,240" }
+    
+      - { terminals: 700, weights: "350,350" }
 
+      - { terminals: 600, weights: "450,150" }
+      - { terminals: 600, weights: "150,450" }
+
+      - { terminals: 700, weights: "525,175" }
+      - { terminals: 700, weights: "175,525" }
+
+      - { terminals: 800, weights: "600,200" }
+      - { terminals: 800, weights: "200,600" }
+      
     repetitions: 5
 
     fault_scenarios:
-      - name: "no_fault"
-        fault_events: []
+
+      - name: "killP_90_killP_150_rejoinP1_210_rejoinP2_270"
+        fault_events:
+          - { at_s: 90, role: "premium_replica1", action: "stop" }
+          - { at_s: 150, role: "premium_replica2", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 270, role: "premium_replica2", action: "start" }
 
 
   tasks:

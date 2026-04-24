@@ -505,7 +505,7 @@
         mode: push
 
     - name: Allow Git safe directory for Benchbase
-      tags: copy_benchbase
+      #tags: copy_benchbase
       ansible.builtin.shell: git config --global --add safe.directory /root/benchbase
 
     - name: Build Benchbase
