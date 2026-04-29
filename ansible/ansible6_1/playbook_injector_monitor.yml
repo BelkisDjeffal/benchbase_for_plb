@@ -4,25 +4,24 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_killP_120_rejoinP_210"
-    workspace_root: "/root/benchbase"
-   
-    benchbase_runs:
-    
-      - { terminals: 700, weights: "175,525" }
+    persistent_results_root: "/home/bdjeffal/measurements/B3_pannes_farcnhes"
+    workspace_root: "/root/benchbase" 
 
-      - { terminals: 800, weights: "400,400" }
-      - { terminals: 800, weights: "600,200" }
-      - { terminals: 800, weights: "200,600" }
-      
+    benchbase_runs:
+
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 600, weights: "450,150" }
+      - { terminals: 600, weights: "150,450" }
+
     repetitions: 5
 
     fault_scenarios:
-
-    - name: "killP_120_rejoinP_210"
-      fault_events:
-        - { at_s: 120, role: "premium_replica1", action: "stop" }
-        - { at_s: 210, role: "premium_replica1", action: "start" }
+      - name: "killP_120_killP_120_rejoinP1_210_rejoinP2_210"
+        fault_events:
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 120, role: "premium_replica2", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 210, role: "premium_replica2", action: "start" }
 
 
   tasks:

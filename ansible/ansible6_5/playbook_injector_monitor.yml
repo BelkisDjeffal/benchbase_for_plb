@@ -4,27 +4,32 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_killM_90_killM_150_rejoinM1_210_rejoinM2_270"
+    persistent_results_root: "/home/bdjeffal/measurements/V1_600_pannes_franches"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
 
-      - { terminals: 700, weights: "525,175" }
-      - { terminals: 700, weights: "175,525" }
-
-
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 600, weights: "450,150" }
+      - { terminals: 600, weights: "150,450" }
       
     repetitions: 5
 
     fault_scenarios:
 
-      - name: "killM_90_killM_150_rejoinM1_210_rejoinM2_270"
+      - name: "killP_120_killP_120_rejoinP1_210_rejoinP2_210"
         fault_events:
-          - { at_s: 90, role: "freemium_replica2", action: "stop" }
-          - { at_s: 150, role: "freemium_replica3", action: "stop" }
-          - { at_s: 210, role: "freemium_replica2", action: "start" }
-          - { at_s: 270, role: "freemium_replica3", action: "start" }
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 120, role: "premium_replica2", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 210, role: "premium_replica2", action: "start" }
 
+      - name: "killP_120_killF_120_rejoinP_210_rejoinF_210"
+        fault_events:
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 120, role: "freemium_replica1", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 210, role: "freemium_replica1", action: "start" }
 
   tasks:
     - name: Ensure summary extractor is executable

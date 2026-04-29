@@ -114,7 +114,7 @@
       tags: always
 
     - name: Deploy OS on all reserved nodes (Start asynchronously)
-      tags: ssh_stuff
+      #tags: ssh_stuff
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
       async: 600  
@@ -122,7 +122,7 @@
       register: os_deployment_jobs
 
     - name: Wait for all OS deployments to complete
-      tags: ssh_stuff
+      #tags: ssh_stuff
       async_status:
         jid: "{{ item.ansible_job_id }}"
       register: os_deployment_results

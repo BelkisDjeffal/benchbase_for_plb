@@ -4,32 +4,46 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_killP_90_killP_150_rejoinP1_210_rejoinP2_270"
+    persistent_results_root: "/home/bdjeffal/measurements/V1_600_4"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-    
-      - { terminals: 700, weights: "350,350" }
 
-      - { terminals: 600, weights: "450,150" }
       - { terminals: 600, weights: "150,450" }
-
-      - { terminals: 700, weights: "525,175" }
-      - { terminals: 700, weights: "175,525" }
-
-      - { terminals: 800, weights: "600,200" }
-      - { terminals: 800, weights: "200,600" }
       
     repetitions: 5
 
     fault_scenarios:
-
       - name: "killP_90_killP_150_rejoinP1_210_rejoinP2_270"
         fault_events:
           - { at_s: 90, role: "premium_replica1", action: "stop" }
           - { at_s: 150, role: "premium_replica2", action: "stop" }
           - { at_s: 210, role: "premium_replica1", action: "start" }
           - { at_s: 270, role: "premium_replica2", action: "start" }
+
+      - name: "killM_90_killM_150_rejoinM1_210_rejoinM2_270"
+        fault_events:
+          - { at_s: 90, role: "freemium_replica2", action: "stop" }
+          - { at_s: 150, role: "freemium_replica3", action: "stop" }
+          - { at_s: 210, role: "freemium_replica2", action: "start" }
+          - { at_s: 270, role: "freemium_replica3", action: "start" }
+          
+      # -----------------------------
+      # Cross-pool logical faults
+      # -----------------------------
+      - name: "killP_90_killF_150_rejoinP_210_rejoinF_270"
+        fault_events:
+          - { at_s: 90, role: "premium_replica1", action: "stop" }
+          - { at_s: 150, role: "freemium_replica1", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 270, role: "freemium_replica1", action: "start" }
+
+      - name: "killF_90_killM_150_rejoinF_210_rejoinM_270"
+        fault_events:
+          - { at_s: 90, role: "freemium_replica1", action: "stop" }
+          - { at_s: 150, role: "freemium_replica2", action: "stop" }
+          - { at_s: 210, role: "freemium_replica1", action: "start" }
+          - { at_s: 270, role: "freemium_replica2", action: "start" }
 
 
   tasks:

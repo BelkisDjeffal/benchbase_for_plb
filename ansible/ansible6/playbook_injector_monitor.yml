@@ -4,28 +4,35 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_rejoin_no_fault"
+    persistent_results_root: "/home/bdjeffal/measurements/V1_600_1"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-      - { terminals: 600, weights: "300,300" }
-      - { terminals: 600, weights: "450,150" }
-      - { terminals: 600, weights: "150,450" }
+      - { terminals: 1000, weights: "500,500" }
+      - { terminals: 1200, weights: "600,200" }
 
-      - { terminals: 700, weights: "350,350" }
-      - { terminals: 700, weights: "525,175" }
-      - { terminals: 700, weights: "175,525" }
 
-      - { terminals: 800, weights: "400,400" }
-      - { terminals: 800, weights: "600,200" }
-      - { terminals: 800, weights: "200,600" }
-
-    repetitions: 5
+    repetitions: 2
 
     fault_scenarios:
       - name: "no_fault"
         fault_events: []
+      # -----------------------------
+      # - name: "killP_120_rejoinP_210"
+      #   fault_events:
+      #     - { at_s: 120, role: "premium_replica1", action: "stop" }
+      #     - { at_s: 210, role: "premium_replica1", action: "start" }
 
+      # - name: "killF_120_rejoinF_210"
+      #   fault_events:
+      #     - { at_s: 120, role: "freemium_replica1", action: "stop" }
+      #     - { at_s: 210, role: "freemium_replica1", action: "start" }
+
+      # - name: "killM_120_rejoinM_210"
+      #   fault_events:
+      #     - { at_s: 120, role: "freemium_replica2", action: "stop" }
+      #     - { at_s: 210, role: "freemium_replica2", action: "start" }
+      # # -----------------------------
 
   tasks:
     - name: Ensure summary extractor is executable

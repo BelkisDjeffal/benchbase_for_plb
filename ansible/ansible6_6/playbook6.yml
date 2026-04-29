@@ -114,6 +114,7 @@
       tags: always
 
     - name: Deploy OS on all reserved nodes (Start asynchronously)
+      tags: ssh_stuff
       command: "kadeploy3 -m {{ item }} -e {{ OS_image }}"
       loop: "{{ reserved_nodes }}"
       async: 600  

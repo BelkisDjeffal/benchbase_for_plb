@@ -17,20 +17,6 @@
 
 package com.oltpbenchmark.api;
 
-import static com.oltpbenchmark.types.State.MEASURE;
-
-import com.oltpbenchmark.LatencyRecord;
-import com.oltpbenchmark.Phase;
-import com.oltpbenchmark.SubmittedProcedure;
-import com.oltpbenchmark.WorkloadConfiguration;
-import com.oltpbenchmark.WorkloadState;
-import com.oltpbenchmark.api.Procedure.UserAbortException;
-import com.oltpbenchmark.types.DatabaseType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.Histogram;
-import com.oltpbenchmark.util.SQLUtil;
-import com.oltpbenchmark.util.SeedUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
@@ -43,8 +29,23 @@ import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord;
+import com.oltpbenchmark.Phase;
+import com.oltpbenchmark.SubmittedProcedure;
+import com.oltpbenchmark.WorkloadConfiguration;
+import com.oltpbenchmark.WorkloadState;
+import com.oltpbenchmark.api.Procedure.UserAbortException;
+import com.oltpbenchmark.types.DatabaseType;
+import com.oltpbenchmark.types.State;
+import static com.oltpbenchmark.types.State.MEASURE;
+import com.oltpbenchmark.types.TransactionStatus;
+import com.oltpbenchmark.util.Histogram;
+import com.oltpbenchmark.util.SQLUtil;
+import com.oltpbenchmark.util.SeedUtil;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -79,12 +80,15 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private final Histogram<TransactionType> txtRetryDifferent = new Histogram<>();
   private final Map<String, Integer> localSuccessByPriority = new HashMap<>();
   private final Map<String, Integer> attemptedRequestsByPriority = new ConcurrentHashMap<>();
+  private long hardDeadlineMs;
+  private final Random workerRng;
 
   private boolean seenDone = false;
 
   private volatile boolean abandonedByPolicy = false;
   private volatile boolean stopDueToPolicy = false;
   private volatile boolean lastDoWorkAbandonedByPolicy = false;
+  private volatile boolean lastDoWorkSucceeded = false;
 
   private int policyRejects = 0;
   private final int maxPolicyRejects =
@@ -125,6 +129,13 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       this.name_procedures.put(e.getKey().getName(), proc);
       this.class_procedures.put(proc.getClass(), proc);
     }
+    long baseSeed = this.configuration.getRandomSeed();
+    if (baseSeed == -1) {
+      this.workerRng = new Random();
+    } else {
+      long derived = baseSeed ^ (0x9E3779B97F4A7C15L * (id + 1));
+      this.workerRng = new Random(derived);
+    }
   }
 
   public Worker(T benchmark, int id) {
@@ -152,6 +163,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       Procedure proc = e.getValue();
       this.name_procedures.put(e.getKey().getName(), proc);
       this.class_procedures.put(proc.getClass(), proc);
+    }
+
+    long baseSeed = this.configuration.getRandomSeed();
+    if (baseSeed == -1) {
+      this.workerRng = new Random();
+    } else {
+      long derived = baseSeed ^ (0x9E3779B97F4A7C15L * (id + 1));
+      this.workerRng = new Random(derived);
     }
   }
 
@@ -290,9 +309,12 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     long minTime = 10 * 1000L; // 10 seconds
     // long maxTime = configuration.getPhases().stream().mapToInt(Phase::getTime).sum() * 1000L;
     long maxTime = 3 * 10 * 1000L; // 30 sec'
+
     long executionTime = minTime + (long) ((maxTime - minTime) * lifetimeRng.nextDouble());
 
     long startTime = System.currentTimeMillis();
+
+    this.hardDeadlineMs = startTime + executionTime;
 
     LOG.info("Worker {} will run for {} ms", id, executionTime);
 
@@ -402,19 +424,21 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
           long start = System.nanoTime();
 
+          lastDoWorkSucceeded = false;
+          lastDoWorkAbandonedByPolicy = false;
+
           doWork(configuration.getDatabaseType(), transactionType);
 
           long end = System.nanoTime();
 
           // PART 4: Record results
           if (lastDoWorkAbandonedByPolicy) {
-            // We did not execute a real transaction (we abandoned during connect retries)
-            // => do NOT count success, do NOT record latency
+            // We did not execute a real transaction
             LOG.warn(
                 "Worker {} abandoned by policy during connect; skipping result recording for {}.",
                 id,
                 transactionType.getName());
-          } else {
+          } else if (lastDoWorkSucceeded) {
             State postState = workloadState.getGlobalState();
             switch (postState) {
               case MEASURE, DONE, EXIT:
@@ -448,6 +472,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
               default:
                 // Do nothing
             }
+          } else {
+            LOG.debug(
+                "Worker {} did not complete {} successfully; skipping success/latency recording.",
+                id,
+                transactionType.getName());
           }
 
           // wait after transaction if specified
@@ -536,34 +565,43 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       int retryCount = 0;
       int maxRetryCount = configuration.getMaxRetries();
       lastDoWorkAbandonedByPolicy = false;
+      lastDoWorkSucceeded = false;
 
-      while (retryCount < maxRetryCount && this.workloadState.getGlobalState() != State.DONE) {
+      while (retryCount < maxRetryCount && System.currentTimeMillis() < hardDeadlineMs) {
+
+        long remainingMs = hardDeadlineMs - System.currentTimeMillis();
+        if (remainingMs <= 0) break;
 
         TransactionStatus status = TransactionStatus.UNKNOWN;
 
         if (this.conn == null) {
           try {
-            if (!this.configuration.getNewConnectionPerTxn()) {
-              if (retryCount > 0) {
-                Duration delay = Duration.ofSeconds(Math.min(retryCount, 5));
-                LOG.info("Backing off {} seconds before reconnecting.", delay.toSeconds());
-                try {
-                  Thread.sleep(delay);
-                } catch (InterruptedException ex) {
-                  // pass
-                }
-              } else {
-                LOG.info(
-                    "Worker {}| Priority {}: (Re)connecting to database.",
-                    this.id,
-                    this.workerPriorityClass);
+            if (retryCount > 0) {
+              long remMs = hardDeadlineMs - System.currentTimeMillis();
+              if (remMs <= 0) {
+                break;
+              }
+              long backoffMs =
+                  Math.min(Duration.ofSeconds(Math.min(retryCount, 5)).toMillis(), remMs);
+              try {
+                Thread.sleep(backoffMs);
+              } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
               }
             }
+
             incTs("connect_attempt");
             this.conn = this.benchmark.makeConnection(workerPriorityClass);
             this.conn.setAutoCommit(false);
             this.conn.setTransactionIsolation(this.configuration.getIsolationMode());
             incTs("connect_success");
+
+            long remainingAfterReconnect = hardDeadlineMs - System.currentTimeMillis();
+            if (remainingAfterReconnect <= 0) {
+              break; // don't proceed to start a txn if time already expired
+            }
+         
           } catch (SQLException ex) {
             // Policy reject handling
             if ("freemium".equalsIgnoreCase(workerPriorityClass) && isPlbFreemiumReject(ex)) {
@@ -582,6 +620,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
                 abandonedByPolicy = true;
                 stopDueToPolicy = true;
                 lastDoWorkAbandonedByPolicy = true;
+                lastDoWorkSucceeded = false;
 
                 try {
                   if (this.conn != null) this.conn.close();
@@ -614,6 +653,16 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             LOG.debug(String.format("%s %s attempting...", this, transactionType));
           }
 
+          long remainingNow = hardDeadlineMs - System.currentTimeMillis();
+          if (remainingNow <= 0) {
+            break; // don't start a txn we can't finish
+          }
+
+          try (Statement timeoutStmt = conn.createStatement()) {
+            long clamp = Math.max(1, remainingNow);
+            timeoutStmt.execute("SET LOCAL statement_timeout = " + clamp);
+          }
+
           status = this.executeWork(conn, transactionType);
 
           if (LOG.isDebugEnabled()) {
@@ -627,6 +676,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           }
 
           conn.commit();
+          lastDoWorkSucceeded = true;
 
           break;
 
@@ -646,8 +696,21 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           break;
 
         } catch (SQLException ex) {
+          if ("57014".equals(ex.getSQLState()) || isTimeout(ex)) {
+            incTs("query_timeout");
+            try {
+              if (conn != null && !conn.getAutoCommit()) {
+                conn.rollback();
+              }
+            } catch (SQLException ignore) {
+            }
+            LOG.info("Worker {} hit statement_timeout, stopping early", this.id);
+            status = TransactionStatus.USER_ABORTED;
+            lastDoWorkSucceeded = false;
+            break;
+          }
+
           incTs("query_fail");
-          if (isTimeout(ex)) incTs("query_timeout");
 
           // check if we should attempt to ignore connection errors and reconnect
           boolean isConnectionErrorException = SQLUtil.isConnectionErrorException(ex);
@@ -787,6 +850,22 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
             break;
           }
+        } catch (RuntimeException ex) {
+          Throwable c = ex.getCause();
+          if (c instanceof SQLException && "57014".equals(((SQLException) c).getSQLState())) {
+            incTs("query_timeout");
+            lastDoWorkSucceeded = false;
+            try {
+              if (conn != null && !conn.getAutoCommit()) conn.rollback();
+            } catch (SQLException ignore) {
+              /* best effort */
+            }
+            LOG.info(
+                "Worker {}: statement_timeout (wrapped). Stopping this worker's loop.", this.id);
+            status = TransactionStatus.USER_ABORTED;
+            break;
+          }
+          throw ex;
         } finally {
           if (this.configuration.getNewConnectionPerTxn() && this.conn != null) {
             try {
