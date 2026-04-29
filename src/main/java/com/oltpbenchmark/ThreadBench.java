@@ -15,16 +15,6 @@
 
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.BenchmarkModule;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.api.collectors.monitoring.Monitor;
-import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.MonitorInfo;
-import com.oltpbenchmark.util.SeedUtil;
-import com.oltpbenchmark.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,9 +26,21 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.BenchmarkModule;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.api.collectors.monitoring.Monitor;
+import com.oltpbenchmark.api.collectors.monitoring.MonitorGen;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.MonitorInfo;
+import com.oltpbenchmark.util.SeedUtil;
+import com.oltpbenchmark.util.StringUtil;
 
 public class ThreadBench implements Thread.UncaughtExceptionHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ThreadBench.class);
@@ -476,12 +478,15 @@ public class ThreadBench implements Thread.UncaughtExceptionHandler {
       Map<String, Integer> terminalCounts = getTerminalCounts(workConfs.get(0));
       // System.out.println("Terminal Counts Map: " + terminalCounts);
 
+      long testStartNs = workConfs.get(0).getWorkloadState().getTestStartNs();
+
       Results results =
           new Results(
               // If any errors were thrown during the execution, proprogate that fact to the
               // final Results state so we can exit non-zero *after* we output the results.
               errorsThrown ? State.ERROR : testState.getState(),
               startTs,
+              testStartNs,
               measureEnd - start,
               requests,
               totalAttemptedRequests,

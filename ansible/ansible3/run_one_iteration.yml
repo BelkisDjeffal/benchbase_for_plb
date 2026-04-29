@@ -24,7 +24,7 @@
         --create=false --load=false --execute=true
         > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt
       args:
-        chdir: /home/benchbase/target/benchbase-postgres
+        chdir: /root/benchbase/target/benchbase-postgres
 
 - name: Stop monitoring
   hosts: postgres_servers

@@ -17,6 +17,21 @@
 
 package com.oltpbenchmark.util;
 
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.TreeMap;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.FileHandler;
+
 import com.oltpbenchmark.DistributionStatistics;
 import com.oltpbenchmark.LatencyRecord;
 import com.oltpbenchmark.Results;
@@ -25,17 +40,6 @@ import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.collectors.DBParameterCollector;
 import com.oltpbenchmark.api.collectors.DBParameterCollectorGen;
 import com.oltpbenchmark.types.DatabaseType;
-import java.io.PrintStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.configuration2.XMLConfiguration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.io.FileHandler;
 
 public class ResultWriter {
 
@@ -110,6 +114,51 @@ public class ResultWriter {
 
     FileHandler handler = new FileHandler(outputConf);
     handler.save(os);
+  }
+
+  private static String normalizePriority(String priority) {
+    if (priority == null) {
+      return "unknown";
+    }
+    return priority.replace("\"", "").trim().toLowerCase();
+  }
+
+  private static void addLatencySample(
+      Map<Integer, Map<String, List<Integer>>> buckets,
+      int sec,
+      String priority,
+      int latencyUs) {
+
+    buckets
+        .computeIfAbsent(sec, k -> new TreeMap<>())
+        .computeIfAbsent(priority, k -> new ArrayList<>())
+        .add(latencyUs);
+  }
+
+  private static void appendLatencyStats(StringBuilder row, List<Integer> latenciesUs) {
+    row.append(",");
+
+    if (latenciesUs == null || latenciesUs.isEmpty()) {
+      row.append("0,,,,");
+      return;
+    }
+
+    int[] values = new int[latenciesUs.size()];
+    for (int i = 0; i < latenciesUs.size(); i++) {
+      values[i] = latenciesUs.get(i);
+    }
+
+    DistributionStatistics stats = DistributionStatistics.computeStatistics(values);
+
+    row.append(stats.getCount()).append(",");
+    row.append(formatMs(stats.getAverage())).append(",");
+    row.append(formatMs(stats.getMedian())).append(",");
+    row.append(formatMs(stats.get95thPercentile())).append(",");
+    row.append(formatMs(stats.get99thPercentile()));
+  }
+
+  private static String formatMs(double microseconds) {
+    return String.format("%.3f", microseconds / MILLISECONDS_FACTOR);
   }
 
   public void writeSummary(PrintStream os) {
@@ -241,6 +290,76 @@ public class ResultWriter {
           (int) s.get99thPercentile(),
           (int) s.getMaximum());
       i += 1;
+    }
+  }
+
+  public void writeLatencyTimeSeries(PrintStream out) {
+    String[] header = {
+      "sec",
+
+      "premium_count",
+      "premium_avg_ms",
+      "premium_median_ms",
+      "premium_p95_ms",
+      "premium_p99_ms",
+
+      "freemium_count",
+      "freemium_avg_ms",
+      "freemium_median_ms",
+      "freemium_p95_ms",
+      "freemium_p99_ms",
+
+      "overall_count",
+      "overall_avg_ms",
+      "overall_median_ms",
+      "overall_p95_ms",
+      "overall_p99_ms"
+    };
+
+    out.println(StringUtil.join(",", header));
+
+    List<LatencyRecord.Sample> samples = results.getLatencySamples();
+    if (samples == null || samples.isEmpty()) {
+      return;
+    }
+
+    long baseNs = results.getTestStartNanosecond();
+
+    Map<Integer, Map<String, List<Integer>>> buckets = new TreeMap<>();
+    int maxSec = 0;
+
+    for (LatencyRecord.Sample sample : samples) {
+      long endNs = sample.getStartNanosecond() + sample.getLatencyMicrosecond() * 1000L;
+      long relativeNs = endNs - baseNs;
+
+      if (relativeNs < 0) {
+        relativeNs = 0;
+      }
+
+      int sec = (int) (relativeNs / 1_000_000_000L);
+      maxSec = Math.max(maxSec, sec);
+
+      String priority = normalizePriority(sample.getWorkerPriority());
+      int latencyUs = sample.getLatencyMicrosecond();
+
+      addLatencySample(buckets, sec, "overall", latencyUs);
+
+      if ("premium".equals(priority) || "freemium".equals(priority)) {
+        addLatencySample(buckets, sec, priority, latencyUs);
+      }
+    }
+
+    for (int sec = 0; sec <= maxSec; sec++) {
+      Map<String, List<Integer>> byPriority = buckets.get(sec);
+
+      StringBuilder row = new StringBuilder();
+      row.append(sec);
+
+      appendLatencyStats(row, byPriority == null ? null : byPriority.get("premium"));
+      appendLatencyStats(row, byPriority == null ? null : byPriority.get("freemium"));
+      appendLatencyStats(row, byPriority == null ? null : byPriority.get("overall"));
+
+      out.println(row);
     }
   }
 

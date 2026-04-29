@@ -11,9 +11,9 @@ all:
         gros-111.nancy.grid5000.fr:
           ansible_host: gros-111.nancy.grid5000.fr
           ansible_user: root
-        gros-112.nancy.grid5000.fr:
-          ansible_host: gros-112.nancy.grid5000.fr
-          ansible_user: root
         gros-12.nancy.grid5000.fr:
           ansible_host: gros-12.nancy.grid5000.fr
+          ansible_user: root
+        gros-4.nancy.grid5000.fr:
+          ansible_host: gros-4.nancy.grid5000.fr
           ansible_user: root

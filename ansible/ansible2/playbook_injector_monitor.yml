@@ -5,30 +5,25 @@
   vars:
     benchbase_runs:
 
-      # - { terminals: 300, weights: "100,200" }
-      # - { terminals: 120, weights: "60,60" }
-      # - { terminals: 480, weights: "80,400" }
-      # - { terminals: 180, weights: "80,100" }
-      # - { terminals: 420, weights: "200,220" }
-      # - { terminals: 240, weights: "40,200" }
-      # - { terminals: 360, weights: "300,60" }
-      # - { terminals: 60, weights: "20,40" }
-      # - { terminals: 540, weights: "200,340" }
-   
-      # - { terminals: 500, weights: "200,300" }
-      # - { terminals: 100, weights: "50,50" }
-      # - { terminals: 200, weights: "100,100" }
-      - { terminals: 300, weights: "200,100" }
-      # - { terminals: 400, weights: "200,200" }
-      # - { terminals: 600, weights: "300,300" }
-      # - { terminals: 700, weights: "400,300" }
-      # - { terminals: 800, weights: "400,400" }
-      # - { terminals: 900, weights: "500,400" }     
+      - { terminals: 300, weights: "150,150" }
+      - { terminals: 450, weights: "225,225" }
+      - { terminals: 150, weights: "75,75" }
+      
+      - { terminals: 400, weights: "200,200" }
+      - { terminals: 600, weights: "300,300" }
+      - { terminals: 200, weights: "100,100" }
+
+      - { terminals: 350, weights: "175,175" }
+      - { terminals: 175, weights: "88,87" }
+      - { terminals: 525, weights: "263,262" }
+
+
+
   tasks:
     - name: Ensure summary extractor is executable
       shell: chmod +x extract_summary_priorities.sh
       args:
-        chdir: /home/benchbase/measurements/data
+        chdir: /root/benchbase/measurements/data
 
     - name: Run each BenchBase configuration
       loop: "{{ benchbase_runs }}"
@@ -47,7 +42,7 @@
       shell: |
         ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
       args:
-        chdir: /home/benchbase
+        chdir: /root/benchbase
 
 
 

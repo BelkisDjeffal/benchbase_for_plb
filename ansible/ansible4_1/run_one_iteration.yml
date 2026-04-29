@@ -20,7 +20,7 @@
 - name: Warmup run 
   hosts: localhost
   vars:
-    results_dir: "/home/benchbase/target/benchbase-postgres/results"
+    results_dir: "/root/benchbase/target/benchbase-postgres/results"
   tasks:
     # - name: Clear old summary files before warmup
     #   shell: rm -f {{ results_dir }}/*.summary.json
@@ -45,7 +45,7 @@
         --create=false --load=false --execute=true
         > {{ benchbase_output_dir }}/warmup_output_{{ run_id }}.txt 2>&1
       args:
-        chdir: /home/benchbase/target/benchbase-postgres
+        chdir: /root/benchbase/target/benchbase-postgres
 
     - name: List summary files after warmup
       find:
@@ -120,18 +120,18 @@
         --create=false --load=false --execute=true
         > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt 2>&1
       args:
-        chdir: /home/benchbase/target/benchbase-postgres
+        chdir: /root/benchbase/target/benchbase-postgres
 
     - name: Find bb_ts files created during this run (results dir)
       find:
-        paths: "/home/benchbase/target/benchbase-postgres/results"
+        paths: "/root/benchbase/target/benchbase-postgres/results"
         patterns: "tpch_*.bb_ts.csv"
         file_type: file
       register: bbts_results
 
     - name: Find bb_ts files created during this run (work dir)
       find:
-        paths: "/home/benchbase/target/benchbase-postgres"
+        paths: "/root/benchbase/target/benchbase-postgres"
         patterns: "tpch_*.bb_ts.csv"
         file_type: file
       register: bbts_workdir

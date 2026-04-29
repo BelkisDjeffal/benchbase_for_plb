@@ -3,7 +3,7 @@
   hosts: grid5000
   remote_user: bdjeffal
   vars:
-    OS_image: ubuntu2204-x64-min
+    OS_image: ubuntu2204-nfs
     source_host: "{{ premium_nodes[0] }}"
     source_data_dir: /var/lib/postgresql/14/main
     replica_data_dir: /var/lib/postgresql/14/main
@@ -371,19 +371,37 @@
         proto: tcp
       register: ufw_config
 
-    - name: Copy directory dump to each PostgreSQL server
+    - name: Check shared dump is visible from node
       tags: copy_benchbase_dump
-      delegate_to: localhost
-      become: false
-      synchronize:
-        src: /home/spirals/phd/experiments/benchbase_dump/
-        dest: /tmp/benchbase_dump/
-        mode: push
-      loop: "{{ postgres_servers }}"
-      loop_control:
-        loop_var: replica
-      vars:
-        ansible_host: "{{ replica }}"
+      become: true
+      become_user: bdjeffal
+      stat:
+        path: /home/bdjeffal/benchbase_dump_sf10/toc.dat
+      register: shared_dump
+
+    - name: Fail if shared dump is not visible
+      tags: copy_benchbase_dump
+      fail:
+        msg: "Shared dump not visible on {{ inventory_hostname }} at /home/bdjeffal/benchbase_dump_sf10"
+      when: not shared_dump.stat.exists
+
+    - name: Copy dump from Grid5000 home to local /tmp
+      tags: copy_benchbase_dump
+      become: true
+      become_user: bdjeffal
+      shell: |
+        rm -rf /tmp/benchbase_dump
+        mkdir -p /tmp/benchbase_dump
+        cp -a /home/bdjeffal/benchbase_dump_sf10/. /tmp/benchbase_dump/
+
+    - name: Set ownership for local dump
+      tags: copy_benchbase_dump
+      become: true
+      file:
+        path: /tmp/benchbase_dump
+        owner: postgres
+        group: postgres
+        recurse: yes
 
     - name: Restore pre-data and data sections (no indexes)
       tags: restore_pgdata
@@ -463,11 +481,12 @@
         msg: "Java & additional tools installed on {{ inventory_hostname }}"
 
     - name: Synchronize plb directory to injector node
+      tags: copy_benchbase
       delegate_to: localhost
       become: false
       ansible.builtin.synchronize:
         src: /home/spirals/phd/experiments/decembre/plb/
-        dest: /home/plb/
+        dest: /root/plb/
         mode: push    
 
     - name: Build and install plb
@@ -475,28 +494,28 @@
       ansible.builtin.shell: |
         mvn clean && mvn install
       args:
-        chdir: /home/plb
+        chdir: /root/plb
       register: plb_build_output
 
     - name: Synchronize benchbase directory to injector node
-      tags: copy_benchbase
+      #tags: copy_benchbase
       delegate_to: localhost
       become: false
       ansible.builtin.synchronize:
         src: /home/spirals/phd/experiments/janvier/benchbase/
-        dest: /home/benchbase
+        dest: /root/benchbase
         mode: push
 
     - name: Allow Git safe directory for Benchbase
       tags: copy_benchbase
-      ansible.builtin.shell: git config --global --add safe.directory /home/benchbase
-      
+      ansible.builtin.shell: git config --global --add safe.directory /root/benchbase
+
     - name: Build Benchbase
       tags: copy_benchbase
       ansible.builtin.shell: |
         ./mvnw clean package -P postgres -DskipTests && cd ./target && tar xvzf benchbase-postgres.tgz
       args:
-        chdir: /home/benchbase
+        chdir: /root/benchbase
       register: benchbase_build_output
 
 

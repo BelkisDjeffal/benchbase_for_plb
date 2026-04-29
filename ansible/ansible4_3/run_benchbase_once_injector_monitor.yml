@@ -1,0 +1,25 @@
+# File: run_benchbase_once_injector_monitor.yml
+
+- name: Get timestamp
+  vars:
+    ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  set_fact:
+    ts_run: "{{ ts }}"
+
+- name: Generate customized XML config (for this terminals/weights)
+  template:
+    src: /root/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Generate warmup XML config (for this terminals/weights)
+  template:
+    src: /root/benchbase/templates/sample_tpch_config_warmup.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config_warmup.xml
+    backup: yes
+    
+- name: Run all fault scenarios for this (terminals, weights)
+  include_tasks: run_one_fault_scenario.yml
+  loop: "{{ fault_scenarios }}"
+  loop_control:
+    loop_var: fs

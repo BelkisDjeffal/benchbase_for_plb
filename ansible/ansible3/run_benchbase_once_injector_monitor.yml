@@ -4,7 +4,7 @@
     ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
   set_fact:
     run_label: "runs_outputs_{{ ts }}"
-    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/roundrobin/runs_outputs_{{ ts }}"  
+    benchbase_output_dir: "/home/bdjeffal/measurements/2RR/runs_outputs_{{ ts }}"  
 
 - name: Persist benchbase_output_dir as a global fact
   set_fact:
@@ -25,16 +25,16 @@
 
 - name: Generate customized XML config
   template:
-    src: /home/benchbase/templates/sample_tpch_config.xml.j2
-    dest: /home/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    src: /root/benchbase/templates/sample_tpch_config.xml.j2
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
     backup: yes
 
 - name: Run one BenchBase iteration via sub-playbook
   shell: >
-    ansible-playbook -i /home/benchbase/ansible/ansible3/inventory_monitor.yml
-    /home/benchbase/ansible/ansible3/run_one_iteration.yml
+    ansible-playbook -i /root/benchbase/ansible/ansible3/inventory_monitor.yml
+    /root/benchbase/ansible/ansible3/run_one_iteration.yml
     --extra-vars "run_id={{ item }} run_label={{ run_label }} benchbase_output_dir={{ benchbase_output_dir }}"
-  loop: "{{ range(1, 11) | list }}"
+  loop: "{{ range(1, 7) | list }}"
   register: subplaybook_results
   ignore_errors: yes
 

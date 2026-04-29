@@ -1,13 +1,14 @@
 package com.oltpbenchmark;
 
-import com.oltpbenchmark.LatencyRecord.Sample;
-import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.util.Histogram;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.oltpbenchmark.LatencyRecord.Sample;
+import com.oltpbenchmark.api.TransactionType;
+import com.oltpbenchmark.types.State;
+import com.oltpbenchmark.util.Histogram;
 
 public final class Results {
 
@@ -35,10 +36,12 @@ public final class Results {
   DistributionStatistics overallGoodput;
   private final Map<String, DistributionStatistics> throughputStatsByPriority;
   private final Map<String, DistributionStatistics> goodputStatsByPriority;
+  private final long testStartNanosecond;
 
   public Results(
       State state,
       long startTimestampMs,
+      long testStartNanosecond,
       long elapsedNanoseconds,
       int measuredRequests,
       int attemptedRequests,
@@ -54,6 +57,7 @@ public final class Results {
       Map<String, DistributionStatistics> goodputStatsByPriority) {
 
     this.startTimestampMs = startTimestampMs;
+    this.testStartNanosecond = testStartNanosecond;
     this.nanoseconds = elapsedNanoseconds;
     this.measuredRequests = measuredRequests;
     this.attemptedRequests = attemptedRequests;
@@ -178,6 +182,10 @@ public final class Results {
 
   public long getStartTimestampMs() {
     return startTimestampMs;
+  }
+
+  public long getTestStartNanosecond() {
+    return testStartNanosecond;
   }
 
   public long getNanoseconds() {

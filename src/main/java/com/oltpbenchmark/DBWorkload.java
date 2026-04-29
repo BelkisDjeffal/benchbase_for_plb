@@ -795,6 +795,12 @@ public class DBWorkload {
       Worker.dumpTimeSeriesToCsv(ps);
     }
 
+    String latencyTsFileName = baseFileName + ".latency_ts.csv";
+      try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, latencyTsFileName))) {
+        LOG.info("Output latency time-series into file: {}", latencyTsFileName);
+        rw.writeLatencyTimeSeries(ps);
+      }
+
     String paramsFileName = baseFileName + ".params.json";
     try (PrintStream ps = new PrintStream(FileUtil.joinPath(outputDirectory, paramsFileName))) {
       LOG.info("Output DBMS parameters into file: {}", paramsFileName);

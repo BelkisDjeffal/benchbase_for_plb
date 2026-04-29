@@ -1,0 +1,54 @@
+# File: playbook_injector_monitor.yml
+
+- name: Run BenchBase experiments
+  hosts: localhost
+  connection: local
+  vars:
+    persistent_results_root: "/home/bdjeffal/measurements/V1_dedicated_4_1_kill_P"
+    workspace_root: "/root/benchbase"
+   
+    benchbase_runs:
+      - { terminals: 60, weights: "30,30" }
+      - { terminals: 120, weights: "60,60" }
+      - { terminals: 180, weights: "90,90" }
+      - { terminals: 240, weights: "120,120" }
+      - { terminals: 360, weights: "180,180" }
+      - { terminals: 420, weights: "210,210" }
+      - { terminals: 480, weights: "240,240" }
+      - { terminals: 540, weights: "270,270" }
+
+    repetitions: 5
+
+    fault_scenarios:
+
+      - name: "killP_60"
+        fault_events:
+          - { at_s: 60, role: "premium_replica1", action: "stop" }
+
+
+  tasks:
+    - name: Ensure summary extractor is executable
+      shell: chmod +x extract_summary_priorities.sh
+      args:
+        chdir: /root/benchbase/measurements/data
+
+    - name: Run each BenchBase configuration
+      loop: "{{ benchbase_runs }}"
+      loop_control:
+        loop_var: run
+      include_tasks: run_benchbase_once_injector_monitor.yml
+      vars:
+        terminals: "{{ run.terminals }}"
+        weights: "{{ run.weights }}"
+        # repetitions: "{{ repetitions }}"
+
+    # - name: Read last run path
+    #   shell: cat /tmp/last_benchbase_output_dir.txt
+    #   register: last_output
+
+    # - name: Extract summary priorities into correct folder
+    #   shell: |
+    #     ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+    #   args:
+    #     chdir: /home/benchbase
+

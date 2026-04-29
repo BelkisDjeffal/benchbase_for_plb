@@ -6,25 +6,32 @@
 
 - name: Set output folder
   set_fact:
-    benchbase_output_dir: "/home/benchbase/measurements/data/runs_outputs/monitoring/{{ run_label }}"
+    benchbase_output_dir:  "{{ persistent_results_root }}/{{ run_label }}"
 
 - name: Save output path to file (optional)
   copy:
     dest: /tmp/last_benchbase_output_dir.txt
     content: "{{ benchbase_output_dir }}"
 
-- name: Create output folder
+- name: Create output folder on NFS
+  become: true
+  become_user: bdjeffal
   file:
     path: "{{ benchbase_output_dir }}"
     state: directory
 
+# - name: Create output folder
+#   file:
+#     path: "{{ benchbase_output_dir }}"
+#     state: directory
+
 - name: Ensure results directory exists
   file:
-    path: /home/benchbase/target/benchbase-postgres/results
+    path: "{{ workspace_root }}/target/benchbase-postgres/results"
     state: directory
-    
-- name: Clear old measured summaries (avoid mixing scenarios)
-  shell: rm -f /home/benchbase/target/benchbase-postgres/results/*.summary.json
+
+- name: Clear old measured summaries
+  shell: rm -f {{ workspace_root }}/target/benchbase-postgres/results/*.summary.json
   ignore_errors: yes
 
 - name: Run repetitions for this fault scenario
@@ -35,6 +42,6 @@
 
 - name: Extract summaries for this scenario into its folder
   shell: |
-    ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results "{{ run_label }}"
+    ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results "{{ benchbase_output_dir }}"
   args:
-    chdir: /home/benchbase
+    chdir: /root/benchbase
