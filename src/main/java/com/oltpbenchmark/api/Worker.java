@@ -17,20 +17,6 @@
 
 package com.oltpbenchmark.api;
 
-import static com.oltpbenchmark.types.State.MEASURE;
-
-import com.oltpbenchmark.LatencyRecord;
-import com.oltpbenchmark.Phase;
-import com.oltpbenchmark.SubmittedProcedure;
-import com.oltpbenchmark.WorkloadConfiguration;
-import com.oltpbenchmark.WorkloadState;
-import com.oltpbenchmark.api.Procedure.UserAbortException;
-import com.oltpbenchmark.types.DatabaseType;
-import com.oltpbenchmark.types.State;
-import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.Histogram;
-import com.oltpbenchmark.util.SQLUtil;
-import com.oltpbenchmark.util.SeedUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
@@ -43,8 +29,23 @@ import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.oltpbenchmark.LatencyRecord;
+import com.oltpbenchmark.Phase;
+import com.oltpbenchmark.SubmittedProcedure;
+import com.oltpbenchmark.WorkloadConfiguration;
+import com.oltpbenchmark.WorkloadState;
+import com.oltpbenchmark.api.Procedure.UserAbortException;
+import com.oltpbenchmark.types.DatabaseType;
+import com.oltpbenchmark.types.State;
+import static com.oltpbenchmark.types.State.MEASURE;
+import com.oltpbenchmark.types.TransactionStatus;
+import com.oltpbenchmark.util.Histogram;
+import com.oltpbenchmark.util.SQLUtil;
+import com.oltpbenchmark.util.SeedUtil;
 
 public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -273,6 +274,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     t.setName(this.toString());
 
     ACTIVE_WORKERS.incrementAndGet();
+    incTs("worker_start");
 
     // In case of reuse reset the measurements
     latencies = new LatencyRecord(workloadState.getTestStartNs());
@@ -479,6 +481,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
       workloadState.signalDone();
       tearDown();
 
+      incTs("worker_end");
       int left = ACTIVE_WORKERS.decrementAndGet();
       // if (left == 0) {
       //   synchronized (TS_DUMP_LOCK) {
@@ -1105,6 +1108,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
           }
           return sum;
         };
+
     java.util.function.BiFunction<String, Integer, Integer> F =
         (metric, sec) -> {
           int sum = 0;
@@ -1118,8 +1122,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
         "sec,"
             + "premium_connect_attempt,premium_connect_success,premium_connect_fail,premium_connect_reject,"
             + "premium_query_attempt,premium_query_success,premium_query_fail,premium_query_timeout,premium_freemium_abandon,"
+            + "premium_worker_start,premium_worker_end,premium_active_workers,"
             + "freemium_connect_attempt,freemium_connect_success,freemium_connect_fail,freemium_connect_reject,"
-            + "freemium_query_attempt,freemium_query_success,freemium_query_fail,freemium_query_timeout,freemium_freemium_abandon");
+            + "freemium_query_attempt,freemium_query_success,freemium_query_fail,freemium_query_timeout,freemium_freemium_abandon,"
+            + "freemium_worker_start,freemium_worker_end,freemium_active_workers,"
+            + "total_active_workers");
+
+    int pActiveWorkers = 0;
+    int fActiveWorkers = 0;
 
     for (int sec = 0; sec <= maxSec; sec++) {
       int p_ca = P.apply("connect_attempt", sec);
@@ -1134,6 +1144,11 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
       int p_ab = P.apply("freemium_abandon", sec);
 
+      int p_ws = P.apply("worker_start", sec);
+      int p_we = P.apply("worker_end", sec);
+
+      pActiveWorkers += p_ws - p_we;
+
       int f_ca = F.apply("connect_attempt", sec);
       int f_cs = F.apply("connect_success", sec);
       int f_cf = F.apply("connect_fail", sec);
@@ -1146,15 +1161,41 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
 
       int f_ab = F.apply("freemium_abandon", sec);
 
-      // if
-      // ((p_ca|p_cs|p_cf|p_cr|p_qa|p_qs|p_qf|p_qt|p_ab|f_ca|f_cs|f_cf|f_cr|f_qa|f_qs|f_qf|f_qt|f_ab) == 0) {
-      //   continue;
-      // }
+      int f_ws = F.apply("worker_start", sec);
+      int f_we = F.apply("worker_end", sec);
+
+      fActiveWorkers += f_ws - f_we;
+
+      int totalActiveWorkers = pActiveWorkers + fActiveWorkers;
 
       ps.printf(
-          "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-          sec, p_ca, p_cs, p_cf, p_cr, p_qa, p_qs, p_qf, p_qt, p_ab, f_ca, f_cs, f_cf, f_cr, f_qa,
-          f_qs, f_qf, f_qt, f_ab);
+          "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
+          sec,
+          p_ca,
+          p_cs,
+          p_cf,
+          p_cr,
+          p_qa,
+          p_qs,
+          p_qf,
+          p_qt,
+          p_ab,
+          p_ws,
+          p_we,
+          pActiveWorkers,
+          f_ca,
+          f_cs,
+          f_cf,
+          f_cr,
+          f_qa,
+          f_qs,
+          f_qf,
+          f_qt,
+          f_ab,
+          f_ws,
+          f_we,
+          fActiveWorkers,
+          totalActiveWorkers);
     }
 
     ps.flush();
