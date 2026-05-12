@@ -4,32 +4,42 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_dedicated_3_2_kill_P_kill_P"
+    persistent_results_root: "/home/bdjeffal/measurements/dedicated_3RR"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
-      - { terminals: 300, weights: "150,150" }
       - { terminals: 450, weights: "225,225" }
-      - { terminals: 150, weights: "75,75" }
-      
-      - { terminals: 400, weights: "200,200" }
-      - { terminals: 600, weights: "300,300" }
-      - { terminals: 200, weights: "100,100" }
+      - { terminals: 750, weights: "375,375" }
 
-      - { terminals: 350, weights: "175,175" }
-      - { terminals: 175, weights: "88,87" }
-      - { terminals: 525, weights: "263,262" }
-
-    repetitions: 5
+    repetitions: 3
 
     fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
+      # -----------------------------
+      # Single fault + later fault and rejoin
+      # -----------------------------
+      - name: "killP_120_rejoinP_210"
+        fault_events:
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
 
+      # -----------------------------
+      # Double fault in same logical pool
+      # -----------------------------
       - name: "killP_90_killP_150_rejoinP1_210_rejoinP2_270"
         fault_events:
           - { at_s: 90, role: "premium_replica1", action: "stop" }
           - { at_s: 150, role: "premium_replica2", action: "stop" }
           - { at_s: 210, role: "premium_replica1", action: "start" }
           - { at_s: 270, role: "premium_replica2", action: "start" }
+
+      - name: "killP_120_killP_120_rejoinP1_210_rejoinP2_210"
+        fault_events:
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 120, role: "premium_replica2", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+          - { at_s: 210, role: "premium_replica2", action: "start" }
 
 
   tasks:

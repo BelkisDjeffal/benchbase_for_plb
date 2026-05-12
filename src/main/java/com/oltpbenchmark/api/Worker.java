@@ -1085,13 +1085,16 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
   public static void dumpTimeSeriesToCsv(java.io.PrintStream ps) {
     if (ps == null) return;
 
-    java.util.Map<String, java.util.List<String>> aliases = new java.util.HashMap<>();
+    java.util.Map<String, java.util.Set<String>> aliases = new java.util.HashMap<>();
+
     for (String key : TS.keySet()) {
       int idx = key.lastIndexOf('|');
       if (idx < 0 || idx + 1 >= key.length()) continue;
+
       String rawTier = key.substring(idx + 1);
       String norm = normalizeTier(rawTier);
-      aliases.computeIfAbsent(norm, k -> new java.util.ArrayList<>()).add(rawTier);
+
+      aliases.computeIfAbsent(norm, k -> new java.util.HashSet<>()).add(rawTier);
     }
 
     java.util.Set<Integer> secs = new java.util.HashSet<>();
@@ -1103,7 +1106,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     java.util.function.BiFunction<String, Integer, Integer> P =
         (metric, sec) -> {
           int sum = 0;
-          for (String raw : aliases.getOrDefault("premium", java.util.List.of("premium"))) {
+          for (String raw : aliases.getOrDefault("premium", java.util.Set.of("premium"))) {
             sum += getTsRaw(metric, raw, sec);
           }
           return sum;
@@ -1112,7 +1115,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     java.util.function.BiFunction<String, Integer, Integer> F =
         (metric, sec) -> {
           int sum = 0;
-          for (String raw : aliases.getOrDefault("freemium", java.util.List.of("freemium"))) {
+          for (String raw : aliases.getOrDefault("freemium", java.util.Set.of("freemium"))) {
             sum += getTsRaw(metric, raw, sec);
           }
           return sum;

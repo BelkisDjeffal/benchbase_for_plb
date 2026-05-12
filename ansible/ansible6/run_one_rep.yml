@@ -48,7 +48,8 @@
       rm -f "{{ benchbase_output_dir }}/warmup_output_{{ rep }}.txt" || true
       rm -f "{{ benchbase_output_dir }}/tpch_run_{{ rep }}.bb_ts.csv" || true
       rm -rf "{{ benchbase_output_dir }}/monitoring/run_{{ rep }}" || true
-
+      rm -f "{{ benchbase_output_dir }}/tpch_run_{{ rep }}.latency_ts.csv" || true
+ 
       # 3) Kill remote pidstat and scheduled fault scripts for this repetition
       ansible postgres_servers -i "$INVENTORY" -b -m shell -a '
         if [ -f /tmp/monitoring/{{ run_label }}/run_{{ rep }}/pidstat.pid ]; then

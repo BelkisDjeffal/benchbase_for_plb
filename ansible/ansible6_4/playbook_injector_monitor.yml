@@ -4,16 +4,38 @@
   hosts: localhost
   connection: local
   vars:
-    persistent_results_root: "/home/bdjeffal/measurements/V1_600_4"
+    persistent_results_root: "/home/bdjeffal/measurements/V1"
     workspace_root: "/root/benchbase"
    
     benchbase_runs:
+      - { terminals: 600, weights: "450,150" }
+      - { terminals: 1000, weights: "750,250" }
 
-      - { terminals: 600, weights: "150,450" }
-      
-    repetitions: 5
+    repetitions: 3
 
     fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
+      # -----------------------------
+      # Single fault + later fault and rejoin
+      # -----------------------------
+      - name: "killP_120_rejoinP_210"
+        fault_events:
+          - { at_s: 120, role: "premium_replica1", action: "stop" }
+          - { at_s: 210, role: "premium_replica1", action: "start" }
+
+      - name: "killF_120_rejoinF_210"
+        fault_events:
+          - { at_s: 120, role: "freemium_replica1", action: "stop" }
+          - { at_s: 210, role: "freemium_replica1", action: "start" }
+
+      - name: "killM_120_rejoinM_210"
+        fault_events:
+          - { at_s: 120, role: "freemium_replica2", action: "stop" }
+          - { at_s: 210, role: "freemium_replica2", action: "start" }
+      # -----------------------------
+      # Double fault in same logical pool
+      # -----------------------------
       - name: "killP_90_killP_150_rejoinP1_210_rejoinP2_270"
         fault_events:
           - { at_s: 90, role: "premium_replica1", action: "stop" }
@@ -27,23 +49,6 @@
           - { at_s: 150, role: "freemium_replica3", action: "stop" }
           - { at_s: 210, role: "freemium_replica2", action: "start" }
           - { at_s: 270, role: "freemium_replica3", action: "start" }
-          
-      # -----------------------------
-      # Cross-pool logical faults
-      # -----------------------------
-      - name: "killP_90_killF_150_rejoinP_210_rejoinF_270"
-        fault_events:
-          - { at_s: 90, role: "premium_replica1", action: "stop" }
-          - { at_s: 150, role: "freemium_replica1", action: "stop" }
-          - { at_s: 210, role: "premium_replica1", action: "start" }
-          - { at_s: 270, role: "freemium_replica1", action: "start" }
-
-      - name: "killF_90_killM_150_rejoinF_210_rejoinM_270"
-        fault_events:
-          - { at_s: 90, role: "freemium_replica1", action: "stop" }
-          - { at_s: 150, role: "freemium_replica2", action: "stop" }
-          - { at_s: 210, role: "freemium_replica1", action: "start" }
-          - { at_s: 270, role: "freemium_replica2", action: "start" }
 
 
   tasks:

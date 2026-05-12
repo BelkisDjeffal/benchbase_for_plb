@@ -5,14 +5,6 @@
   vars:
     benchbase_runs:
 
-      - { terminals: 400, weights: "200,200" }
-      - { terminals: 600, weights: "300,300" }
-      - { terminals: 200, weights: "100,100" }
-
-      - { terminals: 350, weights: "175,175" }
-      - { terminals: 175, weights: "88,87" }
-      - { terminals: 525, weights: "263,262" }
-
       - { terminals: 300, weights: "150,150" }
       - { terminals: 450, weights: "225,225" }
       - { terminals: 150, weights: "75,75" }

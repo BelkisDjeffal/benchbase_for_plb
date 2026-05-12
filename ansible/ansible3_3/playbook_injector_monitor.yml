@@ -1,0 +1,41 @@
+#playbook_injector_monitor.yml
+- name: Run BenchBase experiments
+  hosts: localhost
+  connection: local
+  vars:
+    benchbase_runs:
+
+      - { terminals: 500, weights: "250,250" }
+      - { terminals: 250, weights: "125,125" }
+      - { terminals: 750, weights: "375,375" }
+
+  tasks:
+    - name: Ensure summary extractor is executable
+      shell: chmod +x extract_summary_priorities.sh
+      args:
+        chdir: /root/benchbase/measurements/data
+
+    - name: Run each BenchBase configuration
+      loop: "{{ benchbase_runs }}"
+      loop_control:
+        loop_var: run
+      include_tasks: run_benchbase_once_injector_monitor.yml
+      vars:
+        terminals: "{{ run.terminals }}"
+        weights: "{{ run.weights }}"
+  
+    - name: Read last run path
+      shell: cat /tmp/last_benchbase_output_dir.txt
+      register: last_output
+
+    - name: Extract summary priorities into correct folder
+      shell: |
+        ./measurements/data/extract_summary_priorities.sh target/benchbase-postgres/results {{ last_output.stdout | regex_replace('.*/monitoring/', '') }}
+      args:
+        chdir: /root/benchbase
+
+
+
+
+
+

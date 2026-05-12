@@ -10,13 +10,71 @@
       workspace_root: "{{ workspace_root }}"
       fault_events: {{ fs.fault_events | to_json }}
 
-- name: Run one repetition
-  shell: >
-    ansible-playbook -i /root/benchbase/ansible/ansible6_8/inventory_monitor.yml
-    /root/benchbase/ansible/ansible6_8/run_one_iteration.yml
-    --extra-vars "@/tmp/run_vars.yml"
+- name: Run one repetition with timeout and retry
+  shell: |
+    set -u
+
+    max_attempts=10
+    attempt=1
+    timeout_seconds=900
+
+    INVENTORY="/root/benchbase/ansible/ansible6_8/inventory_monitor.yml"
+    ITERATION_PLAYBOOK="/root/benchbase/ansible/ansible6_8/run_one_iteration.yml"
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+      echo "=== repetition {{ rep }} / attempt $attempt of $max_attempts ==="
+
+      timeout --signal=TERM --kill-after=30s "${timeout_seconds}s" \
+        ansible-playbook -i "$INVENTORY" "$ITERATION_PLAYBOOK" --extra-vars "@/tmp/run_vars.yml"
+      rc=$?
+
+      if [ "$rc" -eq 0 ]; then
+        echo "Repetition {{ rep }} succeeded on attempt $attempt"
+        exit 0
+      fi
+
+      echo "Repetition {{ rep }} failed on attempt $attempt with rc=$rc"
+      echo "Cleaning up before retry..."
+
+      # 1) Kill leftover BenchBase Java only, not this shell
+      pids=$(ps -eo pid=,comm=,args= | awk '$2=="java" && $0 ~ /benchbase\.jar/ {print $1}')
+      if [ -n "$pids" ]; then
+        kill -TERM $pids >/dev/null 2>&1 || true
+        sleep 5
+        kill -KILL $pids >/dev/null 2>&1 || true
+      fi
+      # 2) Remove partial local files for this repetition
+      rm -f "{{ benchbase_output_dir }}/run_output_{{ rep }}.txt" || true
+      rm -f "{{ benchbase_output_dir }}/warmup_output_{{ rep }}.txt" || true
+      rm -f "{{ benchbase_output_dir }}/tpch_run_{{ rep }}.bb_ts.csv" || true
+      rm -rf "{{ benchbase_output_dir }}/monitoring/run_{{ rep }}" || true
+      rm -f "{{ benchbase_output_dir }}/tpch_run_{{ rep }}.latency_ts.csv" || true
+  
+      # 3) Kill remote pidstat and scheduled fault scripts for this repetition
+      ansible postgres_servers -i "$INVENTORY" -b -m shell -a '
+        if [ -f /tmp/monitoring/{{ run_label }}/run_{{ rep }}/pidstat.pid ]; then
+          kill -TERM "$(cat /tmp/monitoring/{{ run_label }}/run_{{ rep }}/pidstat.pid)" >/dev/null 2>&1 || true
+        fi
+
+        if ls /tmp/fault/{{ run_label }}/run_{{ rep }}/*.pid >/dev/null 2>&1; then
+          for p in /tmp/fault/{{ run_label }}/run_{{ rep }}/*.pid; do
+            kill -TERM "$(cat "$p")" >/dev/null 2>&1 || true
+          done
+        fi
+      ' >/dev/null 2>&1 || true
+
+      # Small pause before retry
+      sleep 10
+
+      attempt=$((attempt + 1))
+    done
+
+    echo "Repetition {{ rep }} failed after $max_attempts attempts"
+    exit 1
+  args:
+    executable: /bin/bash
   register: rep_result
-  failed_when: false
+  failed_when: rep_result.rc != 0
 
 - name: Show repetition output (only if success)
   debug:
