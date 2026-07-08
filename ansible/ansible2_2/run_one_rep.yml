@@ -1,0 +1,33 @@
+# File: run_one_rep.yml
+
+- name: Write vars file for this repetition (so fault_events passes safely)
+  copy:
+    dest: /tmp/run_vars.yml
+    content: |
+      run_id: {{ rep }}
+      run_label: "{{ run_label }}"
+      benchbase_output_dir: "{{ benchbase_output_dir }}"
+      fault_events: {{ fs.fault_events | to_json }}
+
+- name: Run one repetition
+  shell: >
+    ansible-playbook -i /root/benchbase/ansible/ansible2_2/inventory_monitor.yml
+    /root/benchbase/ansible/ansible2_2/run_one_iteration.yml
+    --extra-vars "@/tmp/run_vars.yml"
+  register: rep_result
+  ignore_errors: yes
+
+- name: Show repetition output (only if success)
+  debug:
+    msg: "{{ rep_result.stdout_lines | default([]) }}"
+  when: rep_result.rc is defined and rep_result.rc == 0
+
+- name: Show repetition errors (stdout)
+  debug:
+    msg: "{{ rep_result.stdout_lines | default([]) }}"
+  when: rep_result.rc is defined and rep_result.rc != 0
+
+- name: Show repetition errors (stderr)
+  debug:
+    msg: "{{ rep_result.stderr_lines | default([]) }}"
+  when: rep_result.rc is defined and rep_result.rc != 0

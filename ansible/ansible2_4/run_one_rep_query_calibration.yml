@@ -1,0 +1,24 @@
+- name: Write vars file for this repetition
+  copy:
+    dest: /tmp/run_vars.yml
+    content: |
+      run_id: {{ rep }}
+      run_label: "{{ run_label }}"
+      benchbase_output_dir: "{{ benchbase_output_dir }}"
+      fault_events: {{ fs.fault_events | to_json }}
+
+- name: Run one calibration repetition
+  shell: |
+    set -euo pipefail
+    INVENTORY="{{ playbook_dir }}/inventory_monitor.yml"
+    ITERATION_PLAYBOOK="{{ playbook_dir }}/run_one_iteration_query_calibration.yml"
+
+    ansible-playbook -i "$INVENTORY" "$ITERATION_PLAYBOOK" --extra-vars "@/tmp/run_vars.yml"
+  args:
+    executable: /bin/bash
+  register: rep_result
+  failed_when: rep_result.rc != 0
+
+- name: Show repetition output
+  debug:
+    msg: "{{ rep_result.stdout_lines | default([]) }}"

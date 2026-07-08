@@ -1,0 +1,57 @@
+- name: Run single-replica query calibration
+  hosts: localhost
+  connection: local
+  vars:
+    persistent_results_root: "/home/bdjeffal/measurements/query_calibration_q1"
+    measured_time: 180
+    warmup_time: 20
+    scale_factor: 1
+    query_weights: "100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+
+    benchbase_runs:
+
+      - { terminals: 5, weights: "5,0" }
+      - { terminals: 10, weights: "10,0" }
+      - { terminals: 20, weights: "20,0" }
+      - { terminals: 40, weights: "40,0" }
+      - { terminals: 60, weights: "60,0" }
+      - { terminals: 80, weights: "80,0" }
+      - { terminals: 100, weights: "100,0" }
+      - { terminals: 120, weights: "120,0" }
+      - { terminals: 160, weights: "160,0" }
+
+      - { terminals: 200, weights: "200,0" }
+      - { terminals: 240, weights: "240,0" }
+      - { terminals: 300, weights: "300,0" }
+      - { terminals: 350, weights: "350,0" }
+      - { terminals: 400, weights: "400,0" }
+      - { terminals: 450, weights: "450,0" }
+      - { terminals: 500, weights: "500,0" }
+      - { terminals: 550, weights: "550,0" }
+      - { terminals: 600, weights: "600,0" }
+
+      - { terminals: 260, weights: "260,0" }
+      - { terminals: 280, weights: "280,0" }
+      - { terminals: 320, weights: "320,0" }
+      - { terminals: 375, weights: "375,0" }
+      - { terminals: 425, weights: "425,0" }
+      - { terminals: 475, weights: "475,0" }
+      - { terminals: 525, weights: "525,0" }
+      - { terminals: 575, weights: "575,0" }
+      - { terminals: 600, weights: "600,0" }
+
+    repetitions: 3
+
+    fault_scenarios:
+      - name: "no_fault"
+        fault_events: []
+
+  tasks:
+    - name: Run each calibration load
+      loop: "{{ benchbase_runs }}"
+      loop_control:
+        loop_var: run
+      include_tasks: run_benchbase_once_query_calibration.yml
+      vars:
+        terminals: "{{ run.terminals }}"
+        weights: "{{ run.weights }}"

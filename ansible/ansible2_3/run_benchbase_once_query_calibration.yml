@@ -1,0 +1,23 @@
+- name: Get timestamp
+  vars:
+    ts: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+  set_fact:
+    ts_run: "{{ ts }}"
+
+- name: Generate measured XML config
+  template:
+    src: "{{ playbook_dir }}/templates/sample_tpch_config_query_calibration.xml.j2"
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config.xml
+    backup: yes
+
+- name: Generate warmup XML config
+  template:
+    src: "{{ playbook_dir }}/templates/sample_tpch_config_query_calibration_warmup.xml.j2"
+    dest: /root/benchbase/target/benchbase-postgres/config/postgres/sample_tpch_config_warmup.xml
+    backup: yes
+
+- name: Run no-fault calibration scenario
+  include_tasks: run_one_fault_scenario_query_calibration.yml
+  loop: "{{ fault_scenarios }}"
+  loop_control:
+    loop_var: fs

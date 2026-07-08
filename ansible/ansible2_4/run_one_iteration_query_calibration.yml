@@ -1,0 +1,153 @@
+- name: Restart calibrated PostgreSQL replica
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Restart PostgreSQL on source host
+      systemd:
+        name: postgresql
+        state: restarted
+      when: inventory_hostname == source_host
+
+    - name: Wait until PostgreSQL is ready on source host
+      shell: pg_isready -p 5432
+      register: pg_ready
+      retries: 30
+      delay: 2
+      until: pg_ready.rc == 0
+      when: inventory_hostname == source_host
+
+- name: Warmup run
+  hosts: localhost
+  tasks:
+    - name: Create warmup output folder
+      file:
+        path: "{{ benchbase_output_dir }}/benchbase_outputs/warmup_{{ run_id }}"
+        state: directory
+
+    - name: Run warmup BenchBase
+      shell: >
+        java -jar benchbase.jar -b tpch
+        -c config/postgres/sample_tpch_config_warmup.xml
+        -d "{{ benchbase_output_dir }}/benchbase_outputs/warmup_{{ run_id }}"
+        --create=false --load=false --execute=true
+        > {{ benchbase_output_dir }}/warmup_output_{{ run_id }}.txt 2>&1
+      args:
+        chdir: /root/benchbase/target/benchbase-postgres
+
+- name: Start monitoring and schedule faults
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  vars:
+    fault_events: "{{ fault_events | default([]) }}"
+  tasks:
+    - name: Create monitoring folder on source host
+      file:
+        path: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}"
+        state: directory
+      when: inventory_hostname == source_host
+
+    - name: Start pidstat on source host
+      shell: |
+        nohup pidstat -h -r -u -d 1 > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log 2>&1 &
+        echo $! > /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid
+      args:
+        executable: /bin/bash
+      when: inventory_hostname == source_host
+
+    - name: Create fault folder on source host
+      file:
+        path: "/tmp/fault/{{ run_label }}/run_{{ run_id }}"
+        state: directory
+      when: inventory_hostname == source_host
+
+    - name: Schedule fault events on source host
+      shell: |
+        nohup bash -c "sleep {{ item.at_s }}; systemctl {{ item.action }} postgresql"           > /tmp/fault/{{ run_label }}/run_{{ run_id }}/fault_{{ item.role }}_t{{ item.at_s }}.log 2>&1 &
+        echo $! > /tmp/fault/{{ run_label }}/run_{{ run_id }}/fault_{{ item.role }}_t{{ item.at_s }}.pid
+      args:
+        executable: /bin/bash
+      loop: "{{ fault_events }}"
+      when:
+        - inventory_hostname == source_host
+        - replica_roles[inventory_hostname] == item.role
+
+- name: Run measured BenchBase workload
+  hosts: localhost
+  tasks:
+    - name: Create measured output folder
+      file:
+        path: "{{ benchbase_output_dir }}/benchbase_outputs/run_{{ run_id }}"
+        state: directory
+
+    - name: Run BenchBase workload
+      shell: >
+        java -jar benchbase.jar -b tpch
+        -c config/postgres/sample_tpch_config.xml
+        -d "{{ benchbase_output_dir }}/benchbase_outputs/run_{{ run_id }}"
+        --create=false --load=false --execute=true
+        > {{ benchbase_output_dir }}/run_output_{{ run_id }}.txt 2>&1
+      args:
+        chdir: /root/benchbase/target/benchbase-postgres
+
+    - name: List generated measured files
+      find:
+        paths: "{{ benchbase_output_dir }}/benchbase_outputs/run_{{ run_id }}"
+        patterns: "tpch_*"
+        file_type: file
+      register: generated_files
+
+    - name: Show generated measured files
+      debug:
+        msg: "{{ generated_files.files | map(attribute='path') | list }}"
+
+- name: Stop monitoring and cleanup faults
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Stop pidstat on source host
+      shell: |
+        if [ -f /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid ]; then
+          kill -TERM "$(cat /tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.pid)" >/dev/null 2>&1 || true
+        fi
+      args:
+        executable: /bin/bash
+      ignore_errors: yes
+      when: inventory_hostname == source_host
+
+    - name: Cancel remaining scheduled fault scripts on source host
+      shell: |
+        if ls /tmp/fault/{{ run_label }}/run_{{ run_id }}/*.pid >/dev/null 2>&1; then
+          for p in /tmp/fault/{{ run_label }}/run_{{ run_id }}/*.pid; do
+            kill -TERM "$(cat "$p")" >/dev/null 2>&1 || true
+          done
+        fi
+      args:
+        executable: /bin/bash
+      ignore_errors: yes
+      when: inventory_hostname == source_host
+
+- name: Fetch monitoring logs
+  hosts: postgres_servers
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Fetch pidstat log from source host
+      fetch:
+        src: "/tmp/monitoring/{{ run_label }}/run_{{ run_id }}/pidstat.log"
+        dest: "{{ benchbase_output_dir }}/monitoring/run_{{ run_id }}/{{ replica_roles[inventory_hostname] }}_{{ inventory_hostname }}.log"
+        flat: yes
+      when: inventory_hostname == source_host
+
+- name: Inter-run pause
+  hosts: localhost
+  tasks:
+    - name: Pause before next run
+      pause:
+        seconds: 5

@@ -1,0 +1,33 @@
+- name: Set run label
+  set_fact:
+    run_label: "Q1_T{{ terminals }}__{{ fs.name }}__{{ ts_run }}"
+
+- name: Set output folder
+  set_fact:
+    benchbase_output_dir: "{{ persistent_results_root }}/{{ run_label }}"
+
+- name: Save output path to file
+  copy:
+    dest: /tmp/last_benchbase_output_dir.txt
+    content: "{{ benchbase_output_dir }}"
+
+- name: Create output folder
+  file:
+    path: "{{ benchbase_output_dir }}"
+    state: directory
+
+- name: Ensure default results directory exists
+  file:
+    path: /root/benchbase/target/benchbase-postgres/results
+    state: directory
+
+- name: Clear default result files
+  shell: rm -f /root/benchbase/target/benchbase-postgres/results/tpch_* || true
+  args:
+    executable: /bin/bash
+
+- name: Run repetitions for this calibration load
+  include_tasks: run_one_rep_query_calibration.yml
+  loop: "{{ range(1, repetitions + 1) | list }}"
+  loop_control:
+    loop_var: rep
