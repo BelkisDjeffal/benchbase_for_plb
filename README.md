@@ -1,17 +1,17 @@
-# **Quick Guide**
-For now, please work on the `spawn_poisson` branch instead of `master`. The master branch is not up to date, 
+# BenchBase Extensions for PLB Experiments
 
-1. **Build BenchBase**:
-   ```sh
-   ./mvnw clean package -P postgres -DskipTests
-   ```
+This repository contains a research customization of [BenchBase](https://github.com/cmu-db/benchbase) used for the experimental evaluation of [PLB](https://github.com/BelkisDjeffal/plb).
 
-2. **Extract the built package**:
-   ```sh
-   cd ./target && tar xvzf benchbase-postgres.tgz
-   ```
+The extensions support service-class-aware workloads, controlled arrivals and session lifecycles, worker/query outcome tracking, and additional measurements used for PLB experiments and simulation calibration.
 
-3. **Run the Benchmark**:
-   ```sh
-   java -jar benchbase.jar -b tpch -c config/postgres/sample_tpch_config.xml --create=false --load=false --execute=true
-   ```
+The `ansible/` directory contains the deployment and experiment orchestration used for distributed PostgreSQL experiments.
+
+Different branches preserve experiment-specific variants, including timeout handling, worker rejection, failure scenarios and calibration workloads.
+
+## References
+
+D. E. Difallah, A. Pavlo, C. Curino, and P. Cudré-Mauroux,
+“OLTP-Bench: An Extensible Testbed for Benchmarking Relational Databases,”
+PVLDB, vol. 7, no. 4, pp. 277–288, 2013.
+
+See the original [BenchBase repository](https://github.com/cmu-db/benchbase) for documentation, licensing and upstream development.
